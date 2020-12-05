@@ -1,0 +1,280 @@
+reliable server function bool IsAdmin() {
+    return WorldInfo.Game.AccessControl.IsAdmin(self) || WorldInfo.NetMode == NM_Standalone;
+}
+
+reliable server function S_AdminBroadcastMessage(string Message, optional bool bShowName=true) {
+    local AOCPlayerController PC;
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC) {
+        if (bShowName)
+            PC.ReceiveChatMessage(AOCPRI(PlayerReplicationInfo).GetHumanReadableName()$":"@Message, EFAC_ALL, false, false, ,false);
+        else
+            PC.ReceiveChatMessage(Message, EFAC_ALL, false, false, ,false);
+    }
+}
+
+exec function AdminBroadcastMessage(String Message) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage(Message);
+}
+
+exec function AdminChangeTeam(String PlayerName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminChangeTeam "$PlayerName);
+    super.AdminChangeTeam(PlayerName);
+}
+
+exec function AdminChangeTeamDamageAmount(float Amount) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminChangeTeamDamageAmount "$Amount);
+    super.AdminChangeTeamDamageAmount(Amount);
+}
+
+exec function AdminCancelVote() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminCancelVote");
+    super.AdminCancelVote();
+}
+
+exec function AdminReadyAll() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminReadyAll");
+    super.AdminReadyAll();
+}
+
+function bool SetPause(bool bPause, optional delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
+	local bool bResult;
+	if (bPause) {
+		bFire = 0;
+		// Pause gamepad rumbling too if needed
+		bResult = WorldInfo.Game.SetPause(self,CanUnpauseDelegate);
+		if (bResult)
+			PauseRumbleForAllPlayers();
+	} else if (IsAdmin()) {
+		WorldInfo.Game.ClearPause();
+		// If the unpause is complete, let rumble occur
+		if (WorldInfo.Pauser == None) {
+			// If we did a gameplay frame pause clear it out now
+			WorldInfo.bGameplayFramePause = false;
+
+			PauseRumbleForAllPlayers(false);
+		}
+	}
+	return bResult;
+}
+
+/*function bool SetPause(bool bPause, optional delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
+	local bool bResult;
+    bResult = false;
+	if (bPause)
+        bResult = ActualPause(CanUnpauseDelegate);
+	else
+        ClientDisplayConsoleMessage("Please use the command 'CompModUnpause' to unpause.");
+	return bResult;
+}
+
+exec function CompModPause() {
+    if (IsAdmin())
+        ActualPause();
+    else
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+}
+
+exec function CompModUnpause() {
+    if (IsAdmin() && bPaused)
+        StartUnpauseCountdown();
+    else if (!bPaused)
+        ClientDisplayConsoleMessage("You cannot unpause at this time.");
+    else
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+}
+
+reliable server function StartUnpauseCountdown() {
+    UnpauseCountdownTime = Default.UnpauseCountdownTime;
+    AdminBroadcastMessage("Unpausing in...");
+    CountdownTick();
+    SetTimer(1.0f, true, 'CountdownTick');
+}
+
+reliable server function CountdownTick() {
+    if (UnpauseCountdownTime == 0) {
+        ActualUnpause();
+        ClearTimer('CountdownTick');
+    } else {
+        AdminBroadcastMessage("    "@UnpauseCountdownTime@"...");
+        UnpauseCountdownTime--;
+    }
+}
+
+reliable server function bool ActualPause(delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
+    local bool bResult;
+    bResult = false;
+    if (IsAdmin() && !bPaused) {
+        bFire = 0;
+        // Pause gamepad rumbling too if needed
+        bResult = WorldInfo.Game.SetPause(self,CanUnpauseDelegate);
+        if (bResult) {
+            PauseRumbleForAllPlayers();
+            bPaused = true;
+        }
+    }
+    return bResult;
+}
+
+reliable server function ActualUnpause() {
+    if (IsAdmin() && bPaused) {
+        WorldInfo.Game.ClearPause();
+        // If the unpause is complete, let rumble occur
+        if (WorldInfo.Pauser == None) {
+            // If we did a gameplay frame pause clear it out now
+            WorldInfo.bGameplayFramePause = false;
+            PauseRumbleForAllPlayers(false);
+        }
+        bPaused = false;
+    }
+}*/
+
+exec function GetAdmins() {
+    S_GetAdmins();
+}
+
+reliable server function S_GetAdmins() {
+    local AOCPlayerController PC;
+    ReceiveChatMessage("All admins:", EFAC_ALL, false, false, ,false);
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC) {
+        if (AOCPRI(PC.PlayerReplicationInfo).bAdmin)
+            ReceiveChatMessage(AOCPRI(PC.PlayerReplicationInfo).GetHumanReadableName(), EFAC_ALL, false, false, ,false);
+    }
+}
+
+reliable client function NotifyTournamentWaiting(float Threshold) {
+	bShowedTournamentWaitingMessage = true;
+}
+
+reliable server function S_SendF10Message() {
+    ReceiveChatMessage("You will implode in 1 second.", EFAC_ALL, false, false, ,false);
+}
+
+exec function FOV(float F) {
+    if((F >= 60.0 && F <= 165.0) || PlayerReplicationInfo.bOnlySpectator) {
+		DefaultFOV = F;
+		DesiredFOV = DefaultFOV;
+
+        if((F >= 60.0 && F <= 165.0) && PlayerCamera != None) {
+            PlayerCamera.SetFOV( F );
+            return;
+        }
+
+		if (IsLocalPlayerController()) {
+			MyFOV = F;
+			default.MyFOV = F;
+			StaticSaveConfig();
+		}
+	}
+}
+
+exec function ce(optional name EventName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("CauseEvent "$EventName);
+    super.ce(EventName);
+}
+
+exec function CauseEvent(optional name EventName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("CauseEvent "$EventName);
+    super.CauseEvent(EventName);
+}
+
+exec function AdminGotoDF() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    ServerChangeMap("AOCTO-Darkforest_p");
+}
+
+exec function AdminGotoDuel() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    ServerChangeMap("AOCFFA-Duelyard_p");
+}
+
+exec function AdminGotoMoor() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    ServerChangeMap("AOCLTS-Moor_p");
+}
+
+exec function AdminForceSpectate(String PlayerName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminForceSpectate(PlayerName);
+}
+
+reliable server function S_AdminForceSpectate(String PlayerName) {
+    local AOCPlayerController Target;
+    local AOCAccessControl AccessControl;
+
+    AccessControl = AOCAccessControl(WorldInfo.Game.AccessControl);
+
+	if (!IsAdmin()) {
+		ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+		return;
+	}
+
+	Target = AOCPlayerController(AccessControl.GetControllerFromString(PlayerName));
+	if (Target == none) {
+		ClientDisplayConsoleMessage("The specified player was not found.");
+		return;
+	}
+
+	if(Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' || Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' || AOCPRI(Target.PlayerReplicationInfo).bAdmin) {
+		ClientDisplayConsoleMessage("The specified player cannot be moved to spectate.");
+		return;
+	}
+
+	Target.JoinSpectatorTeam();
+
+    S_AdminBroadcastMessage("AdminForceSpectate "$AOCPRI(Target.PlayerReplicationInfo).GetHumanReadableName());
+}
+
+exec function Reload() {
+	if(!ScriptBlockedInputs[EINBLOCK_Reload] && CompModWeapon_Crossbow(Pawn.Weapon) != none)
+		CompModWeapon_Crossbow(Pawn.Weapon).ActivateReload();
+}
+
+exec function PerformAim() {
+	if (class<CompModWeapon_Crossbow>(Pawn.Weapon.Class) != none)
+		StartFire(1);
+}
+
+DefaultProperties
+{
+    suicideDelay = 1.0f
+}

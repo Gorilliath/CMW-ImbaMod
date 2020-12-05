@@ -1,0 +1,706 @@
+simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> UsedWeapon) {
+	// If the weapon is set never to flinch, don't flinch
+	if (UsedWeapon.default.bNeverFlinch)
+		return false;
+
+	// Don't flinch javelin
+	if (AOCWeapon_JavelinThrow(Info.HitActor.Weapon) != none)
+		return false;
+
+	// Smokepots and oil pots shouldn't flinch when they hit people
+	if (AOCWeapon_SmokePot(Info.Instigator.Weapon) != none || AOCWeapon_OilPot(Info.Instigator.Weapon) != none)
+		return false;
+
+	// Don't flinch during release of riposte
+	if (AOCMeleeWeapon(Info.HitActor.Weapon) != none
+		&& Info.HitActor.Weapon.IsInState('Release')
+		&& AOCMeleeWeapon(Info.HitActor.Weapon).bParryHitCounter == true
+	)
+		return false;
+
+	// Don't flinch during the windup of riposte
+	if (AOCMeleeWeapon(Info.HitActor.Weapon) != none
+		&& Info.HitActor.Weapon.IsInState('ParryRelease')
+		&& AOCMeleeWeapon(Info.HitActor.Weapon).bParryHitCounter == true
+	)
+		return false;
+
+
+	// If the weapon is in any of the following states, activate flinch
+	if (Info.HitActor.Weapon.IsInState('Deflect')
+		|| Info.HitActor.Weapon.IsInState('Feint')
+		|| (Info.HitActor.Weapon.IsInState('Windup') && AOCRangeWeapon(Info.HitActor.Weapon) == none)
+		|| (Info.HitActor.Weapon.IsInState('Release') && AOCRangeWeapon(Info.HitActor.Weapon) == none)
+		|| Info.HitActor.Weapon.IsInState('Active')
+		|| Info.HitActor.Weapon.IsInState('Flinch')
+		|| Info.HitActor.Weapon.IsInState('Transition')
+		|| Info.HitActor.StateVariables.bIsManualJumpDodge
+		|| (Info.HitActor.Weapon.IsInState('Recovery') && AOCWeapon(Info.HitActor.Weapon).GetFlinchAnimLength(true) >= WeaponAnimationTimeLeft())
+	) {
+		return true;
+	}
+
+	// If the user is holdig a projectile, activate flinch
+	if (AOCRangeWeapon(Info.HitActor.Weapon) != none)
+		return true;
+
+	// Otherwise return false
+	return false;
+}
+
+function RegenHealth() {
+	// No need to run this on the server
+	if(Role != ROLE_Authority)
+		return;
+
+	// Don't regen if sprinting, burning or other factors
+	if (!bCanHealthRegen || bIsBurning || StateVariables.bIsSprinting) {
+		PauseHealthRegeneration(true);
+		return;
+	}
+
+	// If idle, regenerate with an interval of 0.4s
+	if (PawnState == ESTATE_IDLE && PawnInfo.myFamily.ClassReference != ECLASS_KING) {
+		RegenInterval = 0.4;
+		RestartHealthRegen();
+	}
+
+	// If walking/running, regenerate with an interval of 1.0s
+	if (PawnState == ESTATE_RUN) {
+		RegenInterval = 1.0;
+		RestartHealthRegen();
+	}
+
+	// Don't regen beyond the maximum health
+	if (Health != HealthMax)
+		HealDamage(HealAmount, Controller, none);
+
+	// Replicate this to other players
+	if (PlayerReplicationInfo != none) {
+		if (AOCPRI(PlayerReplicationInfo).CurrentHealth != Health)  {
+			AOCPRI(PlayerReplicationInfo).CurrentHealth = Health;
+			AOCPRI(PlayerReplicationInfo).bForceNetUpdate = true;
+		}
+	}
+}
+
+// This overrides a function in the base class
+function StartSprintRecovery() {
+	// Old code, but I will keep it here
+	/*if(IsTimerActive('EndSprintRecovery'))
+	{
+		ClearTimer('EndSprintRecovery');
+	}
+	bForceNoSprint = true;
+	SetTimer(0.5f, false, 'EndSprintRecovery');*/
+}
+
+reliable server function AttackOtherPawn(HitInfo Info, string DamageString, optional bool bCheckParryOnly = false, optional bool bBoxParrySuccess, optional bool bHitShield = false, optional SwingTypeImpactSound LastHit = ESWINGSOUND_Slash, optional bool bQuickKick = false) {
+	local bool bParry;
+	local float ActualDamage;
+	local bool bSameTeam;
+	local bool bFlinch;
+	local IAOCAIListener AIList;
+	local int i;
+	local float Resistance;
+	local float GenericDamage;
+	local float HitForceMag;
+	local PlayerReplicationInfo PRI;
+	local bool bOnFire;
+	local bool bPassiveBlock;
+	local AOCWeaponAttachment HitActorWeaponAttachment;
+	local class<AOCWeapon> UsedWeapon;
+	local TraceHitInfo THI;
+	local bool bEnemyWasBot;
+	local bool bWasKilled;
+	local float StaminaAtKill;
+
+	// Initialise player replication information
+	if (PlayerReplicationInfo == none)
+		PRI = Info.PRI;
+	else
+		PRI = PlayerReplicationInfo;
+
+	Info.PRI = PRI;
+
+	if (!PerformAttackSSSC(Info) && WorldInfo.NetMode != NM_Standalone)
+		return;
+
+	// Select weapon (not sure this is necessary...?)
+	if (Info.UsedWeapon == 0)
+		UsedWeapon = PrimaryWeapon;
+	else if (Info.UsedWeapon == 1)
+		UsedWeapon = SecondaryWeapon;
+	else
+		UsedWeapon = TertiaryWeapon;
+
+	HitActorWeaponAttachment = AOCWeaponAttachment(Info.HitActor.CurrentWeaponAttachment);
+
+	// Is the player on the same team?
+	bSameTeam = IsOnSameTeam(self, Info.HitActor);
+
+	bFlinch = false;
+
+	bParry = (CheckProjectileParry(Info) || bBoxParrySuccess)
+			 && (Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding)
+			 && class<AOCDmgType_Generic>(Info.DamageType) == none
+			 && Info.DamageType != class'AOCDmgType_SiegeWeapon';
+
+	// Only fists can block fists
+	if (AOCWeapon_Fists(Info.HitActor.Weapon) != none && class<AOCDmgType_Fists>(Info.DamageType) == none)
+		bParry = false;
+
+	// Cause pawn to lose stamina, get stunned etc
+	if (bParry)
+			DetectSuccessfulParry(Info, i, bCheckParryOnly, 0);
+
+	if (Info.DamageType.default.bIsProjectile && !bParry)
+		AOCPRI(PlayerReplicationInfo).NumHits += 1;
+
+	// Check for passive shield block
+	bPassiveBlock = false;
+	if (bHitShield && Info.DamageType.default.bIsProjectile) {
+		bParry = true;
+		Info.HitDamage = 0.0f;
+		bPassiveBlock = !Info.HitActor.StateVariables.bIsActiveShielding;
+	}
+
+	if (bCheckParryOnly)
+		return;
+
+	// Play correct hit sound depending on parry success/failure
+	AOCWeaponAttachment(CurrentWeaponAttachment).LastSwingType = LastHit;
+	if(!bParry) {
+		Info.HitActor.OnActionFailed(EACT_Block);
+		Info.HitSound = AOCWeaponAttachment(CurrentWeaponAttachment).PlayHitPawnSound(Info.HitActor);
+	} else
+		Info.HitSound = AOCWeaponAttachment(CurrentWeaponAttachment).PlayHitPawnSound(Info.HitActor, true);
+
+	// Register the hit on the AOCMeleeWeapon class
+	if (AOCMeleeWeapon(Info.Instigator.Weapon) != none)
+		AOCMeleeWeapon(Info.Instigator.Weapon).bHitPawn = true;
+
+	// Less damage for quick kick
+	if (bQuickKick)
+		Info.HitDamage = 3;
+
+	// Calculate damage of the attack
+	ActualDamage = Info.HitDamage;
+	GenericDamage = Info.HitDamage * Info.DamageType.default.DamageType[EDMG_Generic];
+	ActualDamage -= GenericDamage; //Generic damage is unaffected by resistances etc.
+
+	//Backstab damage for melee damage
+	if (!CheckOtherPawnFacingMe(Info.HitActor) && !Info.DamageType.default.bIsProjectile && !bParry)
+		ActualDamage *= PawnFamily.fBackstabModifier;
+
+	// If the hit was in a critical location, increase the damage
+	if (Info.UsedWeapon == 0 && CompModWeapon_Crossbow(Weapon) != none && Info.DamageType.default.bIsProjectile)
+		ActualDamage *= Info.HitActor.PawnFamily.CrossbowLocationModifiers[GetBoneLocation(Info.BoneName)];
+	else
+		ActualDamage *= (Info.DamageType.default.bIsProjectile ? Info.HitActor.PawnFamily.ProjectileLocationModifiers[GetBoneLocation(Info.BoneName)] :
+			Info.HitActor.PawnFamily.LocationModifiers[GetBoneLocation(Info.BoneName)]);
+
+	// Apply resistances
+	Resistance = 0;
+	for(i = 0; i < ArrayCount(Info.DamageType.default.DamageType); i++)
+		Resistance += Info.DamageType.default.DamageType[i] * Info.HitActor.PawnFamily.DamageResistances[i];
+	ActualDamage *= Resistance;
+
+	// If this was a team hit, reduce by team damage amount
+	if (PawnFamily.FamilyFaction == Info.HitActor.PawnFamily.FamilyFaction)
+		ActualDamage *= AOCGame(WorldInfo.Game).fTeamDamagePercent;
+
+	ActualDamage += GenericDamage;
+
+	// Finally, round the result and finish up
+	ActualDamage = float(Round(ActualDamage));
+
+	// Stun if the parry costs too much stamina
+	if (bParry && !bPassiveBlock && Info.HitActor.Stamina <= 0) {
+		bFlinch = true;
+		AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
+	}
+
+	// If the other pawn is currently attacking, we just conducted a counter-attack
+	if (Info.AttackType == Attack_Shove && !bParry && !Info.HitActor.StateVariables.bIsSprintAttack) {
+		if (!bSameTeam) {
+			if (Info.Instigator.StateVariables.bShieldEquipped && Info.HitActor.StateVariables.bIsActiveShielding && !bQuickKick) {
+				// If it was a heavy shield bash against raised shield, do full stun
+				bFlinch = true;
+				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location),true, true, false);
+			} else if (!Info.HitActor.StateVariables.bIsActiveShielding)
+				// If they aren't active shielding, activate normal kick flinch
+				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, true);
+
+			// If they got stamina stunned, regain stamina
+			if (Info.HitActor.StateVariables.bIsActiveShielding && Info.HitActor.Stamina <= 0)
+				Info.HitActor.ConsumeStamina(-30.0f);
+		}
+	}
+	// If they weren't parrying or shielding, apply flinch
+	else if ((Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding) && !bSameTeam && !bParry) {
+		bFlinch = true;
+		AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
+	}
+	// If flinch needs to be activated...
+	else if ((ShouldActivateFlinch(Info, UsedWeapon) || AOCWeapon_Fists(Info.Instigator.Weapon) != none) && !bParry) {
+		// If they were on different teams, activate normal hit
+		if (!bSameTeam)
+			AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
+		// If they are on the same team, it wasn't a projectile and it's not pre-round, then flinch the instigator
+		else if (bSameTeam && !Info.DamageType.default.bIsProjectile && !WorldInfo.Game.IsInState('AOCPreRound'))
+			AOCWeapon(Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
+	}
+	// Otherwise we landed a hit on the enemy, play hit animation
+	else if (!bParry && !bSameTeam && AOCWeapon_JavelinThrow(Info.HitActor.Weapon) == none)
+		AOCWeapon(Info.HitActor.Weapon).ActivateHitAnim(Info.HitActor.GetHitDirection(Location, false, true), bSameTeam);
+
+	// Remnants of god mode. TODO: Is this redundant?
+	if (Info.HitActor.bInfiniteHealth)
+		ActualDamage = 0.0f;
+
+	// If the hit caused damage
+	if (ActualDamage > 0.0f) {
+		// Register the effects on the pawn
+		Info.HitActor.SetHitDebuff();
+		LastAttackedBy = Info.Instigator;
+		PauseHealthRegeneration();
+		Info.HitActor.PauseHealthRegeneration();
+		Info.HitActor.DisableSprint(true);
+		Info.HitActor.StartSprintRecovery();
+
+		// Play a ping sound if we hit a player when shooting
+		if (Info.DamageType.default.bIsProjectile)
+			PlayRangedHitSound();
+		else {
+			if(!bSameTeam)
+				PlayMeleeHit();
+		}
+
+		// If the pawn is still alive, play sounds for everyone
+		if (Info.HitActor.Health - ActualDamage > 0.0f)
+			Info.HitActor.PlayHitSounds(ActualDamage, bFlinch);
+
+		// Register the hit on the player countroller
+		if (AOCPlayerController(Controller) != none)
+			AOCPlayerController(Controller).PC_SuccessfulHit();
+
+		// Add to assist list if the pawn isn't already in it
+		if (Info.HitActor.ContributingDamagers.Find(AOCPRI(PlayerReplicationInfo)) == INDEX_NONE && !bSameTeam)
+			Info.HitActor.ContributingDamagers.AddItem(AOCPRI(PlayerReplicationInfo));
+
+		Info.HitActor.LastPawnToHurtYou = Controller;
+
+		// Allow the last pawn to attack to be a potential killer:
+		// This applies when the player commits suicide (e.g falldamage, trap)
+		if( AOCDuel(WorldInfo.Game) == none || CDWDuel(WorldInfo.Game) == none )
+			Info.HitActor.SetTimer(10.f, false, 'ClearLastPawnToAttack');
+
+		// If it was a projectile, do more stuff
+		if (Info.DamageType.default.bIsProjectile)
+			Info.HitActor.StruckByProjectile(self, UsedWeapon);
+	}
+
+
+	// Notify Pawn that we hit
+	if (AOCMeleeWeapon(Weapon) != none && Info.HitActor.Health - ActualDamage > 0.0f && Info.AttackType != Attack_Shove && Info.AttackType != Attack_Sprint && !bParry)
+		AOCMeleeWeapon(Weapon).NotifyHitPawn();
+
+	// Replicate the attack information to the clients
+	Info.bParry = bParry;
+	Info.DamageString = DamageString;
+	// Where did the hit take place at? Was it a projectile?
+	if (Info.BoneName == 'b_Neck' && !Info.DamageType.default.bIsProjectile && Info.DamageType.default.bCanDecap && Info.AttackType != Attack_Stab)
+		Info.DamageString $= "3";
+	// Check for headshot (by decapitation)
+	else if ((Info.BoneName == 'b_Neck' || Info.BoneName == 'b_Head') && Info.DamageType.default.bIsProjectile) {
+		Info.DamageString $= "4";
+
+		if ( AOCPlayerController(Controller) != none)
+			AOCPlayerController(Controller).NotifyAchievementHeadshot();
+	}
+	// Did it hit the spine?
+	else if ((Info.BoneName == 'b_spine_A' || Info.BoneName == 'b_spine_B' || Info.BoneName == 'b_spine_C' || Info.BoneName == 'b_spine_D') && Info.DamageType.default.bIsProjectile) {
+		if ( AOCPlayerController(Controller) != none)
+			AOCPlayerController(Controller).NotifyCupidProgress();
+	}
+
+	// Fill out the rest of the values
+	Info.HitActor.ReplicatedHitInfo = Info;
+	Info.HitDamage = ActualDamage;
+	Info.HitForce *= int(PawnState != ESTATE_PUSH && PawnState != ESTATE_BATTERING);
+	Info.HitForce *= int(!bFlinch);
+	HitForceMag = VSize( Info.HitForce );
+	Info.HitForce.Z = 0.f;
+	Info.HitForce = Normal(Info.HitForce) * HitForceMag;
+
+	// Track statistics for each weapon
+	if (PRI != none) {
+		// Register non-team damage
+		if (!bSameTeam)
+			AOCPRI(PRI).EnemyDamageDealt += ActualDamage;
+		// Register team damage with the PlayerController
+		else
+			if (Info.HitActor.PawnInfo.myFamily.ClassReference != ECLASS_Peasant
+				&& Info.HitActor.PlayerReplicationInfo != PRI) {
+				AOCPRI(PRI).TeamDamageDealt += ActualDamage;
+				AOCPlayerController(Controller).TeamDamageDealt += ActualDamage;
+			}
+
+		// Force an update
+		AOCPRI(PRI).bForceNetUpdate = TRUE;
+	}
+
+	// Replicate this information
+	if (Info.HitActor.PlayerReplicationInfo != none) {
+		AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
+		AOCPRI(Info.HitActor.PlayerReplicationInfo).bForceNetUpdate = TRUE;
+	}
+
+	// Is the target burning?
+	bOnFire = Info.HitActor.bIsBurning;
+
+	// Get the trace/hit info
+	THI = MakeTraceHitInfoFromHitInfo(Info);
+
+	// Was the target a bot?
+	bEnemyWasBot = Info.HitActor.bIsBot || Info.HitActor.PlayerReplicationInfo.bBot || AOCPRI(Info.HitActor.PlayerReplicationInfo).bIsBot || AOCAIController(Info.HitActor.Controller) != none;
+
+	// Call take damage on the targeted pawn
+	Info.HitActor.TakeDamage(ActualDamage, Controller != none ? Controller : CurrentSiegeWeapon.Controller, Info.HitLocation, Info.HitForce, Info.DamageType, THI);
+
+	// Was the enemy killed?
+	bWasKilled = (Info.HitActor == none || Info.HitActor.Health <= 0);
+	Info.HitActor.ReplicatedHitInfo.bWasKilled = bWasKilled;
+
+	// If they were killed, regain stamina
+	if(Info.HitActor.Health <= 0 && !bSameTeam) {
+
+		// MAA gets extra stamina on kill
+		if (PawnInfo.myFamily.ClassReference == ECLASS_ManAtArms) {
+	        	Info.Instigator.ConsumeStamina(-50.f);
+		} else {
+			Info.Instigator.ConsumeStamina(-30.f);
+		}
+	        StaminaAtKill = Info.Instigator.Stamina;
+
+		// Make sure that it doesn't exceed max stamina
+	        if(StaminaAtKill > MaxStamina)
+	            Info.Instigator.Stamina = MaxStamina;
+	}
+
+	if (bWasKilled && WorldInfo.NetMode == NM_DedicatedServer) {
+		// Make sure this wasn't a team kill
+		if (AOCPlayerController(Controller).StatWrapper != none
+			&& !bSameTeam
+			&& Info.UsedWeapon < 2
+			&& !bEnemyWasBot) {
+
+			// Increment kill stats
+			AOCPlayerController(Controller).StatWrapper.IncrementKillStats(
+				Info.UsedWeapon == 0 ? PrimaryWeapon : SecondaryWeapon,
+				PawnFamily,
+				Info.HitActor.PawnFamily,
+				class<AOCWeapon>(HitActorWeaponAttachment.WeaponClass)
+			);
+		}
+
+		// Do another check for a headshot here
+		if (Info.BoneName == 'b_Neck' && !Info.DamageType.default.bIsProjectile && Info.DamageType.default.bCanDecap && Info.AttackType != Attack_Stab) {
+			// Award rotiserie chef achievement on client
+			if (AOCPlayerController(Controller) != none && bOnFire)
+				AOCPlayerController(Controller).UnlockRotisserieChef();
+
+			// Notify decap
+			AOCPlayerController(Controller).NotifyAchievementDecap();
+		}
+
+		// Check if fists
+		if (class<AOCDmgType_Fists>(Info.DamageType) != none)
+			if (AOCPlayerController(Controller) != none)
+				// Update achievement progress
+				AOCPlayerController(Controller).NotifyFistofFuryProgress();
+	}
+
+	// Update the AI
+	foreach AICombatInterests(AIList) {
+		AIList.NotifyPawnPerformSuccessfulAttack(self);
+	}
+
+	// More AI stuff
+	foreach Info.HitActor.AICombatInterests(AIList) {
+		if (!bParry)
+			AIList.NotifyPawnReceiveHit(Info.HitActor,self);
+		else
+			AIList.NotifyPawnSuccessBlock(Info.HitActor, self);
+	}
+
+	// Manually do the replication if we're on the standalone
+	if (WorldInfo.NetMode == NM_Standalone || Worldinfo.NetMode == NM_ListenServer)
+		Info.HitActor.HandlePawnGetHit();
+}
+
+simulated function bool CheckProjectileParry(HitInfo Info) {
+	local vector DirVector;
+	local vector OtherPawnFaceDirection;
+	local float fAngle;
+
+	if (Info.DamageType.default.bIsProjectile && class<AOCDmgType_BallistaBolt>(Info.DamageType) == none) {
+		DirVector = Normal(Location - Info.HitActor.Location);
+		OtherPawnFaceDirection = Normal(Info.HitActor.GetForwardDirection());
+		fAngle = Acos(DirVector dot OtherPawnFaceDirection);
+
+		if (fAngle < Pi / 3)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
+}
+
+simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, bool bCheckParryOnly, int ParryLR) {
+	local int StaminaDamage;
+	local bool bOutOfStamina;
+
+	// Don't (non-shield) parry oil pots or smoke pots
+	if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || CompModWeapon_SmokePot(Info.Instigator.Weapon) != none))
+		return false;
+
+	bParry = 1;
+	StaminaDamage = 0;
+
+	// Make the weapon (and thus the pawn) go into a deflect state
+	if (!Info.DamageType.default.bIsProjectile) {
+		AOCWeapon(Weapon).ActivateDeflect(Info.HitActor.StateVariables.bIsParrying);
+		AOCWeaponAttachment( CurrentWeaponAttachment ).PlayParriedSound();
+
+		DisableSprint(true);
+		StartSprintRecovery();
+	}
+
+	// Opponent has a successful parry
+	AOCWeapon(Info.HitActor.Weapon).NotifySuccessfulParry(Info.AttackType, ParryLR);
+
+	// If it hit the shield
+	if(Info.HitActor.StateVariables.bIsActiveShielding) {
+		AOCWeaponAttachment( Info.HitActor.CurrentWeaponAttachment ).PlayParrySound(true);
+
+		// Only lose stamina if it was a melee attack
+		if (!Info.DamageType.default.bIsProjectile) {
+
+			// Calculate stamina drain
+			StaminaDamage = Info.HitActor.ShieldClass.NewShield.static.CalculateParryDamage(Info.HitDamage);
+
+			// Enter stun state if the player is out of stamina
+			if (!Info.HitActor.HasEnoughStamina(StaminaDamage)) {
+				StaminaDamage = Info.HitActor.Stamina;
+				Info.HitActor.ConsumeStamina(StaminaDamage);
+
+				// Regain 30 stamina
+				Info.HitActor.ConsumeStamina(-30.f);
+				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
+
+				// The hit does zero damage
+				Info.HitDamage = 0.0f;
+				bOutOfStamina = true;
+			}
+
+			// Replicate and log the parry
+			AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
+
+			if(AOCPlayerController(Controller) != none)
+				AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
+
+			if(AOCPlayerController(Info.HitActor.Controller) != none)
+				AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+
+			if(bOutOfStamina)
+				return true;
+
+			Info.HitActor.ConsumeStamina(StaminaDamage);
+		}
+
+		// Parry means health damage is completely negated
+		Info.HitDamage = 0.0f;
+
+		AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
+
+		// Flinch if it's a kick: TODO: is this still relevant? (v1.0.2)
+		if (Info.AttackType == Attack_Shove)
+			AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, false);
+	}
+	// Was it a normal parry?
+	else if (Info.HitActor.StateVariables.bIsParrying) {
+		AOCWeaponAttachment(Info.HitActor.CurrentWeaponAttachment).PlayParrySound(false);
+
+		// Lose 15 stamina for projectiles, otherwise calculate stamina loss
+		if (Info.DamageType.default.bIsProjectile)
+			StaminaDamage = 15.0f;
+		else
+			StaminaDamage = AOCWeapon(Info.HitActor.Weapon).CalculateParryDamage(AOCWeapon(Info.Instigator.Weapon), Info.AttackType);
+
+		// Enter stun state if the player is out of stamina
+		if (!Info.HitActor.HasEnoughStamina(StaminaDamage)) {
+			StaminaDamage = Info.HitActor.Stamina;
+			Info.HitActor.ConsumeStamina(StaminaDamage);
+
+			// Regain 30 stamina
+			Info.HitActor.ConsumeStamina(-30.f);
+			AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
+
+			// The hit does zero damage
+			Info.HitDamage = 0.0f;
+			bOutOfStamina = true;
+		}
+
+		// Replicate and log the parry
+		AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
+		if(AOCPlayerController(Controller) != none)
+			AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
+
+		if(AOCPlayerController(Info.HitActor.Controller) != none)
+			AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+
+		if(bOutOfStamina)
+			return true;
+
+		Info.HitActor.ConsumeStamina(StaminaDamage);
+
+		// Parry means health damage is completely negated
+		Info.HitDamage = 0.0f;
+	}
+
+	// The parry was successful
+	return true;
+
+}
+
+function int CalcDodgeCost() {
+	if (StateVariables.bIsParrying) {
+		return PawnFamily.iDodgeCost + 10.0f;
+	}
+	return PawnFamily.iDodgeCost;
+}
+
+// This gets called whenever the server initiates a dodge
+reliable server function ServerStartDodge(byte direction, byte WeaponId) {
+	// Set last dodge time
+	if (AOCPlayerController(Controller) != none)
+		AOCPlayerController(Controller).LastDodgeTime = WorldInfo.TimeSeconds;
+
+	// Fill out information about dodge
+	DodgeInfo.Direction = Direction;
+	DodgeInfo.WeaponId = WeaponId;
+
+	// Lock the player out from attacking until the dodge ends
+	StateVariables.bCanAttack = false;
+
+	// Start the dodge
+	DodgeSM.StartDodgeSM(direction, WeaponId);
+
+	// Consume extra stamina
+	ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
+}
+
+function bool StartDodge(int direction)
+{
+	local byte WeaponId;
+
+	OnActionInitiated(EACT_Dodge);
+
+	if ( bIsCrouching || (Physics != PHYS_Walking && Physics != PHYS_Falling) || PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON || PawnState == ESTATE_DODGE )
+		return false;
+	if( StateVariables.bCanDodge && !StateVariables.bIsSprinting && !StateVariables.bDodgeDebuffActive && PawnFamily.bCanDodge && AOCWeapon(Weapon).bCanDodge && Velocity.Z ~= 0.0 )
+	{
+		if (!HasEnoughStamina(CalcDodgeCost()))
+		{
+			PlayLowStaminaGrunt();
+			OnActionFailed(EACT_Dodge);
+			return false;
+		}
+
+		if (Weapon.Class == PrimaryWeapon)
+		{
+			WeaponId = 0;
+		}
+		else if (Weapon.Class == SecondaryWeapon)
+		{
+			WeaponId = 1;
+		}
+		else if (Weapon.Class == TertiaryWeapon)
+		{
+			WeaponId = 2;
+		}
+		else
+		{
+			WeaponId = 3;
+		}
+
+		// MT CCheng 8/7/2014: Whether it's a dedicated or listen server, if we call StartDodgeSM()
+		// here, it will be called twice, since it's also called in ServerStartDodge().
+		if (!(WorldInfo.NetMode == NM_DedicatedServer || WorldInfo.NetMode == NM_ListenServer))
+		{
+			DodgeSM.StartDodgeSM(direction, WeaponId);
+
+			// Consume extra stamina
+			ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
+		}
+
+		if (WorldInfo.NetMode != NM_Standalone)
+		{
+			ServerStartDodge(direction, WeaponId);
+		}
+
+		OnActionSucceeded(EACT_Dodge);
+		return true;
+	}
+	return false;
+}
+
+// This gets called when the dodge queue ends
+simulated function EndDodgeQueue() {
+	if (DodgeSM.AttackQueue != Attack_Parry) {
+		// Wait 0.3s and call 'FinishDodgeFlinch'
+		if (DodgeSM.DodgeDir == 0)
+			SetTimer(0.2f, false, 'FinishDodgeFlinch');
+		else
+			SetTimer(0.3f, false, 'FinishDodgeFlinch');
+	} else {
+		// Execute parry now
+		FinishDodgeFlinch();
+	}
+}
+
+simulated function FinishDodgeFlinch() {
+	// Allow the player to attack again
+	StateVariables.bCanAttack = true;
+
+	// Start a queued attack
+	DodgeSM.StartQueuedAttack();
+}
+
+// Default class properties
+DefaultProperties
+{
+	HealthTimeElapse=0.0
+	HealAmount=3.0
+
+	Begin Object Name=OuterCylinder
+	    CollisionRadius=+0039.000000
+	    CollisionHeight=+0065.000000
+	    BlockNonZeroExtent=true
+	    BlockZeroExtent=false
+	    BlockActors=true
+	    CollideActors=true
+	    bDrawBoundingBox=true
+	    BlockNonTeamActors=true
+	End Object
+
+	Begin Object Name=CollisionCylinder
+		BlockZeroExtent=FALSE
+		AlwaysCheckCollision=true
+		CollisionRadius=+0036.000000
+		CollisionHeight=+0065.000000
+	End Object
+}

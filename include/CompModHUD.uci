@@ -1,0 +1,7 @@
+
+
+
+DefaultProperties
+{
+	PawnClass=class'`{GAMEMODE}Pawn'
+}

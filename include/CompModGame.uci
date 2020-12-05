@@ -1,0 +1,69 @@
+//SetGameType returns which game mode should be used for which map prefix
+//You can do whatever you want with this. You can even use Options
+// (options => the ?blah=blah things added after the map name when launching a server or in the map list)
+//to add even more variety. See the ParseOption function in Src\Engine\Classes\GameInfo.uc
+var config array<GameTypePrefix>	SDKPrefixes;
+
+static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
+{
+	local string ThisMapPrefix;
+	local int i,pos;
+	local class<GameInfo> NewGameType;
+
+	LogAlwaysInternal("SetGameType is being called on"@default.Class);
+
+	MapName = StripPlayOnPrefix( MapName );
+
+	// replace self with appropriate gametype if no game specified
+	pos = InStr(MapName,"-");
+	ThisMapPrefix = left(MapName,pos);
+
+	for (i = 0; i < default.SDKPrefixes.length; i++)
+	{
+		if (default.SDKPrefixes[i].Prefix ~= ThisMapPrefix)
+		{
+			NewGameType = class<GameInfo>(DynamicLoadObject(default.SDKPrefixes[i].GameType,class'Class'));
+			if ( NewGameType != None )
+			{
+				return NewGameType;
+			}
+		}
+	}
+
+	return super.SetGameType(MapName, Options, Portal);
+}
+
+DefaultProperties
+{
+    PlayerControllerClass=class'`{GAMEMODE}PlayerController'
+    DefaultPawnClass=class'`{GAMEMODE}Pawn'
+
+	HUDType=class'`{GAMEMODE}HUD'
+
+
+
+	//This is the name that shows in the server browser for this mod:
+	ModDisplayString="CompMod v2.0.2"
+
+	Families.Empty;
+
+	// do some initialization work here
+	Families(ECLASS_Archer)=class'CompModFamilyInfo_Agatha_Archer'
+	Families(ECLASS_ManAtArms)=class'CompModFamilyInfo_Agatha_ManAtArms'
+	Families(ECLASS_Vanguard)=class'CompModFamilyInfo_Agatha_Vanguard'
+	Families(ECLASS_Knight)=class'CompModFamilyInfo_Agatha_Knight'
+	Families(ECLASS_SiegeEngineer)=class'CompModFamilyInfo_Agatha_Archer'
+	// test comment
+	// same order as above for Masons, but we cant do maths in the thingys.
+	Families(5)=class'CompModFamilyInfo_Mason_Archer'
+	Families(6)=class'CompModFamilyInfo_Mason_ManAtArms'
+	Families(7)=class'CompModFamilyInfo_Mason_Vanguard'
+	Families(8)=class'CompModFamilyInfo_Mason_Knight'
+	Families(9)=class'CompModFamilyInfo_Mason_Archer'
+
+
+	MinimumRespawnTime = 10.0f
+	bDisableTeamDamagePenalty = true
+
+
+}

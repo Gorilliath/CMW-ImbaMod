@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Falchion.
 */
-class CompModWeapon_Falchion extends AOCWeapon_Falchion;
+class ImbaModWeapon_Falchion extends AOCWeapon_Falchion;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Falchion'
+	AttachmentClass=class'ImbaModWeaponAttachment_Falchion'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Falchion'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Falchion

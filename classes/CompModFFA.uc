@@ -1,5 +1,5 @@
-class CompModFFA extends AOCFFA;
+class ImbaModFFA extends AOCFFA;
 
-`include(CompMod/Include/CompModFFA.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModFFA.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)
 

@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Morning Star.
 */
-class CompModWeapon_MorningStar extends AOCWeapon_MorningStar;
+class ImbaModWeapon_MorningStar extends AOCWeapon_MorningStar;
 
 simulated state Release
 {
@@ -54,7 +54,7 @@ DefaultProperties
 	bUseSprintLeanAnims=true
 	bUseRMMDazed=true
 	bUseDirHitAnims=true
-	AttachmentClass=class'CompModWeaponAttachment_MorningStar'
+	AttachmentClass=class'ImbaModWeaponAttachment_MorningStar'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_MorningStar'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_MorningStar

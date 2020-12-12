@@ -10,7 +10,7 @@
 * when the shield is holstered on the players back.
 */
 
-class CompModWeapon_Heater_Agatha extends AOCWeapon_Heater_Agatha;
+class ImbaModWeapon_Heater_Agatha extends AOCWeapon_Heater_Agatha;
 
 DefaultProperties
 {
@@ -19,7 +19,7 @@ DefaultProperties
 
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Heater_Agatha'
 
-	OtherTeamWeapon(EFAC_MASON)=class'CompModWeapon_Heater_Mason'
+	OtherTeamWeapon(EFAC_MASON)=class'ImbaModWeapon_Heater_Mason'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Heater_Agatha]

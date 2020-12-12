@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Holy Water Sprinkler
 */
-class CompModWeaponAttachment_HolyWaterSprinkler extends AOCWeaponAttachment_HolyWaterSprinkler;
+class ImbaModWeaponAttachment_HolyWaterSprinkler extends AOCWeaponAttachment_HolyWaterSprinkler;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -43,7 +43,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_HolyWaterSprinkler
-	WeaponClass=class'CompModWeapon_HolyWaterSprinkler'
+	WeaponClass=class'ImbaModWeapon_HolyWaterSprinkler'
 	WeaponSocket=wep1hpoint
 
 	AttackTypeInfo(0)=(fBaseDamage=65.0, fForce=22500, cDamageType="AOC.AOCDmgType_PierceBlunt", iWorldHitLenience=6)

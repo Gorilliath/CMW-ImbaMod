@@ -1,4 +1,4 @@
-class CompModLTSHUD extends AOCLTSHUD;
+class ImbaModLTSHUD extends AOCLTSHUD;
 
-`include(CompMod/Include/CompModLTS.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModLTS.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

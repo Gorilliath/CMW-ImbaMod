@@ -1,5 +1,5 @@
-class CompModTD extends AOCTD;
+class ImbaModTD extends AOCTD;
 
-`include(CompMod/Include/CompModTD.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModTD.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)
 

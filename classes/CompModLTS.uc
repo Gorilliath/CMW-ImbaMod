@@ -1,5 +1,5 @@
-class CompModLTS extends AOCLTS;
+class ImbaModLTS extends AOCLTS;
 
-`include(CompMod/Include/CompModLTS.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModLTS.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)
 

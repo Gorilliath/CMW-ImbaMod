@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: War Axe
 */
-class CompModWeaponAttachment_WarAxe extends AOCWeaponAttachment_WarAxe;
+class ImbaModWeaponAttachment_WarAxe extends AOCWeaponAttachment_WarAxe;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_WarAxe
-	WeaponClass=class'CompModWeapon_WarAxe'
+	WeaponClass=class'ImbaModWeapon_WarAxe'
 
 	WeaponSocket = wep1hpoint
 

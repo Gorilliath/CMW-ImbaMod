@@ -5,7 +5,7 @@
 *
 * Weapon class for the Broad Dagger.
 */
-class CompModWeapon_BroadDagger extends AOCWeapon_BroadDagger;
+class ImbaModWeapon_BroadDagger extends AOCWeapon_BroadDagger;
 
 simulated state Release
 {
@@ -169,7 +169,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_BroadDagger'
+	AttachmentClass=class'ImbaModWeaponAttachment_BroadDagger'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_BroadDagger'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_BroadDagger

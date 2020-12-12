@@ -5,7 +5,7 @@
 *
 * Weapon: Spear.
 */
-class CompModWeapon_Spear extends AOCWeapon_Spear;
+class ImbaModWeapon_Spear extends AOCWeapon_Spear;
 
 simulated state ParryRelease
 {
@@ -214,7 +214,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Spear'
+	AttachmentClass=class'ImbaModWeaponAttachment_Spear'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Spear'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Spear

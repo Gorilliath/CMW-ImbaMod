@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Saber.
 */
-class CompModWeapon_Saber extends AOCWeapon_Saber;
+class ImbaModWeapon_Saber extends AOCWeapon_Saber;
 
 simulated state Release
 {
@@ -168,7 +168,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Saber'
+	AttachmentClass=class'ImbaModWeaponAttachment_Saber'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Saber'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Saber

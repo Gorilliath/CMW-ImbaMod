@@ -5,7 +5,7 @@
 * 
 * Quarter Staff Weapon Attachment.
 */
-class CompModWeaponAttachment_QuarterStaff extends AOCWeaponAttachment_QuarterStaff;
+class ImbaModWeaponAttachment_QuarterStaff extends AOCWeaponAttachment_QuarterStaff;
 
 defaultproperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_QStaff
-	WeaponClass=class'CompModWeapon_QuarterStaff'
+	WeaponClass=class'ImbaModWeapon_QuarterStaff'
 
 	WeaponSocket=wepQstaffpoint
 	bUseAlternativeKick=true

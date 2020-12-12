@@ -5,7 +5,7 @@
 *
 * Heater - Weapon Loadout.
 */
-class CompModWeapon_TowerShield_Agatha extends AOCWeapon_TowerShield_Agatha;
+class ImbaModWeapon_TowerShield_Agatha extends AOCWeapon_TowerShield_Agatha;
 
 DefaultProperties
 {
@@ -14,7 +14,7 @@ DefaultProperties
 
 	InventoryAttachmentClass=class'AOCInventoryAttachment_TowerShield_Agatha'
 
-	OtherTeamWeapon(EFAC_MASON)=class'CompModWeapon_TowerShield_Mason'
+	OtherTeamWeapon(EFAC_MASON)=class'ImbaModWeapon_TowerShield_Mason'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_TowerShield_Agatha]

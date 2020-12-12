@@ -6,7 +6,7 @@
 * Weapon: Javelin (Throwing Mode)
 */
 
-class CompModWeapon_ShortSpearThrow extends AOCWeapon_ShortSpearThrow;
+class ImbaModWeapon_ShortSpearThrow extends AOCWeapon_ShortSpearThrow;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ DefaultProperties
 	HorizontalRotateSpeed = 60000
 	VerticalRotateSpeed = 50000
 
-	AttachmentClass=class'CompModWeaponAttachment_ShortSpearThrow'
+	AttachmentClass=class'ImbaModWeaponAttachment_ShortSpearThrow'
 	// should never be part of inventory attachment
 	InventoryAttachmentClass=class'AOCInventoryAttachment_ShortSpear'
 	AllowedShieldClass=class'AOCShield_Buckler'
@@ -89,7 +89,7 @@ DefaultProperties
 	StrafeModify=0.75f
 	bCanDodge=false
 	bUseIdleForTopHalf=true
-	AlternativeMode=class'CompModWeapon_ShortSpearMelee'
+	AlternativeMode=class'ImbaModWeapon_ShortSpearMelee'
 
 	/* 
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_ShortSpearThrow]

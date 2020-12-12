@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Holy Water Sprinkler.
 */
-class CompModWeapon_HolyWaterSprinkler extends AOCWeapon_HolyWaterSprinkler;
+class ImbaModWeapon_HolyWaterSprinkler extends AOCWeapon_HolyWaterSprinkler;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_HolyWaterSprinkler'
+	AttachmentClass=class'ImbaModWeaponAttachment_HolyWaterSprinkler'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_HolyWaterSprinkler'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_HolyWaterSprinkler

@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Morning Star
 */
-class CompModWeaponAttachment_MorningStar extends AOCWeaponAttachment_MorningStar;
+class ImbaModWeaponAttachment_MorningStar extends AOCWeaponAttachment_MorningStar;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Broadsword
-	WeaponClass=class'CompModWeapon_MorningStar'
+	WeaponClass=class'ImbaModWeapon_MorningStar'
 
 	WeaponSocket=wep1hpoint
 	WeaponStaticMeshScale=1

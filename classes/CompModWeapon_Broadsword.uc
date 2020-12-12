@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Broadsword.
 */
-class CompModWeapon_Broadsword extends AOCWeapon_Broadsword;
+class ImbaModWeapon_Broadsword extends AOCWeapon_Broadsword;
 
 simulated state Release
 {
@@ -169,7 +169,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_BroadSword'
+	AttachmentClass=class'ImbaModWeaponAttachment_BroadSword'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Broadsword'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Broadsword

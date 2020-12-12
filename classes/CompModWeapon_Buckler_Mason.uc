@@ -5,7 +5,7 @@
 *
 * Buckler - Weapon Loadout.
 */
-class CompModWeapon_Buckler_Mason extends AOCWeapon_Buckler_Mason;
+class ImbaModWeapon_Buckler_Mason extends AOCWeapon_Buckler_Mason;
 
 DefaultProperties
 {
@@ -14,7 +14,7 @@ DefaultProperties
 
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Buckler_Mason'
 
-	OtherTeamWeapon(EFAC_AGATHA)=class'CompModWeapon_Buckler_Agatha'
+	OtherTeamWeapon(EFAC_AGATHA)=class'ImbaModWeapon_Buckler_Agatha'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Buckler_Mason]

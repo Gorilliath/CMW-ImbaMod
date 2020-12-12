@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Maul
 */
-class CompModWeaponAttachment_Maul extends AOCWeaponAttachment_Maul;
+class ImbaModWeaponAttachment_Maul extends AOCWeaponAttachment_Maul;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -44,7 +44,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Maul
-	WeaponClass=class'CompModWeapon_Maul'
+	WeaponClass=class'ImbaModWeapon_Maul'
 
 	WeaponSocket=wep2haxepoint
 	bUseAlternativeKick=true

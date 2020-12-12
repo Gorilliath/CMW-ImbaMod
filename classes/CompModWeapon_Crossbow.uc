@@ -5,7 +5,7 @@
 *
 * Crossbow.
 */
-class CompModWeapon_Crossbow extends CompModRangeWeapon;
+class ImbaModWeapon_Crossbow extends ImbaModRangeWeapon;
 
 /** Whether or not we're currently aiming so we can get out of it if necessary */
 var bool bAiming;
@@ -356,7 +356,7 @@ DefaultProperties
 	AIRange=5000
 	bRetIdle=true;
 	bRetIdleOriginal=true
-	AttachmentClass=class'CompModWeaponAttachment_Crossbow'
+	AttachmentClass=class'ImbaModWeaponAttachment_Crossbow'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Crossbow'
 	PermanentAttachmentClass(0)=class'AOCInventoryAttachment_CrossbowQuiverAgatha'
 	PermanentAttachmentClass(1)=class'AOCInventoryAttachment_CrossbowQuiverMason'
@@ -379,7 +379,7 @@ DefaultProperties
 	StrafeModify=0.75f
 	bCanDodge=false
 
-	WeaponProjectiles(0)=class'CompModProj_SteelBolt'
+	WeaponProjectiles(0)=class'ImbaModProj_SteelBolt'
 
 	fSpread = 3500.0f
 	bGoBackToHold=false

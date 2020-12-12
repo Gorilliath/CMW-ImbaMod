@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the War Hammer.
 */
-class CompModWeapon_WarHammer extends AOCWeapon_WarHammer;
+class ImbaModWeapon_WarHammer extends AOCWeapon_WarHammer;
 
 simulated state Release
 {
@@ -167,7 +167,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_WarHammer'
+	AttachmentClass=class'ImbaModWeaponAttachment_WarHammer'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_WarHammer'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_WarHammer

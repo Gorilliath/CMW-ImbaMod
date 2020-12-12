@@ -194,7 +194,7 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 		ActualDamage *= PawnFamily.fBackstabModifier;
 
 	// If the hit was in a critical location, increase the damage
-	if (Info.UsedWeapon == 0 && CompModWeapon_Crossbow(Weapon) != none && Info.DamageType.default.bIsProjectile)
+	if (Info.UsedWeapon == 0 && ImbaModWeapon_Crossbow(Weapon) != none && Info.DamageType.default.bIsProjectile)
 		ActualDamage *= Info.HitActor.PawnFamily.CrossbowLocationModifiers[GetBoneLocation(Info.BoneName)];
 	else
 		ActualDamage *= (Info.DamageType.default.bIsProjectile ? Info.HitActor.PawnFamily.ProjectileLocationModifiers[GetBoneLocation(Info.BoneName)] :
@@ -464,7 +464,7 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
 	local bool bOutOfStamina;
 
 	// Don't (non-shield) parry oil pots or smoke pots
-	if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || CompModWeapon_SmokePot(Info.Instigator.Weapon) != none))
+	if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || ImbaModWeapon_SmokePot(Info.Instigator.Weapon) != none))
 		return false;
 
 	bParry = 1;

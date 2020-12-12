@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Zweihander.
 */
-class CompModWeapon_Zweihander extends AOCWeapon_Zweihander;
+class ImbaModWeapon_Zweihander extends AOCWeapon_Zweihander;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Zweihander'
+	AttachmentClass=class'ImbaModWeaponAttachment_Zweihander'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Zweihander'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Zweihander

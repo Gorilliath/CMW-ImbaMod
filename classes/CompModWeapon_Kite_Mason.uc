@@ -11,7 +11,7 @@
 */
 
 
-class CompModWeapon_Kite_Mason extends AOCWeapon_Kite_Mason;
+class ImbaModWeapon_Kite_Mason extends AOCWeapon_Kite_Mason;
 
 DefaultProperties
 {
@@ -20,7 +20,7 @@ DefaultProperties
 
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Kite_Mason'
 
-	OtherTeamWeapon(EFAC_AGATHA)=class'CompModWeapon_Kite_Agatha'
+	OtherTeamWeapon(EFAC_AGATHA)=class'ImbaModWeapon_Kite_Agatha'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Kite_Mason]

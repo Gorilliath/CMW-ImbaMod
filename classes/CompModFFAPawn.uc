@@ -1,4 +1,4 @@
-class CompModFFAPawn extends CompModPawn;
+class ImbaModFFAPawn extends ImbaModPawn;
 
-`include(CompMod/Include/CompModFFA.uci)
-`include(CompMod/Include/CompModPawn.uci)
+`include(ImbaMod/Include/ImbaModFFA.uci)
+`include(ImbaMod/Include/ImbaModPawn.uci)

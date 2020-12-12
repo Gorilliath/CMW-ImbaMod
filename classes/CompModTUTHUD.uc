@@ -1,4 +1,4 @@
-class CompModTUTHUD extends AOCTUTHUD;
+class ImbaModTUTHUD extends AOCTUTHUD;
 
-`include(CompMod/Include/CompModTUT.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModTUT.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

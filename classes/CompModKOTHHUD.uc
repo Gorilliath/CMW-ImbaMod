@@ -1,4 +1,4 @@
-class CompModKOTHHUD extends AOCKOTHHUD;
+class ImbaModKOTHHUD extends AOCKOTHHUD;
 
-`include(CompMod/Include/CompModKOTH.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModKOTH.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

@@ -6,9 +6,9 @@
 * Weapon Attachment: Javelin.
 */
 
-class CompModWeaponAttachment_JavelinThrow extends AOCWeaponAttachment_JavelinThrow;
+class ImbaModWeaponAttachment_JavelinThrow extends AOCWeaponAttachment_JavelinThrow;
 
 DefaultProperties
 {
-	WeaponClass=class'CompModWeapon_JavelinThrow'
+	WeaponClass=class'ImbaModWeapon_JavelinThrow'
 }

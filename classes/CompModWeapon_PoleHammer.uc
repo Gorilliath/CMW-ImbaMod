@@ -5,7 +5,7 @@
 *
 * Pole Hammer.
 */
-class CompModWeapon_PoleHammer extends  AOCWeapon_PoleHammer;
+class ImbaModWeapon_PoleHammer extends  AOCWeapon_PoleHammer;
 
 simulated state ParryRelease
 {
@@ -214,7 +214,7 @@ defaultproperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_PoleHammer'
+	AttachmentClass=class'ImbaModWeaponAttachment_PoleHammer'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_PoleHammer'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_PoleHammer

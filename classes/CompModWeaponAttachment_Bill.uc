@@ -5,7 +5,7 @@
 *
 * Weapon Attachment: Billhook.
 */
-class CompModWeaponAttachment_Bill extends AOCWeaponAttachment_Bill;
+class ImbaModWeaponAttachment_Bill extends AOCWeaponAttachment_Bill;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -42,7 +42,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Bill
-	WeaponClass=class'CompModWeapon_Bill'
+	WeaponClass=class'ImbaModWeapon_Bill'
 	WeaponSocket=wepPolepoint
 
 	AttackTypeInfo(0)=(fBaseDamage=70.0, fForce=31500, cDamageType="AOC.AOCDmgType_SwingBlunt", iWorldHitLenience=6)

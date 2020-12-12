@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Hatchet.
 */
-class CompModWeapon_Hatchet extends AOCWeapon_Hatchet;
+class ImbaModWeapon_Hatchet extends AOCWeapon_Hatchet;
 
 simulated state Release
 {
@@ -55,7 +55,7 @@ DefaultProperties
 	bUseDirHitAnims=true
 	bUseSprintLeanAnims=true
 
-	AttachmentClass=class'CompModWeaponAttachment_Hatchet'
+	AttachmentClass=class'ImbaModWeaponAttachment_Hatchet'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Hatchet'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Hatchet

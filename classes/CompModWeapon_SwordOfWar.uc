@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the SwordOfWar
 */
-class CompModWeapon_SwordOfWar extends AOCWeapon_SwordOfWar;
+class ImbaModWeapon_SwordOfWar extends AOCWeapon_SwordOfWar;
 
 simulated state Release
 {
@@ -165,7 +165,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_SwordOfWar'
+	AttachmentClass=class'ImbaModWeaponAttachment_SwordOfWar'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_SwordOfWar'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_SwordOfWar
@@ -174,7 +174,7 @@ DefaultProperties
 	WeaponIdentifier="longsword"
 
 	CurrentGenWeaponType=EWT_2handsword
-	AlternativeMode=class'CompModWeapon_SwordOfWar1H'
+	AlternativeMode=class'ImbaModWeapon_SwordOfWar1H'
 
 
 	/*

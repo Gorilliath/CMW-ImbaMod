@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Norse Sword;
 */
-class CompModWeapon_NorseSword extends AOCWeapon_NorseSword;
+class ImbaModWeapon_NorseSword extends AOCWeapon_NorseSword;
 
 simulated state Release
 {
@@ -167,7 +167,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_NorseSword'
+	AttachmentClass=class'ImbaModWeaponAttachment_NorseSword'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_NorseSword'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Norse

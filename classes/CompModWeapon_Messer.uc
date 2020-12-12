@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Messer;
 */
-class CompModWeapon_Messer extends AOCWeapon_Messer;
+class ImbaModWeapon_Messer extends AOCWeapon_Messer;
 
 simulated state Release
 {
@@ -168,7 +168,7 @@ Begin Object class=AnimNodeSequence Name=MeshSequenceA
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Messer'
+	AttachmentClass=class'ImbaModWeaponAttachment_Messer'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Messer'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Messer
@@ -177,7 +177,7 @@ Begin Object class=AnimNodeSequence Name=MeshSequenceA
 	WeaponIdentifier="longsword"
 
 	CurrentGenWeaponType=EWT_2handsword
-	AlternativeMode=class'CompModWeapon_Messer1H'
+	AlternativeMode=class'ImbaModWeapon_Messer1H'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Messer]

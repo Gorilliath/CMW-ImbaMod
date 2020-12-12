@@ -5,7 +5,7 @@
 *
 * Weapon class for the Thrusting Dagger.
 */
-class CompModWeapon_ThrustDagger extends AOCWeapon_ThrustDagger;
+class ImbaModWeapon_ThrustDagger extends AOCWeapon_ThrustDagger;
 
 simulated state Release
 {

@@ -5,7 +5,7 @@
 *
 * Weapon Attachment: Fork.
 */
-class CompModWeaponAttachment_Fork extends AOCWeaponAttachment_Fork;
+class ImbaModWeaponAttachment_Fork extends AOCWeaponAttachment_Fork;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Fork
-	WeaponClass=class'CompModWeapon_Fork'
+	WeaponClass=class'ImbaModWeapon_Fork'
 	WeaponSocket=wep2hpoint
 	bUseAlternativeKick=true
 

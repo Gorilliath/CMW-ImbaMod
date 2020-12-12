@@ -1,4 +1,4 @@
-class CompModKOTHPawn extends CompModPawn;
+class ImbaModKOTHPawn extends ImbaModPawn;
 
-`include(CompMod/Include/CompModKOTH.uci)
-`include(CompMod/Include/CompModPawn.uci)
+`include(ImbaMod/Include/ImbaModKOTH.uci)
+`include(ImbaMod/Include/ImbaModPawn.uci)

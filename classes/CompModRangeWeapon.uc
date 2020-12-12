@@ -1,4 +1,4 @@
-class CompModRangeWeapon extends AOCRangeWeapon;
+class ImbaModRangeWeapon extends AOCRangeWeapon;
 
 var bool bWeaponProjCamEnabled;
 
@@ -12,7 +12,7 @@ simulated function ChangeProjectileType(class<AOCProjectile> Proj) {
 
 	CacheWeaponReferences();
 
-	if (class<CompModWeapon_Crossbow>(Class) != none && AOCOwner.PawnInfo.myTertiary == class'AOCWeapon_ExtraAmmo')
+	if (class<ImbaModWeapon_Crossbow>(Class) != none && AOCOwner.PawnInfo.myTertiary == class'AOCWeapon_ExtraAmmo')
 		AmmoCount += class'AOCWeapon_ExtraAmmo'.default.ExtraAmmo;
 
 	MaxAmmoCount = AmmoCount;
@@ -37,7 +37,7 @@ simulated state Active {
 	simulated function BeginFire(byte FireModeNum) {
 		if (FireModeNum == Attack_Shove)
 			AOCOwner.PlaySound(AOCOwner.GenericCantDoSound, true);
-		else if (bLoaded || (FireModeNum == Attack_Overhead && CompModWeapon_Crossbow(self) != none))
+		else if (bLoaded || (FireModeNum == Attack_Overhead && ImbaModWeapon_Crossbow(self) != none))
 			super.BeginFire(FireModeNum);
 	}
 }

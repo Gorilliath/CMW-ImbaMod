@@ -6,7 +6,7 @@
 * The weapon class to contain information for the Throwing Axe.
 */
 
-class CompModWeapon_ThrowingAxe extends AOCWeapon_ThrowingAxe;
+class ImbaModWeapon_ThrowingAxe extends AOCWeapon_ThrowingAxe;
 
 
 

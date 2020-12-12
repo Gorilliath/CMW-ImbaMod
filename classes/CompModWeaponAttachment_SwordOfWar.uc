@@ -5,7 +5,7 @@
 *
 * The weapon that is replicated to all clients: Sword Of War
 */
-class CompModWeaponAttachment_SwordOfWar extends AOCWeaponAttachment_SwordOfWar;
+class ImbaModWeaponAttachment_SwordOfWar extends AOCWeaponAttachment_SwordOfWar;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_SwordOfWar
-	WeaponClass=class'CompModWeapon_SwordOfWar'
+	WeaponClass=class'ImbaModWeapon_SwordOfWar'
 	WeaponSocket=wep2hpoint
 
 	bUseAlternativeKick=true

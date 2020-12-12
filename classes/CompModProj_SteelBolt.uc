@@ -5,7 +5,7 @@
 *
 * Steel Bolt
 */
-class CompModProj_SteelBolt extends AOCProj_SteelBolt;
+class ImbaModProj_SteelBolt extends AOCProj_SteelBolt;
 
 defaultproperties
 {

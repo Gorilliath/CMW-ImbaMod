@@ -6,7 +6,7 @@
 * The weapon that is replicated to all clients: Double Axe
 */
 
-class CompModWeaponAttachment_DoubleAxe extends AOCWeaponAttachment_DoubleAxe;
+class ImbaModWeaponAttachment_DoubleAxe extends AOCWeaponAttachment_DoubleAxe;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -45,7 +45,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_DoubleAxe
-	WeaponClass=class'CompModWeapon_DoubleAxe'
+	WeaponClass=class'ImbaModWeapon_DoubleAxe'
 
 	WeaponSocket=wep2haxepoint
 	bUseAlternativeKick=true

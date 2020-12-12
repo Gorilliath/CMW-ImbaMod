@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Mace.
 */
-class CompModWeapon_Mace extends AOCWeapon_Mace;
+class ImbaModWeapon_Mace extends AOCWeapon_Mace;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Mace'
+	AttachmentClass=class'ImbaModWeaponAttachment_Mace'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Mace'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Mace

@@ -5,7 +5,7 @@
 *
 * Man-At-Arms.
 */
-class CompModFamilyInfo_ManAtArms extends AOCFamilyInfo_ManAtArms;
+class ImbaModFamilyInfo_ManAtArms extends AOCFamilyInfo_ManAtArms;
 
 DefaultProperties
 {
@@ -19,7 +19,7 @@ DefaultProperties
 	SecondaryWeapons(0)=class'AOCWeapon_Buckler'
 	SecondaryWeapons(1)=class'AOCWeapon_Heater'
 	SecondaryWeapons(2)=class'AOCWeapon_ThrowingKnife'
-	SecondaryWeapons(3)=class'CompModWeapon_OilPot'
+	SecondaryWeapons(3)=class'ImbaModWeapon_OilPot'
 
 	NewPrimaryWeapons(0)=(CWeapon=class'AOCWeapon_Broadsword',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=0.f)
 	NewPrimaryWeapons(1)=(CWeapon=class'AOCWeapon_NorseSword',CheckLimitExpGroup=EEXP_1HSHARP,UnlockExpLevel=25.f)

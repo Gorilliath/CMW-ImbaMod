@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: GrandMace
 */
-class CompModWeaponAttachment_GrandMace extends AOCWeaponAttachment_GrandMace;
+class ImbaModWeaponAttachment_GrandMace extends AOCWeaponAttachment_GrandMace;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -42,7 +42,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_GrandMace
-	WeaponClass=class'CompModWeapon_GrandMace'
+	WeaponClass=class'ImbaModWeapon_GrandMace'
 	WeaponSocket=wep2haxepoint
 
 	bUseAlternativeKick=true

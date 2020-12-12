@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the SwordOfWar 1H
 */
-class CompModWeapon_SwordOfWar1H extends AOCWeapon_SwordOfWar1H;
+class ImbaModWeapon_SwordOfWar1H extends AOCWeapon_SwordOfWar1H;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_SwordOfWar1H'
+	AttachmentClass=class'ImbaModWeaponAttachment_SwordOfWar1H'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_SwordOfWar1H'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_SwordOfWar
@@ -176,7 +176,7 @@ DefaultProperties
 	WeaponIdentifier="1hsharp"
 
 	CurrentGenWeaponType=EWT_1hand
-	AlternativeMode=class'CompModWeapon_SwordOfWar'
+	AlternativeMode=class'ImbaModWeapon_SwordOfWar'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_SwordOfWar1H]

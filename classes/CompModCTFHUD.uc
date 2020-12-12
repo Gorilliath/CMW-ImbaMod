@@ -1,4 +1,4 @@
-class CompModCTFHUD extends AOCCTFHUD;
+class ImbaModCTFHUD extends AOCCTFHUD;
 
-`include(CompMod/Include/CompModCTF.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModCTF.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

@@ -5,7 +5,7 @@
 *
 * Crossbow.
 */
-class CompModWeapon_LightCrossbow extends CompModWeapon_Crossbow;
+class ImbaModWeapon_LightCrossbow extends ImbaModWeapon_Crossbow;
 
 DefaultProperties
 {

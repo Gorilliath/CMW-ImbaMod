@@ -6,7 +6,7 @@
 * The weapon class to contain information for the Bearded Axe.
 */
 
-class CompModWeapon_Bearded extends AOCWeapon_Bearded;
+class ImbaModWeapon_Bearded extends AOCWeapon_Bearded;
 
 simulated state ParryRelease
 {
@@ -98,7 +98,7 @@ DefaultProperties
 	AlternativeMode=none
 	bTwoHander=true
 	FlinchTime2H=1.0
-	AttachmentClass=class'CompModWeaponAttachment_Bearded'
+	AttachmentClass=class'ImbaModWeaponAttachment_Bearded'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Bearded'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Bearded

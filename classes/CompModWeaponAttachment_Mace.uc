@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Mace
 */
-class CompModWeaponAttachment_Mace extends AOCWeaponAttachment_Mace;
+class ImbaModWeaponAttachment_Mace extends AOCWeaponAttachment_Mace;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Mace
-	WeaponClass=class'CompModWeapon_Mace'
+	WeaponClass=class'ImbaModWeapon_Mace'
 	WeaponSocket=wep1hpoint
 
 	WeaponStaticMeshScale=1

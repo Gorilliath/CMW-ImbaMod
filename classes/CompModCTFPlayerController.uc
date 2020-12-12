@@ -1,5 +1,5 @@
-class CompModCTFPlayerController extends AOCCTFPlayerController
-    dependson(CompModCTF);
+class ImbaModCTFPlayerController extends AOCCTFPlayerController
+    dependson(ImbaModCTF);
 
-`include(CompMod/Include/CompModCTF.uci)
-`include(CompMod/Include/CompModPlayerController.uci)
+`include(ImbaMod/Include/ImbaModCTF.uci)
+`include(ImbaMod/Include/ImbaModPlayerController.uci)

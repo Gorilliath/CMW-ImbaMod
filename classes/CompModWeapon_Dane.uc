@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Dane.
 */
-class CompModWeapon_Dane extends AOCWeapon_Dane;
+class ImbaModWeapon_Dane extends AOCWeapon_Dane;
 
 simulated state Release
 {
@@ -55,7 +55,7 @@ DefaultProperties
 	bUseSprintLeanAnims=true
 	bUseDirHitAnims=true
 
-	AttachmentClass=class'CompModWeaponAttachment_Dane'
+	AttachmentClass=class'ImbaModWeaponAttachment_Dane'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Dane'
 	AllowedShieldClass=none
 	bHaveShield=true

@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Broadsword
 */
-class CompModWeaponAttachment_Broadsword extends AOCWeaponAttachment_Broadsword;
+class ImbaModWeaponAttachment_Broadsword extends AOCWeaponAttachment_Broadsword;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Broadsword
-	WeaponClass=class'CompModWeapon_Broadsword'
+	WeaponClass=class'ImbaModWeapon_Broadsword'
 	WeaponSocket = wep1hpoint
 
 	AttackTypeInfo(0)=(fBaseDamage=60.0, fForce=15000, cDamageType="AOC.AOCDmgType_Swing", iWorldHitLenience=6)

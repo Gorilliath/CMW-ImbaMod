@@ -5,7 +5,7 @@
 *
 * Warbow.
 */
-class CompModWeapon_Warbow extends CompModWeapon_Longbow;
+class ImbaModWeapon_Warbow extends ImbaModWeapon_Longbow;
 
 DefaultProperties
 {

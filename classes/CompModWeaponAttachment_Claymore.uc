@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Claymore.
 */
-class CompModWeaponAttachment_Claymore extends AOCWeaponAttachment_Claymore;
+class ImbaModWeaponAttachment_Claymore extends AOCWeaponAttachment_Claymore;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Claymore
-	WeaponClass=class'CompModWeapon_Claymore'
+	WeaponClass=class'ImbaModWeapon_Claymore'
 	WeaponSocket=wep2hpoint
 
 	bUseAlternativeKick=true

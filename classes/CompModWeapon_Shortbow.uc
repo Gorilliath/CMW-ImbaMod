@@ -5,7 +5,7 @@
 *
 * Longbow.
 */
-class CompModWeapon_Shortbow extends CompModWeapon_Longbow
+class ImbaModWeapon_Shortbow extends ImbaModWeapon_Longbow
 	dependson(AOCPawn);
 
 DefaultProperties

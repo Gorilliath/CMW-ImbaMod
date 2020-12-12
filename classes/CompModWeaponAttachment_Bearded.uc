@@ -6,7 +6,7 @@
 * The weapon that is replicated to all clients: Bearded Axe
 */
 
-class CompModWeaponAttachment_Bearded extends AOCWeaponAttachment_Bearded;
+class ImbaModWeaponAttachment_Bearded extends AOCWeaponAttachment_Bearded;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -44,7 +44,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Bearded
-	WeaponClass=class'CompModWeapon_Bearded'
+	WeaponClass=class'ImbaModWeapon_Bearded'
 
 	WeaponSocket=wep2haxepoint
 	bUseAlternativeKick=true

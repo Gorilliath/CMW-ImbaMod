@@ -1,7 +1,7 @@
-class CompModKOTH extends AOCKOTH;
+class ImbaModKOTH extends AOCKOTH;
 
-`include(CompMod/Include/CompModKOTH.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModKOTH.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)
 
 DefaultProperties
 {

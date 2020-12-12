@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Sword Of War 1H
 */
-class CompModWeaponAttachment_SwordOfWar1H extends AOCWeaponAttachment_SwordOfWar1H;
+class ImbaModWeaponAttachment_SwordOfWar1H extends AOCWeaponAttachment_SwordOfWar1H;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_SwordOfWar
-	WeaponClass=class'CompModWeapon_SwordOfWar1H'
+	WeaponClass=class'ImbaModWeapon_SwordOfWar1H'
 	WeaponSocket=wep1hpoint
 
 	bUseAlternativeKick=true

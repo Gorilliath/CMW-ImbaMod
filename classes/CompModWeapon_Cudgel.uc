@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Cudgel.
 */
-class CompModWeapon_Cudgel extends AOCWeapon_Cudgel;
+class ImbaModWeapon_Cudgel extends AOCWeapon_Cudgel;
 
 simulated state Release
 {
@@ -168,7 +168,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Cudgel'
+	AttachmentClass=class'ImbaModWeaponAttachment_Cudgel'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Cudgel'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Cudgel

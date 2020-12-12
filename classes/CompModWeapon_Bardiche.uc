@@ -5,7 +5,7 @@
 *
 * Weapon: Bardiche.
 */
-class CompModWeapon_Bardiche extends AOCWeapon_Bardiche;
+class ImbaModWeapon_Bardiche extends AOCWeapon_Bardiche;
 
 simulated state ParryRelease
 {
@@ -220,7 +220,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Bardiche'
+	AttachmentClass=class'ImbaModWeaponAttachment_Bardiche'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Bardiche'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Bardiche

@@ -1,5 +1,5 @@
-class CompModCTF extends AOCCTF;
+class ImbaModCTF extends AOCCTF;
 
-`include(CompMod/Include/CompModCTF.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModCTF.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)
 

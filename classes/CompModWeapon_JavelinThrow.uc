@@ -6,7 +6,7 @@
 * Weapon: Javelin (Throwing Mode)
 */
 
-class CompModWeapon_JavelinThrow extends AOCWeapon_JavelinThrow;
+class ImbaModWeapon_JavelinThrow extends AOCWeapon_JavelinThrow;
 
 
 DefaultProperties
@@ -26,7 +26,7 @@ DefaultProperties
 	WeaponProjectiles(0)=class'AOCProj_Javelin'
 	WeaponProjectiles(3)=class'AOCProj_Javelin'
 
-	AttachmentClass=class'CompModWeaponAttachment_JavelinThrow'
+	AttachmentClass=class'ImbaModWeaponAttachment_JavelinThrow'
 	// should never be part of inventory attachment
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Javelin'
 	PermanentAttachmentClass(0)=class'AOCInventoryAttachment_JavelinQuiver'
@@ -92,7 +92,7 @@ DefaultProperties
 	StrafeModify=0.75f
 	bCanDodge=false
 	bUseIdleForTopHalf=true
-	AlternativeMode=class'CompModWeapon_JavelinMelee'
+	AlternativeMode=class'ImbaModWeapon_JavelinMelee'
 	bAlternativeFireStopped=false
 	bHasFired=false
 	bIgnoreShieldReplacement=true

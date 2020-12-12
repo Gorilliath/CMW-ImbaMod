@@ -1,5 +1,5 @@
-class CompModCDWDuel extends CDWDuel;
+class ImbaModCDWDuel extends CDWDuel;
 
-`include(CompMod/Include/CompModCDWDuel.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModCDWDuel.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)
 

@@ -1,4 +1,4 @@
-class CompModAOCDuelHUD extends AOCDuelHUD;
+class ImbaModAOCDuelHUD extends AOCDuelHUD;
 
-`include(CompMod/Include/CompModAOCDuel.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModAOCDuel.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

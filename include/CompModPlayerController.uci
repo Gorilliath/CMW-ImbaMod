@@ -83,18 +83,18 @@ function bool SetPause(bool bPause, optional delegate<CanUnpause> CanUnpauseDele
 	if (bPause)
         bResult = ActualPause(CanUnpauseDelegate);
 	else
-        ClientDisplayConsoleMessage("Please use the command 'CompModUnpause' to unpause.");
+        ClientDisplayConsoleMessage("Please use the command 'ImbaModUnpause' to unpause.");
 	return bResult;
 }
 
-exec function CompModPause() {
+exec function ImbaModPause() {
     if (IsAdmin())
         ActualPause();
     else
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
 }
 
-exec function CompModUnpause() {
+exec function ImbaModUnpause() {
     if (IsAdmin() && bPaused)
         StartUnpauseCountdown();
     else if (!bPaused)
@@ -265,12 +265,12 @@ reliable server function S_AdminForceSpectate(String PlayerName) {
 }
 
 exec function Reload() {
-	if(!ScriptBlockedInputs[EINBLOCK_Reload] && CompModWeapon_Crossbow(Pawn.Weapon) != none)
-		CompModWeapon_Crossbow(Pawn.Weapon).ActivateReload();
+	if(!ScriptBlockedInputs[EINBLOCK_Reload] && ImbaModWeapon_Crossbow(Pawn.Weapon) != none)
+		ImbaModWeapon_Crossbow(Pawn.Weapon).ActivateReload();
 }
 
 exec function PerformAim() {
-	if (class<CompModWeapon_Crossbow>(Pawn.Weapon.Class) != none)
+	if (class<ImbaModWeapon_Crossbow>(Pawn.Weapon.Class) != none)
 		StartFire(1);
 }
 

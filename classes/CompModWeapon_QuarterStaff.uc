@@ -5,7 +5,7 @@
 *
 * Quarter Staff.
 */
-class CompModWeapon_QuarterStaff extends AOCWeapon_QuarterStaff;
+class ImbaModWeapon_QuarterStaff extends AOCWeapon_QuarterStaff;
 
 simulated state Release
 {
@@ -175,7 +175,7 @@ defaultproperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_QuarterStaff'
+	AttachmentClass=class'ImbaModWeaponAttachment_QuarterStaff'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_QuarterStaff'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_QStaff

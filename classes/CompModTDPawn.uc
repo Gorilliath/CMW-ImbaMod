@@ -1,4 +1,4 @@
-class CompModTDPawn extends CompModPawn;
+class ImbaModTDPawn extends ImbaModPawn;
 
-`include(CompMod/Include/CompModTD.uci)
-`include(CompMod/Include/CompModPawn.uci)
+`include(ImbaMod/Include/ImbaModTD.uci)
+`include(ImbaMod/Include/ImbaModPawn.uci)

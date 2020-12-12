@@ -5,7 +5,7 @@
 *
 * Weapon: Halberd.
 */
-class CompModWeapon_Halberd extends AOCWeapon_Halberd;
+class ImbaModWeapon_Halberd extends AOCWeapon_Halberd;
 
 simulated state ParryRelease
 {
@@ -214,7 +214,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Halberd'
+	AttachmentClass=class'ImbaModWeaponAttachment_Halberd'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Halberd'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Halberd

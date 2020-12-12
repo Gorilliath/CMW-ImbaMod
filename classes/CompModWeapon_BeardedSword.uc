@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Longsword
 */
-class CompModWeapon_BeardedSword extends AOCWeapon_Longsword;
+class ImbaModWeapon_BeardedSword extends AOCWeapon_Longsword;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	ParrySound=SoundCue'A_Phys_Mat_Impacts.Buckler_Blocking'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_BeardedSword'
+	AttachmentClass=class'ImbaModWeaponAttachment_BeardedSword'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Bearded'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Longsword
@@ -175,7 +175,7 @@ DefaultProperties
 	WeaponIdentifier="longsword"
 
 	CurrentGenWeaponType=EWT_2handsword
-	AlternativeMode=class'CompModWeapon_Bearded'
+	AlternativeMode=class'ImbaModWeapon_Bearded'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Longsword]

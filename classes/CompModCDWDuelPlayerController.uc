@@ -1,5 +1,5 @@
-class CompModCDWDuelPlayerController extends CDWDuelPlayerController
-    dependson(CompModCDWDuel);
+class ImbaModCDWDuelPlayerController extends CDWDuelPlayerController
+    dependson(ImbaModCDWDuel);
 
-`include(CompMod/Include/CompModCDWDuel.uci)
-`include(CompMod/Include/CompModPlayerController.uci)
+`include(ImbaMod/Include/ImbaModCDWDuel.uci)
+`include(ImbaMod/Include/ImbaModPlayerController.uci)

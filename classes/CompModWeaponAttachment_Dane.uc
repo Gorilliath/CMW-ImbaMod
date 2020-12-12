@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Dane
 */
-class CompModWeaponAttachment_Dane extends AOCWeaponAttachment_Dane;
+class ImbaModWeaponAttachment_Dane extends AOCWeaponAttachment_Dane;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_WarAxe
-	WeaponClass=class'CompModWeapon_Dane'
+	WeaponClass=class'ImbaModWeapon_Dane'
 
 	WeaponSocket = wep1hpoint
 

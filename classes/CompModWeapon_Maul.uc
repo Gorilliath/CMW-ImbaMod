@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Maul
 */
-class CompModWeapon_Maul extends AOCWeapon_Maul;
+class ImbaModWeapon_Maul extends AOCWeapon_Maul;
 
 simulated state ParryRelease
 {
@@ -100,7 +100,7 @@ DefaultProperties
 	FlinchTime2H=1.0
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Maul'
+	AttachmentClass=class'ImbaModWeaponAttachment_Maul'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Maul'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Maul

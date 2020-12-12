@@ -1,5 +1,5 @@
-class CompModTOPlayerController extends AOCTeamObjectivePC
-    dependson(CompModTO);
+class ImbaModTOPlayerController extends AOCTeamObjectivePC
+    dependson(ImbaModTO);
 
-`include(CompMod/Include/CompModTO.uci)
-`include(CompMod/Include/CompModPlayerController.uci)
+`include(ImbaMod/Include/ImbaModTO.uci)
+`include(ImbaMod/Include/ImbaModPlayerController.uci)

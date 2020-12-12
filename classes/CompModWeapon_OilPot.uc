@@ -1,4 +1,4 @@
-class CompModWeapon_OilPot extends AOCWeapon_OilPot;
+class ImbaModWeapon_OilPot extends AOCWeapon_OilPot;
 
 DefaultProperties
 {

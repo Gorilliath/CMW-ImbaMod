@@ -5,7 +5,7 @@
 *
 * Weapon: Throwing Knife.
 */
-class CompModWeapon_ThrowingKnife extends AOCWeapon_ThrowingKnife;
+class ImbaModWeapon_ThrowingKnife extends AOCWeapon_ThrowingKnife;
 
 DefaultProperties
 {

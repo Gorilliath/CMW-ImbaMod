@@ -5,7 +5,7 @@
 * 
 * The Weapon Attachment for the Broad Dagger.
 */
-class CompModWeaponAttachment_BroadDagger extends AOCWeaponAttachment_BroadDagger;
+class ImbaModWeaponAttachment_BroadDagger extends AOCWeaponAttachment_BroadDagger;
 
 DefaultProperties
 {
@@ -24,7 +24,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_BroadDagger
-	WeaponClass=class'CompModWeapon_BroadDagger'
+	WeaponClass=class'ImbaModWeapon_BroadDagger'
 	WeaponSocket=wep1hpoint
 
 	AttackTypeInfo(0)=(fBaseDamage=35.0, fForce=10000, cDamageType="AOC.AOCDmgType_Swing", iWorldHitLenience=6)

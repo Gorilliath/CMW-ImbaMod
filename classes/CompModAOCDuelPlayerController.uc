@@ -1,5 +1,5 @@
-class CompModAOCDuelPlayerController extends AOCDuelPlayerController
-    dependson(CompModAOCDuel);
+class ImbaModAOCDuelPlayerController extends AOCDuelPlayerController
+    dependson(ImbaModAOCDuel);
 
-`include(CompMod/Include/CompModAOCDuel.uci)
-`include(CompMod/Include/CompModPlayerController.uci)
+`include(ImbaMod/Include/ImbaModAOCDuel.uci)
+`include(ImbaMod/Include/ImbaModPlayerController.uci)

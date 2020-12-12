@@ -1,4 +1,4 @@
-class CompModAOCDuel extends AOCDuel;
+class ImbaModAOCDuel extends AOCDuel;
 
-`include(CompMod/Include/CompModAOCDuel.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModAOCDuel.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)

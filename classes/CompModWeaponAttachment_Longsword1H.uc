@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Longsword 1H
 */
-class CompModWeaponAttachment_Longsword1H extends AOCWeaponAttachment_Longsword1H;
+class ImbaModWeaponAttachment_Longsword1H extends AOCWeaponAttachment_Longsword1H;
 
 DefaultProperties
 {
@@ -14,7 +14,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	KickSize=20.f
 
 	WeaponID=EWEP_Longsword
-	WeaponClass=class'CompModWeapon_Longsword1H'
+	WeaponClass=class'ImbaModWeapon_Longsword1H'
 	WeaponSocket=wep1hpoint
 	
 	bUseAlternativeKick=true

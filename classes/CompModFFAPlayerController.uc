@@ -1,5 +1,5 @@
-class CompModFFAPlayerController extends AOCFFAPlayerController
-    dependson(CompModFFA);
+class ImbaModFFAPlayerController extends AOCFFAPlayerController
+    dependson(ImbaModFFA);
 
-`include(CompMod/Include/CompModFFA.uci)
-`include(CompMod/Include/CompModPlayerController.uci)
+`include(ImbaMod/Include/ImbaModFFA.uci)
+`include(ImbaMod/Include/ImbaModPlayerController.uci)

@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Longsword
 */
-class CompModWeapon_Claymore extends AOCWeapon_Claymore;
+class ImbaModWeapon_Claymore extends AOCWeapon_Claymore;
 
 simulated state Release
 {
@@ -165,7 +165,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Claymore'
+	AttachmentClass=class'ImbaModWeaponAttachment_Claymore'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Claymore'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Claymore

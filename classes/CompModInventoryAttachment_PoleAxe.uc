@@ -5,7 +5,7 @@
 *
 * Inventory Attachment: Pole Axe
 */
-class CompModInventoryAttachment_PoleAxe extends AOCInventoryAttachment_PoleAxe;
+class ImbaModInventoryAttachment_PoleAxe extends AOCInventoryAttachment_PoleAxe;
 
 DefaultProperties
 {

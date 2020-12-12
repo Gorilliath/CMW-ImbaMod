@@ -5,7 +5,7 @@
 *
 * Weapon: Javelin (Melee Mode)
 */
-class CompModWeapon_JavelinMelee extends AOCWeapon_JavelinMelee;
+class ImbaModWeapon_JavelinMelee extends AOCWeapon_JavelinMelee;
 
 
 DefaultProperties
@@ -16,7 +16,7 @@ DefaultProperties
 
 	bUseDirParryHitAnims=true
 
-	AttachmentClass=class'CompModWeaponAttachment_Javelin'
+	AttachmentClass=class'ImbaModWeaponAttachment_Javelin'
 	// should never be part of inventory attachment
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Javelin'
 	//PermanentAttachmentClass(0)=class'AOCInventoryAttachment_JavelinQuiver'
@@ -86,7 +86,7 @@ DefaultProperties
 	StrafeModify=0.75f
 	bFinishedEquip=false
 	bCanDodge=false
-	AlternativeMode=class'CompModWeapon_JavelinThrow'
+	AlternativeMode=class'ImbaModWeapon_JavelinThrow'
 
 	bAllowedToSwitch=false
 	bIgnoreShieldReplacement=true

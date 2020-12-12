@@ -6,7 +6,7 @@
 * Smoke Pot projectile.
 */
 
-class CompModProj_ThrownSmokePot extends AOCProj_ThrownOilPot;
+class ImbaModProj_ThrownSmokePot extends AOCProj_ThrownOilPot;
 
 /**
  *  Burn baby burn

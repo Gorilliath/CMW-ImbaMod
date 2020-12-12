@@ -5,7 +5,7 @@
 *
 * Weapon Attachment: Halberd.
 */
-class CompModWeaponAttachment_Halberd extends AOCWeaponAttachment_Halberd;
+class ImbaModWeaponAttachment_Halberd extends AOCWeaponAttachment_Halberd;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Halberd
-	WeaponClass=class'CompModWeapon_Halberd'
+	WeaponClass=class'ImbaModWeapon_Halberd'
 	WeaponSocket=wepPolepoint
 
 	AttackTypeInfo(0)=(fBaseDamage=65.0, fForce=30000, cDamageType="AOC.AOCDmgType_SwingBlunt", iWorldHitLenience=6)

@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Longsword
 */
-class CompModWeapon_Greatsword extends AOCWeapon_Greatsword;
+class ImbaModWeapon_Greatsword extends AOCWeapon_Greatsword;
 
 simulated state Release
 {
@@ -167,7 +167,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Greatsword'
+	AttachmentClass=class'ImbaModWeaponAttachment_Greatsword'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Greatsword'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Greatsword

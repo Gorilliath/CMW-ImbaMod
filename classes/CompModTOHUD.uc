@@ -1,4 +1,4 @@
-class CompModTOHUD extends AOCTeamObjectiveHUD;
+class ImbaModTOHUD extends AOCTeamObjectiveHUD;
 
-`include(CompMod/Include/CompModTO.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModTO.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

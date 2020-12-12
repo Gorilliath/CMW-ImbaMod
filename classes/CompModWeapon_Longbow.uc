@@ -5,7 +5,7 @@
 *
 * Longbow.
 */
-class CompModWeapon_Longbow extends CompModRangeWeapon
+class ImbaModWeapon_Longbow extends ImbaModRangeWeapon
 	dependson(AOCPawn);
 
 /** Remember previos state for the recovery state */

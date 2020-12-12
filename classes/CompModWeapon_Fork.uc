@@ -5,7 +5,7 @@
 *
 * Weapon: Fork.
 */
-class CompModWeapon_Fork extends AOCWeapon_Fork;
+class ImbaModWeapon_Fork extends AOCWeapon_Fork;
 
 simulated state ParryRelease
 {
@@ -214,7 +214,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Fork'
+	AttachmentClass=class'ImbaModWeaponAttachment_Fork'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Fork'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Fork

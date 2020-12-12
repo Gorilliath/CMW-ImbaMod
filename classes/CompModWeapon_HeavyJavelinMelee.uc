@@ -5,7 +5,7 @@
 *
 * Weapon: Javelin (Melee Mode)
 */
-class CompModWeapon_HeavyJavelinMelee extends AOCWeapon_HeavyJavelinMelee;
+class ImbaModWeapon_HeavyJavelinMelee extends AOCWeapon_HeavyJavelinMelee;
 
 DefaultProperties
 {
@@ -13,7 +13,7 @@ DefaultProperties
 	// set maximum ammo
 	bCanCombo=false
 
-	AttachmentClass=class'CompModWeaponAttachment_HeavyJavelin'
+	AttachmentClass=class'ImbaModWeaponAttachment_HeavyJavelin'
 	// should never be part of inventory attachment
 	InventoryAttachmentClass=class'AOCInventoryAttachment_HeavyJavelin'
 	AllowedShieldClass=class'AOCShield_Buckler'
@@ -81,7 +81,7 @@ DefaultProperties
 	StrafeModify=0.75f
 	bFinishedEquip=false
 	bCanDodge=false
-	AlternativeMode=class'CompModWeapon_HeavyJavelinThrow'
+	AlternativeMode=class'ImbaModWeapon_HeavyJavelinThrow'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_HeavyJavelinMelee]

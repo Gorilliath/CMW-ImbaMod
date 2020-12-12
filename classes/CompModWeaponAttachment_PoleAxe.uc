@@ -5,7 +5,7 @@
 *
 * Weapon Attachment: Pole Arm.
 */
-class CompModWeaponAttachment_PoleAxe extends AOCWeaponAttachment_PoleAxe;
+class ImbaModWeaponAttachment_PoleAxe extends AOCWeaponAttachment_PoleAxe;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_PoleArm
-	WeaponClass=class'CompModWeapon_PoleAxe'
+	WeaponClass=class'ImbaModWeapon_PoleAxe'
 
 	WeaponSocket=wep2haxepoint
 	bUseAlternativeKick=true

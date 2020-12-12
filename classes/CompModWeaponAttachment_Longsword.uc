@@ -5,7 +5,7 @@
 *
 * The weapon that is replicated to all clients: Longsword
 */
-class CompModWeaponAttachment_Longsword extends AOCWeaponAttachment_Longsword;
+class ImbaModWeaponAttachment_Longsword extends AOCWeaponAttachment_Longsword;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Longsword
-	WeaponClass=class'CompModWeapon_Longsword'
+	WeaponClass=class'ImbaModWeapon_Longsword'
 	WeaponSocket=wep2hpoint
 
 	bUseAlternativeKick=true

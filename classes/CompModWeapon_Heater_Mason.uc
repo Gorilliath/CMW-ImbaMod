@@ -11,7 +11,7 @@
 */
 
 
-class CompModWeapon_Heater_Mason extends AOCWeapon_Heater_Mason;
+class ImbaModWeapon_Heater_Mason extends AOCWeapon_Heater_Mason;
 
 DefaultProperties
 {
@@ -20,7 +20,7 @@ DefaultProperties
 
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Heater_Mason'
 
-	OtherTeamWeapon(EFAC_AGATHA)=class'CompModWeapon_Heater_Agatha'
+	OtherTeamWeapon(EFAC_AGATHA)=class'ImbaModWeapon_Heater_Agatha'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Heater_Mason]

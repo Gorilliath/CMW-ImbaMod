@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the GrandMace
 */
-class CompModWeapon_GrandMace extends AOCWeapon_GrandMace;
+class ImbaModWeapon_GrandMace extends AOCWeapon_GrandMace;
 
 simulated state Release
 {
@@ -168,7 +168,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_GrandMace'
+	AttachmentClass=class'ImbaModWeaponAttachment_GrandMace'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_GrandMace'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_GrandMace

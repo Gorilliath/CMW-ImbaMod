@@ -5,7 +5,7 @@
 *
 * The weapon that is replicated to all clients: Zweihander.
 */
-class CompModWeaponAttachment_Zweihander extends AOCWeaponAttachment_Zweihander;
+class ImbaModWeaponAttachment_Zweihander extends AOCWeaponAttachment_Zweihander;
 
 simulated function float GetHandleTracerPercent(int i)
 {
@@ -41,7 +41,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Zweihander
-	WeaponClass=class'CompModWeapon_Zweihander'
+	WeaponClass=class'ImbaModWeapon_Zweihander'
 	WeaponSocket=wep2hpoint
 
 	bUseAlternativeKick=true

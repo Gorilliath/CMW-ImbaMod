@@ -5,7 +5,7 @@
 *
 * The weapon that is replicated to all clients: Norse Sword.
 */
-class CompModWeaponAttachment_NorseSword extends AOCWeaponAttachment_NorseSword;
+class ImbaModWeaponAttachment_NorseSword extends AOCWeaponAttachment_NorseSword;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Norse
-	WeaponClass=class'CompModWeapon_NorseSword'
+	WeaponClass=class'ImbaModWeapon_NorseSword'
 	WeaponSocket = wep1hpoint
 
 	WeaponStaticMeshScale=1

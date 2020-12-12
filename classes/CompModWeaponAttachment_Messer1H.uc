@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Messer 1H
 */
-class CompModWeaponAttachment_Messer1H extends AOCWeaponAttachment_Messer1H;
+class ImbaModWeaponAttachment_Messer1H extends AOCWeaponAttachment_Messer1H;
 
 DefaultProperties
 {
@@ -15,7 +15,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	KickSize=20.f
 
 	WeaponID=EWEP_Messer
-	WeaponClass=class'CompModWeapon_Messer1H'
+	WeaponClass=class'ImbaModWeapon_Messer1H'
 	WeaponSocket=wep1hpoint
 
 	bUseAlternativeKick=true

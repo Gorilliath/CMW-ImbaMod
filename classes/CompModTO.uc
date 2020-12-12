@@ -1,4 +1,4 @@
-class CompModTO extends AOCTeamObjective;
+class ImbaModTO extends AOCTeamObjective;
 
-`include(CompMod/Include/CompModTO.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModTO.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)

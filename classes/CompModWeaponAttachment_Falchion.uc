@@ -5,7 +5,7 @@
 *
 * The weapon that is replicated to all clients: Falchion.
 */
-class CompModWeaponAttachment_Falchion extends AOCWeaponAttachment_Falchion;
+class ImbaModWeaponAttachment_Falchion extends AOCWeaponAttachment_Falchion;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Falchion
-	WeaponClass=class'CompModWeapon_Falchion'
+	WeaponClass=class'ImbaModWeapon_Falchion'
 	WeaponSocket=wep1hpoint
 
 	AttackTypeInfo(0)=(fBaseDamage=78.0, fForce=10000, cDamageType="AOC.AOCDmgType_SwingBlunt", iWorldHitLenience=6)

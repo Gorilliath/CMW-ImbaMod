@@ -6,7 +6,7 @@
 * Weapon Attachment: Javelin.
 */
 
-class CompModWeaponAttachment_ShortSpear extends AOCWeaponAttachment_ShortSpear;
+class ImbaModWeaponAttachment_ShortSpear extends AOCWeaponAttachment_ShortSpear;
 
 
 
@@ -25,7 +25,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_ShortSpear
-	WeaponClass=class'CompModWeapon_ShortSpearMelee'
+	WeaponClass=class'ImbaModWeapon_ShortSpearMelee'
 	WeaponSocket =JavelinPoint
 
 	//WeaponPSSocket=Flame

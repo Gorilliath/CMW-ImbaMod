@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Messer 1H;
 */
-class CompModWeapon_Messer1H extends AOCWeapon_Messer1H;
+class ImbaModWeapon_Messer1H extends AOCWeapon_Messer1H;
 
 simulated state Release
 {
@@ -175,7 +175,7 @@ DefaultProperties
 	WeaponIdentifier="1hsharp"
 
 	CurrentGenWeaponType=EWT_1hand
-	AlternativeMode=class'CompModWeapon_Messer'
+	AlternativeMode=class'ImbaModWeapon_Messer'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Messer1H]

@@ -5,7 +5,7 @@
 * 
 * The weapon class to contain information for the Flail.
 */
-class CompModWeapon_Flail extends AOCWeapon_Flail;
+class ImbaModWeapon_Flail extends AOCWeapon_Flail;
 
 // Hold Animation for the Flail
 var array<AnimationInfo> HoldAnimations;

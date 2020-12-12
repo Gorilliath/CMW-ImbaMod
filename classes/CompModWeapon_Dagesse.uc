@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Dagesse.
 */
-class CompModWeapon_Dagesse extends AOCWeapon_Dagesse;
+class ImbaModWeapon_Dagesse extends AOCWeapon_Dagesse;
 
 simulated state Release
 {
@@ -168,7 +168,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Dagesse'
+	AttachmentClass=class'ImbaModWeaponAttachment_Dagesse'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Dagesse'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Dagesse

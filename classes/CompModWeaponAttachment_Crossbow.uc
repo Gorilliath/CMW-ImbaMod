@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Crossbow.
 */
-class CompModWeaponAttachment_Crossbow extends AOCWeaponAttachment_Crossbow;
+class ImbaModWeaponAttachment_Crossbow extends AOCWeaponAttachment_Crossbow;
 
 // Node for determining which animation to play
 var AnimNodeBlendList AmmoNodeBlendList;
@@ -77,7 +77,7 @@ DefaultProperties
 	End Object
 
 	WeaponID=EWEP_Crossbow
-	WeaponClass=class'CompModWeapon_Crossbow'
+	WeaponClass=class'ImbaModWeapon_Crossbow'
 	WeaponSocket=CrossBowPoint
 	bHasAmmo=true
 

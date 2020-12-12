@@ -9,7 +9,7 @@
  * The presentation-side of families are called "Characters"; see AOCCharacterInfo. All mesh/texture/anim info is in there.
  * One character can be used by multiple families, so long as the Class and Faction match (Characters may have multiple classes and factions).
  */
-class CompModFamilyInfo extends AOCFamilyInfo;
+class ImbaModFamilyInfo extends AOCFamilyInfo;
 
 DefaultProperties
 {

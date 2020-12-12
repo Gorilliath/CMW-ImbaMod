@@ -1,5 +1,5 @@
-class CompModKOTHPlayerController extends AOCKOTHPlayerController
-    dependson(CompModKOTH);
+class ImbaModKOTHPlayerController extends AOCKOTHPlayerController
+    dependson(ImbaModKOTH);
 
-`include(CompMod/Include/CompModKOTH.uci)
-`include(CompMod/Include/CompModPlayerController.uci)
+`include(ImbaMod/Include/ImbaModKOTH.uci)
+`include(ImbaMod/Include/ImbaModPlayerController.uci)

@@ -6,7 +6,7 @@
 * The weapon class to contain information for the Double Axe.
 */
 
-class CompModWeapon_DoubleAxe extends AOCWeapon_DoubleAxe;
+class ImbaModWeapon_DoubleAxe extends AOCWeapon_DoubleAxe;
 
 simulated state ParryRelease
 {
@@ -97,7 +97,7 @@ DefaultProperties
 {
 	bTwoHander=true
 	FlinchTime2H=1.0
-	AttachmentClass=class'CompModWeaponAttachment_DoubleAxe'
+	AttachmentClass=class'ImbaModWeaponAttachment_DoubleAxe'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_DoubleAxe'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_DoubleAxe

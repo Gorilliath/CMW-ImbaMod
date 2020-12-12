@@ -1,7 +1,7 @@
-class CompModFFAHUD extends AOCFFAHUD;
+class ImbaModFFAHUD extends AOCFFAHUD;
 
-`include(CompMod/Include/CompModFFA.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModFFA.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)
 
 
 

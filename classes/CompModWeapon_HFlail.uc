@@ -6,7 +6,7 @@
 * The weapon class to contain information for the Heavy Flail.
 * The original version of this file is Reason #92012341 artists shouldn't code. :P
 */
-class CompModWeapon_HFlail extends AOCWeapon_HFlail;
+class ImbaModWeapon_HFlail extends AOCWeapon_HFlail;
 
 DefaultProperties
 {

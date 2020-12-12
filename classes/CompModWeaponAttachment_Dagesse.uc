@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Dagesse
 */
-class CompModWeaponAttachment_Dagesse extends AOCWeaponAttachment_Dagesse;
+class ImbaModWeaponAttachment_Dagesse extends AOCWeaponAttachment_Dagesse;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Dagesse
-	WeaponClass=class'CompModWeapon_Dagesse'
+	WeaponClass=class'ImbaModWeapon_Dagesse'
 	WeaponSocket=wep1hpoint
 
 	AttackTypeInfo(0)=(fBaseDamage=40.0, fForce=10000, cDamageType="AOC.AOCDmgType_Swing", iWorldHitLenience=6)

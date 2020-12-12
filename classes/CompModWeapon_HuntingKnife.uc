@@ -5,7 +5,7 @@
 *
 * Weapon class for the Hunting Knife.
 */
-class CompModWeapon_HuntingKnife extends AOCWeapon_HuntingKnife;
+class ImbaModWeapon_HuntingKnife extends AOCWeapon_HuntingKnife;
 
 simulated state Release
 {
@@ -169,7 +169,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_HuntingKnife'
+	AttachmentClass=class'ImbaModWeaponAttachment_HuntingKnife'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_HuntingKnife'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_HuntingKnife

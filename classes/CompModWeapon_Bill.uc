@@ -5,7 +5,7 @@
 *
 * Weapon: Billhook.
 */
-class CompModWeapon_Bill extends AOCWeapon_Bill;
+class ImbaModWeapon_Bill extends AOCWeapon_Bill;
 
 simulated state ParryRelease
 {
@@ -214,7 +214,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Bill'
+	AttachmentClass=class'ImbaModWeaponAttachment_Bill'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Bill'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Bill

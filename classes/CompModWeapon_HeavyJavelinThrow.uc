@@ -6,7 +6,7 @@
 * Weapon: Javelin (Throwing Mode)
 */
 
-class CompModWeapon_HeavyJavelinThrow extends AOCWeapon_HeavyJavelinThrow;
+class ImbaModWeapon_HeavyJavelinThrow extends AOCWeapon_HeavyJavelinThrow;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ DefaultProperties
 	HorizontalRotateSpeed = 60000
 	VerticalRotateSpeed = 50000
 
-	AttachmentClass=class'CompModWeaponAttachment_HeavyJavelinThrow'
+	AttachmentClass=class'ImbaModWeaponAttachment_HeavyJavelinThrow'
 	// should never be part of inventory attachment
 	InventoryAttachmentClass=class'AOCInventoryAttachment_HeavyJavelin'
 	AllowedShieldClass=class'AOCShield_Buckler'
@@ -85,7 +85,7 @@ DefaultProperties
 	StrafeModify=0.75f
 	bCanDodge=false
 	bUseIdleForTopHalf=true
-	AlternativeMode=class'CompModWeapon_HeavyJavelinMelee'
+	AlternativeMode=class'ImbaModWeapon_HeavyJavelinMelee'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_HeavyJavelinThrow]

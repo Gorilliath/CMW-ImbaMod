@@ -5,7 +5,7 @@
 *
 * Weapon: Brandistock.
 */
-class CompModWeapon_Brandistock extends  AOCWeapon_Brandistock;
+class ImbaModWeapon_Brandistock extends  AOCWeapon_Brandistock;
 
 simulated state ParryRelease
 {
@@ -216,7 +216,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Brandistock'
+	AttachmentClass=class'ImbaModWeaponAttachment_Brandistock'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Brandistock'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Brandistock

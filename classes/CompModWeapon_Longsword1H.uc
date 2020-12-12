@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the Longsword Alt Mode.
 */
-class CompModWeapon_Longsword1H extends AOCWeapon_Longsword1H;
+class ImbaModWeapon_Longsword1H extends AOCWeapon_Longsword1H;
 
 simulated state Release
 {
@@ -166,7 +166,7 @@ DefaultProperties
 	BloodSprayTemplates(2)=ParticleSystem'CHV_Particles_01.Player.P_OnWeaponBlood'
 
 
-	AttachmentClass=class'CompModWeaponAttachment_Longsword1H'
+	AttachmentClass=class'ImbaModWeaponAttachment_Longsword1H'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_Longsword1H'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_Longsword
@@ -176,7 +176,7 @@ DefaultProperties
 	WeaponIdentifier="1hsharp"
 
 	CurrentGenWeaponType=EWT_1hand
-	AlternativeMode=class'CompModWeapon_Longsword'
+	AlternativeMode=class'ImbaModWeapon_Longsword'
 
 	/*
 	 * Formerly in UDKNewWeapon.ini - [AOC.AOCWeapon_Longsword1H]

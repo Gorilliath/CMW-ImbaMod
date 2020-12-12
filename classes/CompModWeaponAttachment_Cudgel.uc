@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Cudgel
 */
-class CompModWeaponAttachment_Cudgel extends AOCWeaponAttachment_Cudgel;
+class ImbaModWeaponAttachment_Cudgel extends AOCWeaponAttachment_Cudgel;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Cudgel
-	WeaponClass=class'CompModWeapon_Cudgel'
+	WeaponClass=class'ImbaModWeapon_Cudgel'
 	WeaponSocket=wep1hpoint
 
 	AttackTypeInfo(0)=(fBaseDamage=40.0, fForce=12500, cDamageType="AOC.AOCDmgType_Blunt", iWorldHitLenience=6)

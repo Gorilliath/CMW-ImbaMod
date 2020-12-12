@@ -5,7 +5,7 @@
 *
 * The weapon class to contain information for the War Axe.
 */
-class CompModWeapon_WarAxe extends AOCWeapon_WarAxe;
+class ImbaModWeapon_WarAxe extends AOCWeapon_WarAxe;
 
 simulated state Release
 {
@@ -55,7 +55,7 @@ DefaultProperties
 	bUseSprintLeanAnims=true
 	bUseDirHitAnims=true
 
-	AttachmentClass=class'CompModWeaponAttachment_WarAxe'
+	AttachmentClass=class'ImbaModWeaponAttachment_WarAxe'
 	InventoryAttachmentClass=class'AOCInventoryAttachment_WarAxe'
 	AllowedShieldClass=none
 	CurrentWeaponType=EWEP_WarAxe

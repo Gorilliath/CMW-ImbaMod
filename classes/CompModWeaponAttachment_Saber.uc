@@ -5,7 +5,7 @@
 * 
 * The weapon that is replicated to all clients: Saber
 */
-class CompModWeaponAttachment_Saber extends AOCWeaponAttachment_Saber;
+class ImbaModWeaponAttachment_Saber extends AOCWeaponAttachment_Saber;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Saber
-	WeaponClass=class'CompModWeapon_Saber'
+	WeaponClass=class'ImbaModWeapon_Saber'
 	WeaponSocket=wep1hpoint
 
 	WeaponStaticMeshScale=1

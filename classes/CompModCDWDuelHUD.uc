@@ -1,4 +1,4 @@
-class CompModCDWDuelHUD extends CDWDuelHUD;
+class ImbaModCDWDuelHUD extends CDWDuelHUD;
 
-`include(CompMod/Include/CompModCDWDuel.uci)
-`include(CompMod/Include/CompModHUD.uci)
+`include(ImbaMod/Include/ImbaModCDWDuel.uci)
+`include(ImbaMod/Include/ImbaModHUD.uci)

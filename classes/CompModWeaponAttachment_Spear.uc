@@ -5,7 +5,7 @@
 *
 * Weapon Attachment: Spear.
 */
-class CompModWeaponAttachment_Spear extends AOCWeaponAttachment_Spear;
+class ImbaModWeaponAttachment_Spear extends AOCWeaponAttachment_Spear;
 
 DefaultProperties
 {
@@ -22,7 +22,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Spear
-	WeaponClass=class'CompModWeapon_Spear'
+	WeaponClass=class'ImbaModWeapon_Spear'
 	WeaponSocket=wep2hpoint
 	bUseAlternativeKick=true
 

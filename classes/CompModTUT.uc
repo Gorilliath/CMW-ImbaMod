@@ -1,4 +1,4 @@
-class CompModTUT extends AOCTUT;
+class ImbaModTUT extends AOCTUT;
 
-`include(CompMod/Include/CompModTUT.uci)
-`include(CompMod/Include/CompModGame.uci)
+`include(ImbaMod/Include/ImbaModTUT.uci)
+`include(ImbaMod/Include/ImbaModGame.uci)

@@ -5,7 +5,7 @@
 *
 * Weapon Attachment: Bardiche.
 */
-class CompModWeaponAttachment_Bardiche extends AOCWeaponAttachment_Bardiche;
+class ImbaModWeaponAttachment_Bardiche extends AOCWeaponAttachment_Bardiche;
 
 
 simulated function float GetHandleTracerPercent(int i)
@@ -43,7 +43,7 @@ KickOffset=(X=50, Y=0, Z=-65)
 	End Object
 
 	WeaponID=EWEP_Bardiche
-	WeaponClass=class'CompModWeapon_Bardiche'
+	WeaponClass=class'ImbaModWeapon_Bardiche'
 	WeaponSocket=wepPolepoint
 
 	WeaponStaticMeshScale=1

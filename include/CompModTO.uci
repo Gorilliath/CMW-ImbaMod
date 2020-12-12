@@ -1,7 +1,0 @@
-`define GAMEMODE CompModTO
-
-DefaultProperties
-{
-MinimumRespawnTime = 10.0
-
-}

@@ -1,3 +1,103 @@
+var bool bIsInSmoke;
+
+
+function SetPawnInSmoke(float maxBuffUptime)
+{
+	// First entry into smoke: update state variable and set a timer to clear
+	if (!bIsInSmoke)
+	{
+		bIsInSmoke=true;
+		SetTimer(maxBuffUptime, false, 'StopPawnInSmoke');
+	} else {
+		// Remaining in smoke: Refresh the timer
+		ClearTimer('StopPawnInSmoke');
+		SetTimer(maxBuffUptime, false, 'StopPawnInSmoke');
+	}
+}
+
+function StopPawnInSmoke()
+{
+	bIsInSmoke=false;
+}
+
+
+simulated function TakeFallingDamage()
+{
+	local float EffectiveSpeed;
+	local float damageAmount;
+	local bool landedOnSoftSurface;
+	local name surfaceType;
+	local UTPlayerController UTPC;
+
+	if (Velocity.Z < -0.5 * MaxFallSpeed)
+	{
+		// ForceFeedback
+		UTPC = UTPlayerController(Controller);
+		if(UTPC != None && LocalPlayer(UTPC.Player) != None)
+		{
+			UTPC.ClientPlayForceFeedbackWaveform(FallingDamageWaveForm);
+		}
+		
+		// Take damage and play Landing sounds
+		if ( Role == ROLE_Authority  && !bIsInSmoke )
+		{
+			MakeNoise(1.0);
+			if (Velocity.Z < -1 * MaxFallSpeed)
+			{
+				EffectiveSpeed = Velocity.Z;
+				surfaceType = GetMaterialBelowFeet();
+				landedOnSoftSurface = (TouchingWaterVolume() || surfaceType=='Water' || 
+																surfaceType=='ShallowWater' || surfaceType=='Cloth');
+				if (landedOnSoftSurface)
+				{
+					EffectiveSpeed += 100;
+				}
+				if (EffectiveSpeed < -1 * MaxFallSpeed)
+				{
+					damageAmount = -100 * (EffectiveSpeed + MaxFallSpeed)/MaxFallSpeed;
+					if (!landedOnSoftSurface)
+					{
+						ReplicatedHitInfo.DamageString = "2";
+						ReplicatedHitInfo.HitLocation = Location;
+						ReplicatedHitInfo.DamageType = class'AOCDmgType_Generic';
+						ReplicatedHitInfo.BoneName = 'b_spine_C';
+						TakeDamage(damageAmount, None, Location, vect(0,0,0), class'AOCDmgType_Generic');
+					}
+					else
+					{
+						// Take half damage if landed on soft surface (water/cloth)
+						if (damageAmount > 25)
+						{
+							ReplicatedHitInfo.DamageString = "2";
+							ReplicatedHitInfo.HitLocation = Location;
+							ReplicatedHitInfo.DamageType = class'AOCDmgType_Generic';
+							ReplicatedHitInfo.BoneName = 'b_spine_C';
+							TakeDamage(damageAmount*0.5, None, Location, vect(0,0,0), class'AOCDmgType_Generic');
+						}
+					}
+
+					if (damageAmount > 80)
+					{
+						class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Hard);
+					}
+					else if (damageAmount > 30)
+					{
+						class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Moderate);
+					}
+					else
+					{
+						class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Light);
+					}
+				}
+			}
+		}
+	}
+	else if (Velocity.Z < -1.4 * JumpZ)
+		MakeNoise(0.5);
+	else if ( Velocity.Z < -0.8 * JumpZ )
+		MakeNoise(0.2);
+}
+
 simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> UsedWeapon) {
 	// If the weapon is set never to flinch, don't flinch
 	if (UsedWeapon.default.bNeverFlinch)
@@ -683,6 +783,8 @@ simulated function FinishDodgeFlinch() {
 // Default class properties
 DefaultProperties
 {
+	bIsInSmoke=false
+
 	HealthTimeElapse=0.0
 	HealAmount=3.0
 

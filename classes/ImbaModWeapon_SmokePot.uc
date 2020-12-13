@@ -15,7 +15,7 @@ DefaultProperties
 	MaxAmmoCount=3
 	AIRange=5000
 
-	WeaponProjectiles(0)=class'ImbaModProj_ThrownSmokePot'
+	WeaponProjectiles(0)=class'ImbaModProj_ThrownNinjaPot'
 
 	AttachmentClass=class'AOCWeaponAttachment_SmokePot'
 	// should never be part of inventory attachment

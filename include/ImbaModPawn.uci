@@ -324,19 +324,22 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 	// If the other pawn is currently attacking, we just conducted a counter-attack
 	if (Info.AttackType == Attack_Shove && !bParry && !Info.HitActor.StateVariables.bIsSprintAttack) {
 		if (!bSameTeam) {
-			if (Info.Instigator.StateVariables.bShieldEquipped && Info.HitActor.StateVariables.bIsActiveShielding && !bQuickKick) {
-				// If it was a heavy shield bash against raised shield, do full stun
+
+			// If the receiver's shield is raised, heavy kicks will inflict a stun
+			if (Info.HitActor.StateVariables.bIsActiveShielding && !bQuickKick) {
 				bFlinch = true;
-				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location),true, true, false);
-			} else if (!Info.HitActor.StateVariables.bIsActiveShielding)
-				// If they aren't active shielding, activate normal kick flinch
+				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, false);
+			// If the receiver's shield is not raised, any kick will inflict a minor kick flinch	
+			} else if (!Info.HitActor.StateVariables.bIsActiveShielding) {
 				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, true);
+			}
 
 			// If they got stamina stunned, regain stamina
 			if (Info.HitActor.StateVariables.bIsActiveShielding && Info.HitActor.Stamina <= 0)
 				Info.HitActor.ConsumeStamina(-30.0f);
 		}
 	}
+
 	// If they weren't parrying or shielding, apply flinch
 	else if ((Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding) && !bSameTeam && !bParry) {
 		bFlinch = true;

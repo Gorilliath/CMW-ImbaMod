@@ -1,3 +1,12 @@
+// AdminGoTo (Map change aliases)
+struct mapLink
+{
+    var string url;
+    var string alias;
+};
+var array<mapLink> maps;
+
+
 reliable server function bool IsAdmin() {
     return WorldInfo.Game.AccessControl.IsAdmin(self) || WorldInfo.NetMode == NM_Standalone;
 }
@@ -205,28 +214,44 @@ exec function CauseEvent(optional name EventName) {
     super.CauseEvent(EventName);
 }
 
-exec function AdminGotoDF() {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
-    ServerChangeMap("AOCTO-Darkforest_p");
-}
+exec function AdminGoTo(optional string MapAlias) {
 
-exec function AdminGotoDuel() {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
-    ServerChangeMap("AOCFFA-Duelyard_p");
-}
+    local mapLink mapItem;
 
-exec function AdminGotoMoor() {
     if (!PlayerReplicationInfo.bAdmin) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
         return;
     }
-    ServerChangeMap("AOCLTS-Moor_p");
+
+    // HELP: print the maps' urls and aliases and exit early
+    if (MapAlias ~= "help") {
+        ClientDisplayConsoleMessage("List of maps and their aliases:");
+        ClientDisplayConsoleMessage("------");
+
+        foreach maps(mapItem)
+        {
+            ClientDisplayConsoleMessage(mapItem.alias $ " : " $ mapItem.url);
+        }
+        
+        ClientDisplayConsoleMessage("------");
+
+        return;  
+    }
+
+    // Iterate through all maps, attempting to match an alias (case-insensitive)
+    // Change map and exit early if a match is found
+    foreach maps(mapItem)
+    {
+        if (MapAlias ~= mapItem.alias) {
+            ServerChangeMap(mapItem.url);
+            return;
+        }
+    }
+
+    // If nothing has matched, notify the user that they provided an invalid parameter
+    ClientDisplayConsoleMessage("'MapAlias' did not match any Map's alias.");
+    ClientDisplayConsoleMessage("Use 'AdminGoTo Help' for some help!");
+    
 }
 
 exec function AdminForceSpectate(String PlayerName) {
@@ -277,4 +302,20 @@ exec function PerformAim() {
 DefaultProperties
 {
     suicideDelay = 1.0f
+    
+    // AdminGoTo function
+    maps(0)=(url="AOCFFA-Duelyard_p", alias="DY")
+    maps(1)=(url="AOCLTS-Moor_p", alias="MR")
+    maps(2)=(url="AOCTO-Battlegrounds_v3_P", alias="BG")
+    maps(3)=(url="AOCTO-Darkforest_p", alias="DF")
+    maps(4)=(url="AOCTO-Hillside_p", alias="HS")
+    maps(5)=(url="AOCTO-Stoneshill_p", alias="SH")
+    maps(6)=(url="AOCTO-Citadel_p", alias="CD")
+    maps(7)=(url="AOCTO-Coldfront_p", alias="CF")
+    maps(8)=(url="AOCTO-Outpost_p", alias="OP")
+    maps(9)=(url="AOCTO-Belmez-CM_P", alias="BZ")
+    maps(10)=(url="AOCTO-CastleAssault-CM_P", alias="CA")
+    maps(11)=(url="AOCTO-Cove-CM_P", alias="CV")
+    maps(12)=(url="AOCTO-DrunkenBazaar-CM_p", alias="DB")
+    maps(13)=(url="AOCTO-KingsGarden-CM_p", alias="KG")
 }

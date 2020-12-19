@@ -196,6 +196,99 @@ exec function FOV(float F) {
 	}
 }
 
+/**
+ *  This allows the client to view and modify their AudioGroup volumes via the console.
+ *
+ *  This would be a nice and terse solution which iterates wherever possible,
+ *  if UnrealScript supported pointers or referencing object properties using string variables...
+ *  However it apparently doesn't (or perhaps I don't know the syntax) so we're stuck with this.
+ */
+exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
+
+    // If the first param was 'help' or empty, display help
+    if ((AudioGroup ~= "help") || (AudioGroup == "")) {
+        ClientDisplayConsoleMessage("------");
+        ClientDisplayConsoleMessage("volume\n    Displays this help message\n");
+        ClientDisplayConsoleMessage("volume help\n    Displays this help message\n");
+        ClientDisplayConsoleMessage("volume all\n    Displays all AudioGroups and their current Value (%)\n");
+        ClientDisplayConsoleMessage("volume master\n    Displays the current Value (%) for the 'Master' AudioGroup\n");
+        ClientDisplayConsoleMessage("volume master 50\n    Sets the Value for the 'Master' AudioGroup to 50%\n");
+        ClientDisplayConsoleMessage("------");
+        return;
+    }
+
+    // If the AudioGroup parameter was provided but no Value was provided, print current Values
+    if (AudioGroup != "" && Value == -1.0f) {
+
+        // If AudioGroup was "all", display current Values of all AudioGroups
+        if (AudioGroup ~= "all") {
+            ClientDisplayConsoleMessage("Master\n    "    $ class'AOCPlayerController'.default.DefaultMaster  * 100  $ " %");
+            ClientDisplayConsoleMessage("Music\n    "     $ class'AOCPlayerController'.default.DefaultMusic   * 100  $ " %");
+            ClientDisplayConsoleMessage("Ambient\n    "   $ class'AOCPlayerController'.default.DefaultAmbient * 100  $ " %");
+            ClientDisplayConsoleMessage("Character\n    " $ class'AOCPlayerController'.default.DefaultChar    * 100  $ " %");
+            ClientDisplayConsoleMessage("UI\n    "        $ class'AOCPlayerController'.default.DefaultUI      * 1000 $ " %");
+            ClientDisplayConsoleMessage("Chatter\n    "   $ class'AOCPlayerController'.default.DefaultChatter * 100  $ " %");
+
+        // Otherwise, Check if the AudioGroup parameter matched a specific item in audioGroups
+        } else {
+            if (AudioGroup ~= "master")
+                ClientDisplayConsoleMessage("Master : "    $ class'AOCPlayerController'.default.DefaultMaster  * 100  $ " %");
+            else if (AudioGroup ~= "music")
+                ClientDisplayConsoleMessage("Music : "     $ class'AOCPlayerController'.default.DefaultMusic   * 100  $ " %");
+            else if (AudioGroup ~= "ambient")
+                ClientDisplayConsoleMessage("Ambient : "   $ class'AOCPlayerController'.default.DefaultAmbient * 100  $ " %");
+            else if (AudioGroup ~= "character")
+                ClientDisplayConsoleMessage("Character : " $ class'AOCPlayerController'.default.DefaultChar    * 100  $ " %");
+            else if (AudioGroup ~= "ui")
+                ClientDisplayConsoleMessage("UI : "        $ class'AOCPlayerController'.default.DefaultUI      * 1000 $ " %");
+            else if (AudioGroup ~= "chatter")
+                ClientDisplayConsoleMessage("Chatter : "   $ class'AOCPlayerController'.default.DefaultChatter * 100  $ " %");
+            else
+                ClientDisplayConsoleMessage("'" $ AudioGroup $ "' is not a valid AudioGroup");
+        }
+
+    // If the AudioGroup and Value parameters were provided, set those values and update the config
+    } else {
+
+        // Convert human-readable Value range (0% - 100%) to actual config variable range
+        if (AudioGroup ~= "ui") {
+            // UI max is 0.1
+            Value /= 1000;
+            Value = FClamp(Value, 0.0f, 0.1f);
+        } else {
+            // Everything else is max 1.0
+            Value /= 100;
+            Value = FClamp(Value, 0.0f, 1.0f);
+        }
+
+        // Update config variables
+        if (AudioGroup ~= "master")
+	        class'AOCPlayerController'.default.DefaultMaster = Value;
+        else if (AudioGroup ~= "music")
+	        class'AOCPlayerController'.default.DefaultMusic = Value;
+        else if (AudioGroup ~= "ambient")
+	        class'AOCPlayerController'.default.DefaultAmbient = Value;
+        else if (AudioGroup ~= "character")
+	        class'AOCPlayerController'.default.DefaultChar = Value;
+        else if (AudioGroup ~= "ui")
+	        class'AOCPlayerController'.default.DefaultUI = Value;
+        else if (AudioGroup ~= "chatter")
+	        class'AOCPlayerController'.default.DefaultChatter = Value;
+        else {
+            ClientDisplayConsoleMessage("'" $ AudioGroup $ "' is not a valid AudioGroup");
+            return;
+        }
+
+        // Update config file
+        class'AOCPlayerController'.static.StaticSaveConfig();
+
+        // Initialise sound again
+        InitializeSound();
+
+    }
+
+}
+
 exec function ce(optional name EventName) {
     if (!PlayerReplicationInfo.bAdmin) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");

@@ -289,6 +289,46 @@ exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
 
 }
 
+exec function ShowMatchupStats(optional string PlayerName) {
+    local SPerPRIKillTracking log;
+    local string name;
+    local int matches;
+
+    // If PlayerName is 'all' or not provided, display all matchup stats
+    if (PlayerName ~= "" || PlayerName ~= "all") {
+
+        foreach PerPRIKillTracking(log)
+        {
+            name = log.PRI.GetHumanReadableName();
+
+            ClientDisplayConsoleMessage("You have killed"@name@log.TimesIHaveKilled@"time(s)");
+            ClientDisplayConsoleMessage("You have died to"@name@log.TimesKilledBy@"time(s)");
+            ClientDisplayConsoleMessage("---");
+        }
+
+    // Otherwise if an actual PlayerName was provided, search for stats regarding that PlayerName
+    } else {
+
+        foreach PerPRIKillTracking(log)
+        {
+            name = log.PRI.GetHumanReadableName();
+
+            // If the actual player's name contains the PlayerName parameter, display those matchup stats
+            if (-1 != InStr(name, PlayerName,,true)) {
+                matches ++;
+                ClientDisplayConsoleMessage("You have killed"@name@log.TimesIHaveKilled@"time(s)");
+                ClientDisplayConsoleMessage("You have died to"@name@log.TimesKilledBy@"time(s)");
+                ClientDisplayConsoleMessage("---");
+            }
+        }
+
+        // If no player's name was matched with the PlayerName search string, let them know
+        if (matches == 0)
+            ClientDisplayConsoleMessage("Could not find stats for PlayerName '"$PlayerName$"'");
+
+    }
+}
+
 exec function ce(optional name EventName) {
     if (!PlayerReplicationInfo.bAdmin) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");

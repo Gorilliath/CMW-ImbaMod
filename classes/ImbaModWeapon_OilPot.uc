@@ -8,7 +8,7 @@ DefaultProperties
 	MaxAmmoCount=1
 	AIRange=5000
 
-	WeaponProjectiles(0)=class'AOCProj_ThrownOilPot'
+	WeaponProjectiles(0)=class'ImbaModProj_ThrownOilPot'
 
 	AttachmentClass=class'AOCWeaponAttachment_OilPot'
 	// should never be part of inventory attachment
@@ -34,7 +34,7 @@ DefaultProperties
 	WeaponReach=100
 	WeaponLargePortrait="UI_WeaponImages_SWF.weapon_select_firepot"
 	WeaponSmallPortrait="UI_WeaponImages_SWF.icon_weapon_select_firepot_png"
-	HorizontalRotateSpeed=75000.0
+	HorizontalRotateSpeed=73000.0
 	VerticalRotateSpeed=65000.0
 	AttackHorizRotateSpeed=65000.0
 	BattleCryAnim=(AnimationName=3p_1hsharp_battlecry,ComboAnimation=,AssociatedSoundCue=,bFullBody=true,bCombo=false,bLoop=false,bForce=false,UniqueShieldSound=none,fModifiedMovement=0.0,fAnimationLength=0.0,fBlendInTime=0.00,fBlendOutTime=0.00,bLastAnimation=true)

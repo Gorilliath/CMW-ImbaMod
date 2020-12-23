@@ -98,6 +98,105 @@ simulated function TakeFallingDamage()
 		MakeNoise(0.2);
 }
 
+
+simulated function SetPawnOnFire(ParticleSystem FirePS, Controller Cont, optional Actor InflictedBy = none, optional class<AOCDamageType> dmgType = none, optional float OverrideTime = 0.0f)
+{
+ 	//`log("SET PAWN ON FIRE"@BurningPSComp@dmgType);
+
+	// Record that the pawn is on fire
+	if (Role == ROLE_Authority && !bIsBurning)
+	{
+		bIsBurning=true;
+		burnDamage = 0;  
+
+		if(dmgType != none && class<AOCDmgType_BoilingOilBurn>(dmgType) != none)
+		{
+			BurnStatus = EBURN_Oil;
+		}
+		else
+		{
+			BurnStatus = EBURN_Fire;
+		}
+
+		LastBurnHit = Cont;
+
+		if (IsAliveAndWell())
+			PlayPawnOnFireSound();
+
+		if (WorldInfo.NetMode == NM_STANDALONE || Worldinfo.NetMode == NM_ListenServer)
+		{
+			handleFireParticles();
+			StartFireSkinEffect();
+		}
+		
+		// Setting self on fire doesn't override inflicted by (prevents players from suiciding by fire to prevent fire kill by another)
+		if (InflictedBy == none)
+			SetOnFireBy = Controller;
+		else
+			SetOnFireBy = Cont;
+
+		// Add the Instigator to this pawn's ContributingDamagers (assist list) if it isn't already on it
+		if (InflictedBy != none) {
+			if (ContributingDamagers.Find(AOCPRI(Cont.PlayerReplicationInfo)) == INDEX_NONE && !IsOnSameTeam(self, AOCPawn(InflictedBy)))
+				ContributingDamagers.AddItem(AOCPRI(Cont.PlayerReplicationInfo));
+		}
+
+	}
+	
+	// Check damage type
+	if (dmgType == none)
+	{
+		// Default AOCDmgType_Burn damage over time
+		// [bri] 10-6-14 take max of burn dmg and time; fixes issues with throwing fire into lava.
+		if (class'AOCDmgType_Burn'.default.DamageOverTime > burnDamage)
+		{	burnDamage = class'AOCDmgType_Burn'.default.DamageOverTime;
+		}
+
+		if (OverrideTime > 0.0f)
+		{
+			if (OverrideTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
+			{	ClearTimer('StopFireOnPawn');
+				SetTimer(OverrideTime, false, 'StopFireOnPawn');
+			}
+ 		}
+		else
+		{
+			if (class'AOCDmgType_Burn'.default.DOTTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
+			{	ClearTimer('StopFireOnPawn');
+				SetTimer(class'AOCDmgType_Burn'.default.DOTTime, false, 'StopFireOnPawn');
+			}
+ 		}
+
+		if (!bIsBot)
+			ToggleFirePE(true);
+	}
+	else
+	{
+		// Custom burn damage over time
+		// [bri] 10-6-14 take max of burn dmg and time; fixes issues with throwing fire into lava.
+		if (dmgType.default.DamageOverTime > burnDamage)
+		{	burnDamage = dmgType.default.DamageOverTime;
+		}
+
+		if (dmgType.default.DOTTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
+		{	ClearTimer('StopFireOnPawn');
+			SetTimer(dmgType.default.DOTTime, false, 'StopFireOnPawn');
+		}
+
+		if (!bIsBot)
+		{
+			if (class<AOCDmgType_BoilingOilBurn>(dmgType) != none)
+			{				
+				ToggleOilPE(true);
+			}
+			else
+			{
+				ToggleFirePE(true);
+			}
+		}
+	}
+}
+
 simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> UsedWeapon) {
 	// If the weapon is set never to flinch, don't flinch
 	if (UsedWeapon.default.bNeverFlinch)

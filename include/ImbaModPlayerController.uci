@@ -206,6 +206,31 @@ exec function CoinFlip() {
     }
 }
 
+exec function RollDice(optional int Dice = 2, optional int Sides = 6) {
+    local string message;
+    local int i;
+
+    // Flood protection
+    if ( !AllowTextMessage("RollDice") )
+        return;
+
+    // Constrain parameters to be within safe bounds
+    Dice = Clamp(Dice, 1, 10);
+    Sides = Clamp(Sides, 2, 1000);
+
+    // Resolve partial message (plurals)
+    message = (Dice == 1)
+        ? "Rolled a"@Sides$"-sided die and it landed on:"
+        : "Rolled"@Dice@Sides$"-sided dice and they landed on:";
+
+    // Roll each die and append the outcome to the partial message
+    for (i = 1; i <= Dice; i++) {
+        message @= Clamp(Rand(Sides + 1), 1, Sides);
+    };
+
+    S_AdminBroadcastMessage(message);
+}
+
 /**
  *  This allows the client to view and modify their AudioGroup volumes via the console.
  *

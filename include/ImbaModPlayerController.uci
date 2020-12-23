@@ -196,6 +196,16 @@ exec function FOV(float F) {
 	}
 }
 
+exec function CoinFlip() {
+    local string result;
+
+    // Flood protection
+    if ( AllowTextMessage("CoinFlip") ) {
+        result = ( Rand(100) <= 49 ) ? "Heads!" : "Tails!";
+        S_AdminBroadcastMessage("Flipped a coin and it landed on"@result);
+    }
+}
+
 /**
  *  This allows the client to view and modify their AudioGroup volumes via the console.
  *

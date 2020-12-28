@@ -917,6 +917,58 @@ simulated function bool ConsumeStamina( float Amount )
 	return true;
 }
 
+function bool DoJump( bool bUpdating )
+{
+	local Vector VelocityXY;
+	if (StateVariables.bCanJump
+		&& bJumpCapable
+		&& !bIsCrouching
+		&& (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider)
+		&& !(StateVariables.bIsAttacking && AOCWeapon(Weapon).CurrentFireMode == Attack_Shove)
+		&& (PawnState == ESTATE_IDLE || PawnState == ESTATE_RUN || PawnState == ESTATE_SPRINT))
+	{
+
+		if(Role == Role_Authority) {
+			bRegenStamina = false;
+			SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+		}
+
+		if (bJumpCapable && !bIsCrouched && !bWantsToCrouch && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider))
+		{
+			if ( Physics == PHYS_Spider )
+				Velocity = JumpZ * Floor;
+			else if ( Physics == PHYS_Ladder )
+				Velocity.Z = 0;
+			else if ( bIsWalking )
+				Velocity.Z = Default.JumpZ;
+			else
+				Velocity.Z = JumpZ;
+			if (Base != None && !Base.bWorldGeometry && Base.Velocity.Z > 0.f)
+			{
+				Velocity.Z += Base.Velocity.Z;
+			}
+			SetPhysics(PHYS_Falling);
+		}
+		
+
+		// Cap velocity X/Y
+		VelocityXY.X = Velocity.X;
+		VelocityXY.Y = Velocity.Y;
+		VelocityXY = Normal(VelocityXY) * Min(VSize(VelocityXY), GroundSpeed);
+		Velocity.X = VelocityXY.X;
+		Velocity.Y = VelocityXY.Y;
+
+		// Update state
+		StateVariables.bIsManualJumpDodge = true;
+		StateVariables.bCanCrouch = false;
+
+		return true;
+	}
+
+	 return false;
+
+}
+
 // Default class properties
 DefaultProperties
 {

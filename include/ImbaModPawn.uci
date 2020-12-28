@@ -969,6 +969,63 @@ function bool DoJump( bool bUpdating )
 
 }
 
+function ToggleSprint(bool bSprint, optional bool bForce)
+{
+	local vector Forward, Vel;
+	local float fAngle;
+
+	if (PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON)
+	{
+		return;
+	}
+
+	// change pawn state
+	if (bSprint && CanSprint())
+	{
+		Vel = Normal(Velocity);
+		Forward = Normal(GetForwardDirection());
+		fAngle = acos(Vel dot Forward);
+
+		// Only turn on sprint if the player is running forward
+		if (PawnState == ESTATE_RUN && fAngle <= Pi / 2 - STRAFE_BUFFER)
+		{
+			bIsSprintMaxSpeed = false;
+			bFirstAttackInSprint = false;
+
+			StartSprintTime = WorldInfo.TimeSeconds;
+			ChangePawnState(ESTATE_SPRINT);
+			AddDebuff(true, EDEBF_SPRINT, 1.3f, -1.0f, false);
+		}
+	}
+	else 
+	{
+		if ( PawnState == ESTATE_SPRINT )
+		{
+			StateVariables.bCanSprint = true;
+			ChangePawnState(ESTATE_IDLE);
+		}
+
+		// stop sprinting
+		AccelRate = BaseAccel;
+		RemoveDebuff(EDEBF_SPRINT);
+
+		// stop drafting
+		RemoveDebuff(EDEBF_DRAFT);
+		ClearTimer('StartDrafting');
+
+		// Re-enable regen of Health
+		SetTimer(4.0f, false, 'RestartHealthRegen');
+
+		// Put Stamina regen on cooldown
+		if(Role == Role_Authority) {
+			bRegenStamina = false;
+			SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+		}
+	}
+	
+	StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;
+}
+
 // Default class properties
 DefaultProperties
 {

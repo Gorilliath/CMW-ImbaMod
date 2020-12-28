@@ -1,5 +1,5 @@
 var bool bIsInSmoke;
-
+var float fStaminaRegenCooldown;
 
 function SetPawnInSmoke(float maxBuffUptime)
 {
@@ -892,10 +892,37 @@ simulated function FinishDodgeFlinch() {
 	DodgeSM.StartQueuedAttack();
 }
 
+simulated function bool ConsumeStamina( float Amount )
+{
+	if (bInfiniteStamina)
+		return true;
+	
+	Stamina -= Amount;
+		
+	if (Amount > 0.f)
+	{
+		bRegenStamina = false;
+		SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+	}
+
+	ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+
+	if (Stamina < 0.0f)
+	{
+		Stamina = 0.0f;
+		ReplicatedStamina = 0;
+		return false;
+	}
+
+	return true;
+}
+
 // Default class properties
 DefaultProperties
 {
 	bIsInSmoke=false
+
+	fStaminaRegenCooldown=2.4
 
 	HealthTimeElapse=0.0
 	HealAmount=3.0

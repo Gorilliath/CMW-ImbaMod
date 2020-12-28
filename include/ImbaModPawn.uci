@@ -584,12 +584,22 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 		} else {
 			Info.Instigator.ConsumeStamina(-30.f);
 		}
-	        StaminaAtKill = Info.Instigator.Stamina;
+		StaminaAtKill = Info.Instigator.Stamina;
 
-		// Make sure that it doesn't exceed max stamina
-	        if(StaminaAtKill > MaxStamina)
-	            Info.Instigator.Stamina = MaxStamina;
+	// Otherwise gain stamina on hit where...
+	} else if (
+		!bSameTeam 										&&	// We didn't smak our own teammate
+		ActualDamage > 0.0f 							&&	// We actually dealt damage
+		AOCMeleeWeapon(Info.Instigator.Weapon) != none 	&&	// We used a melee weapon
+		!Info.DamageType.default.bIsProjectile 			&&	// We didn't deal damage with a projectile
+		Info.AttackType != Attack_Shove						// We didn't use any sort of shove
+	) {
+		Info.Instigator.ConsumeStamina(-5.f);
 	}
+
+	// Ensure Instigators stamina didn't go over MaxStamina
+	if (Info.Instigator.Stamina > MaxStamina)
+		Info.Instigator.Stamina = MaxStamina;
 
 	if (bWasKilled && WorldInfo.NetMode == NM_DedicatedServer) {
 		// Make sure this wasn't a team kill

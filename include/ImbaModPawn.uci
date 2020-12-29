@@ -902,6 +902,7 @@ simulated function bool ConsumeStamina( float Amount )
 	if (Amount > 0.f)
 	{
 		bRegenStamina = false;
+		ClearTimer('ResumeStaminaRegen');
 		SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
 	}
 
@@ -930,6 +931,7 @@ function bool DoJump( bool bUpdating )
 
 		if(Role == Role_Authority) {
 			bRegenStamina = false;
+			ClearTimer('ResumeStaminaRegen');
 			SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
 		}
 
@@ -1019,6 +1021,7 @@ function ToggleSprint(bool bSprint, optional bool bForce)
 		// Put Stamina regen on cooldown
 		if(Role == Role_Authority) {
 			bRegenStamina = false;
+			ClearTimer('ResumeStaminaRegen');
 			SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
 		}
 	}

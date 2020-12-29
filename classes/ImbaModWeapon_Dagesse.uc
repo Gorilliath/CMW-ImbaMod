@@ -1,50 +1,5 @@
-/**
-* Copyright 2010-2012, Torn Banner Studios, All rights reserved
-*
-* Original Author: Michael Bao
-*
-* The weapon class to contain information for the Dagesse.
-*/
-class ImbaModWeapon_Dagesse extends AOCWeapon_Dagesse;
+class ImbaModWeapon_Dagesse extends ImbaModMeleeWeapon;
 
-simulated state Release
-{
-	simulated function BeginFire(byte FireModeNum)
-	{
-		super.BeginFire(FireModeNum);
-		if (FireModeNum == Attack_Parry && bParryHitCounter) {
-			AttackQueue = Attack_Null;
-			ClearTimer('OnStateAnimationEnd');
-			AOCOwner.ConsumeStamina(iFeintStaminaCost);
-			ActivateParry();
-			if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-				ServerActivateParry();
-			}
-		}
-	}
-
-}
-
-simulated state ParryRelease
-{
-	simulated function BeginFire(byte FireModeNum)
-	{
-		super.BeginFire(FireModeNum);
-
-		if (AOCOwner.IsLocallyControlled())
-		{
-			if (bSuccessfulParry && bParryHitCounter && FireModeNum == Attack_Parry) {
-				ClearTimer('PlayRiposteAnimation');
-				ClearTimer('OnStateAnimationEnd');
-				AOCOwner.ConsumeStamina(iFeintStaminaCost);
-				ActivateParry();
-				if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-					ServerActivateParry();
-				}
-			}
-		}
-	}
-}
 
 DefaultProperties
 {

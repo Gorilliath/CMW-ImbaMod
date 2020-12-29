@@ -87,6 +87,12 @@ simulated state Release
 	}
 }
 
+simulated function float GetStaminaLossForMiss()
+{
+	return iFeintStaminaCost + 10;
+}
+
+
 DefaultProperties
 {
 	bRequiresComboAnimFix = false;

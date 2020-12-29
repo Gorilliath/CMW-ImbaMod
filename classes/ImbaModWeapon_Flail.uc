@@ -1,16 +1,9 @@
-/**
-* Copyright 2010-2012, Torn Banner Studios, All rights reserved
-* 
-* Original Author: Michael Bao
-* 
-* The weapon class to contain information for the Flail.
-*/
-class ImbaModWeapon_Flail extends AOCWeapon_Flail;
+class ImbaModWeapon_Flail extends ImbaModMeleeWeapon;
+
 
 // Hold Animation for the Flail
 var array<AnimationInfo> HoldAnimations;
 var bool bWantToFire;
-
 
 
 // Weapon Equipping State to always have shield when equip
@@ -34,50 +27,6 @@ simulated state Release
 			AOCWepAttachment.bUseAlternativeTracers = true;
 		super.BeginState(PreviousStateName);
 	}
-
-	/** Play Release animation */
-	simulated function PlayStateAnimation()
-	{
-		local AnimationInfo Info;
-		//`log("RELEASE PLAY STATE ANIMATION");
-		if (bIsInCombo)
-		{
-			// add to number of combos performed
-			iComboCount++;
-			AOCOwner.OnComboIncreased();
-
-			if (CurrentFireMode != Attack_Sprint && !AOCOwner.bIsCrouching && AOCOwner.Physics != PHYS_Falling)
-			{
-				if (VSize(AOCOwner.Velocity) > 2.0f && !Info.bUseRMM)
-					AOCOwner.Lunge(,,true);
-				else if (VSize(AOCOwner.Velocity) <= 2.f && !Info.bUseRMM)
-					Info.bFullBody = false;
-			}
-
-
-			// pass this information down to the weapon attachment
-			AOCWepAttachment.ComboCount = iComboCount;
-			AOCWepAttachment.HitComboCount = ComboHitCount;
-			// pass in proper animation, let pawn determine which node to use on the AnimTree
-			if (bJustPlayedCombo || ePreviousAttack == Attack_Stab)
-			{
-				// odd sequential attacks should be the normal attack animation
-				AOCOwner.ReplicateCompressedAnimation(ReleaseAnimations[CurrentFireMode], EWST_Release, CurrentFireMode);
-				bJustPlayedCombo = false;
-			}
-			else
-			{
-				// even sequential attacks should be the combo attack animation
-				Info = ReleaseAnimations[CurrentFireMode];
-				//`log(bEquipShield@"GOING TO PLAY"@Info.AnimationName);
-				Info.bCombo = true;
-				AOCOwner.ReplicateCompressedAnimation(Info, EWST_Release, CurrentFireMode);
-				bJustPlayedCombo = true;
-			}
-		}
-		else
-			super.PlayStateAnimation(); // default handle for playing animation is fine if we are not doing a combo
-	}
 }
 
 simulated state Recovery
@@ -94,6 +43,8 @@ simulated state Recovery
 
 DefaultProperties
 {
+	bRequiresComboAnimFix=true
+
 	Begin Object class=AnimNodeSequence Name=MeshSequenceA
 		bCauseActorAnimEnd=true
 	End Object

@@ -4,7 +4,11 @@ class ImbaModMeleeWeapon extends AOCMeleeWeapon;
 var bool bRequiresComboAnimFix;
 
 var float fStaminaGainOnHit;			// Amount of stamina rewarded for successfully damaging an opponent with this weapon
+var float fStaminaGainOnRiposteParry;	// Amount of stamina rewarded for successfully parrying an attack during riposte (Not including iFeintStaminaCost refund)
 var float fMissAdditionalStaminaCost;	// Amount of stamina contributing to the stamina cost for missing an attack (Added to iFeintStaminaCost)
+
+var bool bParryWasDuringRiposte;
+var bool bFeintCostWasRefunded;
 
 
 simulated state ParryRelease
@@ -24,7 +28,31 @@ simulated state ParryRelease
 				if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
 					ServerActivateParry();
 				}
+
+				bParryWasDuringRiposte = true;
 			}
+		}
+	}
+
+	simulated function SuccessfulParry(EAttack Type, int Dir)
+	{
+		bSuccessfulParry = true;
+		
+		// If the parry was during riposte resolve rewards
+		if (bParryWasDuringRiposte) {
+
+			// If the stamina cost for parrying during riposte has not been refunded
+			if (!bFeintCostWasRefunded) {
+				
+				// Refund the cost
+				AOCOwner.ConsumeStamina(- iFeintStaminaCost);
+
+				// Record that it has been refunded
+				bFeintCostWasRefunded = true;
+			}
+
+			// Reward the parry with the weapon's bonus stamina gain
+			AOCOwner.ConsumeStamina(- fStaminaGainOnRiposteParry);
 		}
 	}
 
@@ -55,6 +83,8 @@ simulated state Release
 			if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
 				ServerActivateParry();
 			}
+
+			bParryWasDuringRiposte = true;
 		}
 	}
 
@@ -101,6 +131,19 @@ simulated state Release
 	}
 }
 
+simulated state Active
+{
+	simulated event BeginState(Name PreviousStateName)
+	{
+		super.BeginState(PreviousStateName);
+		
+		// Reset riposte-parry variables
+		bParryWasDuringRiposte = false;
+		bFeintCostWasRefunded = false;
+	}
+}
+
+
 simulated function float GetStaminaLossForMiss()
 {
 	return iFeintStaminaCost + fMissAdditionalStaminaCost;
@@ -112,7 +155,11 @@ DefaultProperties
 	bRequiresComboAnimFix = false;
 
 	fStaminaGainOnHit = 5.0;
+	fStaminaGainOnRiposteParry = 20.0;
 	fMissAdditionalStaminaCost = 10.0;
+
+	bParryWasDuringRiposte = false;
+	bFeintCostWasRefunded = false;
 
 	bCanParry = true;
 	bCanCombo = true;

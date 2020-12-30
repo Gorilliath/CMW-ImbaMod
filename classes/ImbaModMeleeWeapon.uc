@@ -32,9 +32,7 @@ simulated state ParryRelease
 		AOCOwner.StateVariables.bIsActiveShielding = false;
 
 		// Every parry invokes the global stamina regen cooldown
-		AOCOwner.bRegenStamina = false;
-		ClearTimer('ResumeOwnerStaminaRegen');
-		SetTimer(ImbaModPawn(AOCOwner).fStaminaRegenCooldown, false, 'ResumeOwnerStaminaRegen');
+		ImbaModPawn(AOCOwner).StartStaminaRegenCooldown();
 	}
 
 }
@@ -103,12 +101,6 @@ simulated state Release
 simulated function float GetStaminaLossForMiss()
 {
 	return iFeintStaminaCost + 10;
-}
-
-// Only exists to allow timers to call the wrapped foreign function
-simulated function ResumeOwnerStaminaRegen()
-{
-	AOCOwner.ResumeStaminaRegen();
 }
 
 

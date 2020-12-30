@@ -892,6 +892,15 @@ simulated function FinishDodgeFlinch() {
 	DodgeSM.StartQueuedAttack();
 }
 
+simulated function StartStaminaRegenCooldown()
+{
+	if (IsTimerActive('ResumeStaminaRegen'))
+		ClearTimer('ResumeStaminaRegen');
+	
+	bRegenStamina = false;
+	SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+}
+
 simulated function bool ConsumeStamina( float Amount )
 {
 	if (bInfiniteStamina)
@@ -900,11 +909,7 @@ simulated function bool ConsumeStamina( float Amount )
 	Stamina -= Amount;
 		
 	if (Amount > 0.f)
-	{
-		bRegenStamina = false;
-		ClearTimer('ResumeStaminaRegen');
-		SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
-	}
+		StartStaminaRegenCooldown();
 
 	ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
 
@@ -929,11 +934,9 @@ function bool DoJump( bool bUpdating )
 		&& (PawnState == ESTATE_IDLE || PawnState == ESTATE_RUN || PawnState == ESTATE_SPRINT))
 	{
 
-		if(Role == Role_Authority) {
-			bRegenStamina = false;
-			ClearTimer('ResumeStaminaRegen');
-			SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
-		}
+		// Put Stamina regen on cooldown
+		if(Role == Role_Authority)
+			StartStaminaRegenCooldown();
 
 		if (bJumpCapable && !bIsCrouched && !bWantsToCrouch && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider))
 		{
@@ -1019,11 +1022,8 @@ function ToggleSprint(bool bSprint, optional bool bForce)
 		SetTimer(4.0f, false, 'RestartHealthRegen');
 
 		// Put Stamina regen on cooldown
-		if(Role == Role_Authority) {
-			bRegenStamina = false;
-			ClearTimer('ResumeStaminaRegen');
-			SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
-		}
+		if (Role == Role_Authority)
+			StartStaminaRegenCooldown();
 	}
 	
 	StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;

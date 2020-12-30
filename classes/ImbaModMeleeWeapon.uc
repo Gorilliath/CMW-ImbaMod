@@ -3,6 +3,8 @@ class ImbaModMeleeWeapon extends AOCMeleeWeapon;
 
 var bool bRequiresComboAnimFix;
 
+var float fStaminaGainOnHit;	// Amount of stamina rewarded for successfully damaging an opponent with this weapon
+
 
 simulated state ParryRelease
 {
@@ -107,6 +109,8 @@ simulated function float GetStaminaLossForMiss()
 DefaultProperties
 {
 	bRequiresComboAnimFix = false;
+
+	fStaminaGainOnHit = 5.0;
 
 	bCanParry = true;
 	bCanCombo = true;

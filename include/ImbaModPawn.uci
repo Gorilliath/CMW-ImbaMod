@@ -313,6 +313,7 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 	local bool bEnemyWasBot;
 	local bool bWasKilled;
 	local float StaminaAtKill;
+	local float StaminaGainOnHit;
 
 	// Initialise player replication information
 	if (PlayerReplicationInfo == none)
@@ -594,7 +595,8 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 		!Info.DamageType.default.bIsProjectile 			&&	// We didn't deal damage with a projectile
 		Info.AttackType != Attack_Shove						// We didn't use any sort of shove
 	) {
-		Info.Instigator.ConsumeStamina(-5.f);
+		StaminaGainOnHit = ImbaModMeleeWeapon(Info.Instigator.Weapon).fStaminaGainOnHit;
+		Info.Instigator.ConsumeStamina(- StaminaGainOnHit);
 	}
 
 	// Ensure Instigators stamina didn't go over MaxStamina

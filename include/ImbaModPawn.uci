@@ -599,10 +599,6 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 		Info.Instigator.ConsumeStamina(- StaminaGainOnHit);
 	}
 
-	// Ensure Instigators stamina didn't go over MaxStamina
-	if (Info.Instigator.Stamina > MaxStamina)
-		Info.Instigator.Stamina = MaxStamina;
-
 	if (bWasKilled && WorldInfo.NetMode == NM_DedicatedServer) {
 		// Make sure this wasn't a team kill
 		if (AOCPlayerController(Controller).StatWrapper != none
@@ -915,11 +911,13 @@ simulated function bool ConsumeStamina( float Amount )
 
 	ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
 
-	if (Stamina < 0.0f)
-	{
+	if (Stamina < 0.0f) {
 		Stamina = 0.0f;
 		ReplicatedStamina = 0;
 		return false;
+	}
+	else if (Stamina > MaxStamina) {
+		Stamina = MaxStamina;
 	}
 
 	return true;

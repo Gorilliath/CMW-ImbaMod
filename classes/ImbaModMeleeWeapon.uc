@@ -6,6 +6,7 @@ var bool bRequiresComboAnimFix;
 var float fStaminaGainOnHit;			// Amount of stamina rewarded for successfully damaging an opponent with this weapon
 var float fStaminaGainOnRiposteParry;	// Amount of stamina rewarded for successfully parrying an attack during riposte (Not including iFeintStaminaCost refund)
 var float fMissAdditionalStaminaCost;	// Amount of stamina contributing to the stamina cost for missing an attack (Added to iFeintStaminaCost)
+var float fComboMinimumStamina;			// Minimum amount of stamina required to combo (Isn't actually consumed; it's just a requirement)
 
 var bool bParryWasDuringRiposte;
 var bool bFeintCostWasRefunded;
@@ -129,6 +130,185 @@ simulated state Release
 		else
 			super.PlayStateAnimation(); // default handle for playing animation is fine if we are not doing a combo
 	}
+
+	simulated function EndState( name NextStateName )
+	{
+		local float CurrentStamina;
+		local float StaminaLoss;
+
+		CurrentStamina = AOCOwner.Stamina;
+
+		if (AOCOwner.IsLocallyControlled() || AOCOwner.bIsBot)
+		{
+			if (bHitPawn)
+			{
+				//Inform Pawn that the attack was successful
+				if(CurrentFireMode >= Attack_Slash && CurrentFireMode <= Attack_Sprint)
+				{
+					AOCOwner.OnActionSucceeded(EPlayerAction(CurrentFireMode + EACT_AttackSlash));
+				}
+				else if(CurrentFireMode == Attack_Shove)
+				{
+					if(AOCOwner.StateVariables.bShieldEquipped)
+					{
+						AOCOwner.OnActionSucceeded(EACT_ShieldBash);
+					}
+					else
+					{
+						AOCOwner.OnActionSucceeded(EACT_Kick);
+					}
+				}
+				ComboHitCount++;
+
+				AOCowner.NotifyScoreHit();
+			}
+			else
+			{
+				//Inform Pawn that the attack failed
+				if(CurrentFireMode >= Attack_Slash && CurrentFireMode <= Attack_Sprint)
+				{
+					AOCOwner.OnActionFailed(EPlayerAction(CurrentFireMode + EACT_AttackSlash));
+				}
+				else if(CurrentFireMode == Attack_Shove)
+				{
+					if(AOCOwner.StateVariables.bShieldEquipped)
+					{
+						AOCOwner.OnActionFailed(EACT_ShieldBash);
+					}
+					else
+					{
+						AOCOwner.OnActionFailed(EACT_Kick);
+					}
+				}
+			
+				if (CurrentFireMode != Attack_Parry && NextStateName != 'Flinch' && CurrentFireMode != Attack_Shove && !AOCWepAttachment.bHitDestructibleObject)
+				{
+					MissCount++;
+					AOCOwner.RemoveDebuff(EDEBF_ATTACK);
+
+					StaminaLoss = GetStaminaLossForMiss();
+
+					AOCOwner.S_ConsumeStamina(StaminaLoss);
+					CurrentStamina -= StaminaLoss;
+
+				}
+
+				ComboHitCount = 0;
+			}
+		}
+		else
+		{
+			if (!bHitPawn && bIsInCombo)
+			{
+				// Calculate stamina loss on server, if it hasn't been updated yet
+				StaminaLoss = GetStaminaLossForMiss();
+
+				CurrentStamina = min(CurrentStamina, BeginAttackStamina - StaminaLoss);
+			}
+		}
+
+		AOCOwner.FinishSprintAttack();
+		AOCWepAttachment.GotoState('');
+		bParryHitCounter = false;
+		super.EndState(NextStateName);
+
+		// put weapon out of attack state
+		AOCWepAttachment.bUseAlternativeTracers = false;
+
+		// Check if we still have enough stamina to perform combo
+		if (bIsInCombo && CurrentStamina - fComboMinimumStamina < 0)
+		{
+			GotoState('Recovery');
+		}
+	}
+
+	simulated function HandleCombo(EAttack ComboAttack)
+	{
+		local bool bHasEnoughStamina;
+		
+		if (CurrentFireMode == Attack_Shove || CurrentFireMode == Attack_Parry || CurrentFireMode == Attack_Sprint || (CurrentFireMode == Attack_Stab && ComboAttack == Attack_Stab))
+			return;
+
+		if (!bCanCombo)
+			return;
+
+		if (ComboAttack == Attack_Parry)
+			return;
+
+		if (ComboAttack == Attack_AltOverhead)
+			ComboAttack = Attack_Overhead;
+		else if (ComboAttack == Attack_AltSlash)
+			ComboAttack = Attack_Slash;
+
+		if(ComboAttack == CurrentFireMode && iIdenticalCombo >= 3)
+		{
+			return;
+		}
+
+		if (bWasHit)
+			return;
+
+		// notify that we're in a combo now if we're not aborting the attack -- double check we're allowed to combo
+		if (iComboCount < MaxComboCount)
+		{
+			bHasEnoughStamina = AOCPawn(Owner).HasEnoughStamina(fComboMinimumStamina);
+			if (bHasEnoughStamina)
+			{
+				bIsInCombo = true;
+				// record next attack
+				eNextAttack = ComboAttack;
+
+				AOCOwner.PlayerHUDStartCombo();
+				
+				if(iComboCount == 1)
+				{
+					AOCOwner.OnComboStarted();
+				}
+			}
+			else
+			{
+				bPlayNoComboGrunt = true;
+			}
+		}
+		else
+		{
+			bIsInCombo = false;
+		}
+	}
+}
+
+simulated state AlternateRecovery
+{
+	simulated function HandleCombo(EAttack ComboAttack)
+	{
+		local bool bHasEnoughStamina;
+		if (CurrentFireMode == Attack_Shove || CurrentFireMode == Attack_Parry || CurrentFireMode == Attack_Sprint || (CurrentFireMode == Attack_Stab && ComboAttack == Attack_Stab))
+			return;
+
+		if (!bCanCombo)
+			return;
+
+		if (ComboAttack == Attack_Parry)
+			return;
+			
+		// notify that we're in a combo now if we're not aborting the attack -- double check we're allowed to combo
+		if (iComboCount < MaxComboCount)
+		{
+			bHasEnoughStamina = AOCPawn(Owner).HasEnoughStamina(fComboMinimumStamina);
+			if (bHasEnoughStamina)
+			{
+				bIsInCombo = true;
+				// record next attack
+				eNextAttack = ComboAttack;
+
+				AOCOwner.PlayerHUDStartCombo();
+			}
+		}
+
+		//not able to complete the combo...put the crosshair into a state of recovery
+		if(eNextAttack != ComboAttack)
+			AOCOwner.PlayerHUDStartRecovery();
+	}
 }
 
 simulated state Active
@@ -157,6 +337,7 @@ DefaultProperties
 	fStaminaGainOnHit = 5.0;
 	fStaminaGainOnRiposteParry = 20.0;
 	fMissAdditionalStaminaCost = 10.0;
+	fComboMinimumStamina = 1.0;
 
 	bParryWasDuringRiposte = false;
 	bFeintCostWasRefunded = false;

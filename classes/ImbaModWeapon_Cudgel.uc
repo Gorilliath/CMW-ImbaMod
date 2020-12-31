@@ -1,4 +1,4 @@
-class ImbaModWeapon_Cudgel extends AOCWeapon_Cudgel;
+class ImbaModWeapon_Cudgel extends ImbaModMeleeWeapon;
 
 
 DefaultProperties

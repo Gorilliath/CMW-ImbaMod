@@ -595,7 +595,12 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 		!Info.DamageType.default.bIsProjectile 			&&	// We didn't deal damage with a projectile
 		Info.AttackType != Attack_Shove						// We didn't use any sort of shove
 	) {
-		StaminaGainOnHit = ImbaModMeleeWeapon(Info.Instigator.Weapon).fStaminaGainOnHit;
+		// If we can cast the Instigator's Weapon to the new ImbaModMeleeWeapon then use its specific fStaminaGainOnHit, otherwise use the default
+		StaminaGainOnHit = ImbaModMeleeWeapon(Info.Instigator.Weapon) != none
+			? ImbaModMeleeWeapon(Info.Instigator.Weapon).fStaminaGainOnHit
+			: class'ImbaModMeleeWeapon'.default.fStaminaGainOnHit;
+		
+		// Reward stamina
 		Info.Instigator.ConsumeStamina(- StaminaGainOnHit);
 	}
 

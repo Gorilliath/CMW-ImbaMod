@@ -6,64 +6,61 @@ var config array<GameTypePrefix>	SDKPrefixes;
 
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
 {
-	local string ThisMapPrefix;
-	local int i,pos;
-	local class<GameInfo> NewGameType;
+    local string ThisMapPrefix;
+    local int i,pos;
+    local class<GameInfo> NewGameType;
 
-	LogAlwaysInternal("SetGameType is being called on"@default.Class);
+    LogAlwaysInternal("SetGameType is being called on"@default.Class);
 
-	MapName = StripPlayOnPrefix( MapName );
+    MapName = StripPlayOnPrefix( MapName );
 
-	// replace self with appropriate gametype if no game specified
-	pos = InStr(MapName,"-");
-	ThisMapPrefix = left(MapName,pos);
+    // replace self with appropriate gametype if no game specified
+    pos = InStr(MapName,"-");
+    ThisMapPrefix = left(MapName,pos);
 
-	for (i = 0; i < default.SDKPrefixes.length; i++)
-	{
-		if (default.SDKPrefixes[i].Prefix ~= ThisMapPrefix)
-		{
-			NewGameType = class<GameInfo>(DynamicLoadObject(default.SDKPrefixes[i].GameType,class'Class'));
-			if ( NewGameType != None )
-			{
-				return NewGameType;
-			}
-		}
-	}
+    for (i = 0; i < default.SDKPrefixes.length; i++)
+    {
+        if (default.SDKPrefixes[i].Prefix ~= ThisMapPrefix)
+        {
+            NewGameType = class<GameInfo>(DynamicLoadObject(default.SDKPrefixes[i].GameType,class'Class'));
+            if ( NewGameType != None )
+            {
+                return NewGameType;
+            }
+        }
+    }
 
-	return super.SetGameType(MapName, Options, Portal);
+    return super.SetGameType(MapName, Options, Portal);
 }
+
 
 DefaultProperties
 {
     PlayerControllerClass=class'`{GAMEMODE}PlayerController'
     DefaultPawnClass=class'`{GAMEMODE}Pawn'
 
-	HUDType=class'`{GAMEMODE}HUD'
+    HUDType=class'`{GAMEMODE}HUD'
 
 
+    //This is the name that shows in the server browser for this mod:
+    ModDisplayString="ImbaMod v2.0.2"
 
-	//This is the name that shows in the server browser for this mod:
-	ModDisplayString="ImbaMod v2.0.2"
+    Families.Empty;
 
-	Families.Empty;
+    // do some initialization work here
+    Families(ECLASS_Archer)=class'ImbaModFamilyInfo_Agatha_Archer'
+    Families(ECLASS_ManAtArms)=class'ImbaModFamilyInfo_Agatha_ManAtArms'
+    Families(ECLASS_Vanguard)=class'ImbaModFamilyInfo_Agatha_Vanguard'
+    Families(ECLASS_Knight)=class'ImbaModFamilyInfo_Agatha_Knight'
+    Families(ECLASS_SiegeEngineer)=class'ImbaModFamilyInfo_Agatha_Archer'
 
-	// do some initialization work here
-	Families(ECLASS_Archer)=class'ImbaModFamilyInfo_Agatha_Archer'
-	Families(ECLASS_ManAtArms)=class'ImbaModFamilyInfo_Agatha_ManAtArms'
-	Families(ECLASS_Vanguard)=class'ImbaModFamilyInfo_Agatha_Vanguard'
-	Families(ECLASS_Knight)=class'ImbaModFamilyInfo_Agatha_Knight'
-	Families(ECLASS_SiegeEngineer)=class'ImbaModFamilyInfo_Agatha_Archer'
-	// test comment
-	// same order as above for Masons, but we cant do maths in the thingys.
-	Families(5)=class'ImbaModFamilyInfo_Mason_Archer'
-	Families(6)=class'ImbaModFamilyInfo_Mason_ManAtArms'
-	Families(7)=class'ImbaModFamilyInfo_Mason_Vanguard'
-	Families(8)=class'ImbaModFamilyInfo_Mason_Knight'
-	Families(9)=class'ImbaModFamilyInfo_Mason_Archer'
+    Families(5)=class'ImbaModFamilyInfo_Mason_Archer'
+    Families(6)=class'ImbaModFamilyInfo_Mason_ManAtArms'
+    Families(7)=class'ImbaModFamilyInfo_Mason_Vanguard'
+    Families(8)=class'ImbaModFamilyInfo_Mason_Knight'
+    Families(9)=class'ImbaModFamilyInfo_Mason_Archer'
 
 
-	MinimumRespawnTime = 10.0f
-	bDisableTeamDamagePenalty = true
-
-
+    MinimumRespawnTime = 10.0f
+    bDisableTeamDamagePenalty = true
 }

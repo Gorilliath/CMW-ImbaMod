@@ -1,1064 +1,1064 @@
 var bool bIsInSmoke;
 var float fStaminaRegenCooldown;
 
+
 function SetPawnInSmoke(float maxBuffUptime)
 {
-	// First entry into smoke: update state variable and set a timer to clear
-	if (!bIsInSmoke)
-	{
-		bIsInSmoke=true;
-		SetTimer(maxBuffUptime, false, 'StopPawnInSmoke');
-	} else {
-		// Remaining in smoke: Refresh the timer
-		ClearTimer('StopPawnInSmoke');
-		SetTimer(maxBuffUptime, false, 'StopPawnInSmoke');
-	}
+    // First entry into smoke: update state variable and set a timer to clear
+    if (!bIsInSmoke)
+    {
+        bIsInSmoke=true;
+        SetTimer(maxBuffUptime, false, 'StopPawnInSmoke');
+    } else {
+        // Remaining in smoke: Refresh the timer
+        ClearTimer('StopPawnInSmoke');
+        SetTimer(maxBuffUptime, false, 'StopPawnInSmoke');
+    }
 }
 
 function StopPawnInSmoke()
 {
-	bIsInSmoke=false;
+    bIsInSmoke=false;
 }
-
 
 simulated function TakeFallingDamage()
 {
-	local float EffectiveSpeed;
-	local float damageAmount;
-	local bool landedOnSoftSurface;
-	local name surfaceType;
-	local UTPlayerController UTPC;
+    local float EffectiveSpeed;
+    local float damageAmount;
+    local bool landedOnSoftSurface;
+    local name surfaceType;
+    local UTPlayerController UTPC;
 
-	if (Velocity.Z < -0.5 * MaxFallSpeed)
-	{
-		// ForceFeedback
-		UTPC = UTPlayerController(Controller);
-		if(UTPC != None && LocalPlayer(UTPC.Player) != None)
-		{
-			UTPC.ClientPlayForceFeedbackWaveform(FallingDamageWaveForm);
-		}
-		
-		// Take damage and play Landing sounds
-		if ( Role == ROLE_Authority  && !bIsInSmoke )
-		{
-			MakeNoise(1.0);
-			if (Velocity.Z < -1 * MaxFallSpeed)
-			{
-				EffectiveSpeed = Velocity.Z;
-				surfaceType = GetMaterialBelowFeet();
-				landedOnSoftSurface = (TouchingWaterVolume() || surfaceType=='Water' || 
-																surfaceType=='ShallowWater' || surfaceType=='Cloth');
-				if (landedOnSoftSurface)
-				{
-					EffectiveSpeed += 100;
-				}
-				if (EffectiveSpeed < -1 * MaxFallSpeed)
-				{
-					damageAmount = -100 * (EffectiveSpeed + MaxFallSpeed)/MaxFallSpeed;
-					if (!landedOnSoftSurface)
-					{
-						ReplicatedHitInfo.DamageString = "2";
-						ReplicatedHitInfo.HitLocation = Location;
-						ReplicatedHitInfo.DamageType = class'AOCDmgType_Generic';
-						ReplicatedHitInfo.BoneName = 'b_spine_C';
-						TakeDamage(damageAmount, None, Location, vect(0,0,0), class'AOCDmgType_Generic');
-					}
-					else
-					{
-						// Take half damage if landed on soft surface (water/cloth)
-						if (damageAmount > 25)
-						{
-							ReplicatedHitInfo.DamageString = "2";
-							ReplicatedHitInfo.HitLocation = Location;
-							ReplicatedHitInfo.DamageType = class'AOCDmgType_Generic';
-							ReplicatedHitInfo.BoneName = 'b_spine_C';
-							TakeDamage(damageAmount*0.5, None, Location, vect(0,0,0), class'AOCDmgType_Generic');
-						}
-					}
+    if (Velocity.Z < -0.5 * MaxFallSpeed)
+    {
+        // ForceFeedback
+        UTPC = UTPlayerController(Controller);
+        if(UTPC != None && LocalPlayer(UTPC.Player) != None)
+        {
+            UTPC.ClientPlayForceFeedbackWaveform(FallingDamageWaveForm);
+        }
+        
+        // Take damage and play Landing sounds
+        if ( Role == ROLE_Authority  && !bIsInSmoke )
+        {
+            MakeNoise(1.0);
+            if (Velocity.Z < -1 * MaxFallSpeed)
+            {
+                EffectiveSpeed = Velocity.Z;
+                surfaceType = GetMaterialBelowFeet();
+                landedOnSoftSurface = (TouchingWaterVolume() || surfaceType=='Water' || 
+                                                                surfaceType=='ShallowWater' || surfaceType=='Cloth');
+                if (landedOnSoftSurface)
+                {
+                    EffectiveSpeed += 100;
+                }
+                if (EffectiveSpeed < -1 * MaxFallSpeed)
+                {
+                    damageAmount = -100 * (EffectiveSpeed + MaxFallSpeed)/MaxFallSpeed;
+                    if (!landedOnSoftSurface)
+                    {
+                        ReplicatedHitInfo.DamageString = "2";
+                        ReplicatedHitInfo.HitLocation = Location;
+                        ReplicatedHitInfo.DamageType = class'AOCDmgType_Generic';
+                        ReplicatedHitInfo.BoneName = 'b_spine_C';
+                        TakeDamage(damageAmount, None, Location, vect(0,0,0), class'AOCDmgType_Generic');
+                    }
+                    else
+                    {
+                        // Take half damage if landed on soft surface (water/cloth)
+                        if (damageAmount > 25)
+                        {
+                            ReplicatedHitInfo.DamageString = "2";
+                            ReplicatedHitInfo.HitLocation = Location;
+                            ReplicatedHitInfo.DamageType = class'AOCDmgType_Generic';
+                            ReplicatedHitInfo.BoneName = 'b_spine_C';
+                            TakeDamage(damageAmount*0.5, None, Location, vect(0,0,0), class'AOCDmgType_Generic');
+                        }
+                    }
 
-					if (damageAmount > 80)
-					{
-						class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Hard);
-					}
-					else if (damageAmount > 30)
-					{
-						class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Moderate);
-					}
-					else
-					{
-						class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Light);
-					}
-				}
-			}
-		}
-	}
-	else if (Velocity.Z < -1.4 * JumpZ)
-		MakeNoise(0.5);
-	else if ( Velocity.Z < -0.8 * JumpZ )
-		MakeNoise(0.2);
+                    if (damageAmount > 80)
+                    {
+                        class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Hard);
+                    }
+                    else if (damageAmount > 30)
+                    {
+                        class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Moderate);
+                    }
+                    else
+                    {
+                        class<AOCPawnSoundGroup>(SoundGroupClass).Static.PlayAOCFallingDamageLandSound(self, FallDmg_Light);
+                    }
+                }
+            }
+        }
+    }
+    else if (Velocity.Z < -1.4 * JumpZ)
+        MakeNoise(0.5);
+    else if ( Velocity.Z < -0.8 * JumpZ )
+        MakeNoise(0.2);
 }
 
 
 simulated function SetPawnOnFire(ParticleSystem FirePS, Controller Cont, optional Actor InflictedBy = none, optional class<AOCDamageType> dmgType = none, optional float OverrideTime = 0.0f)
 {
- 	//`log("SET PAWN ON FIRE"@BurningPSComp@dmgType);
+     //`log("SET PAWN ON FIRE"@BurningPSComp@dmgType);
 
-	// Record that the pawn is on fire
-	if (Role == ROLE_Authority && !bIsBurning)
-	{
-		bIsBurning=true;
-		burnDamage = 0;  
+    // Record that the pawn is on fire
+    if (Role == ROLE_Authority && !bIsBurning)
+    {
+        bIsBurning=true;
+        burnDamage = 0;  
 
-		if(dmgType != none && class<AOCDmgType_BoilingOilBurn>(dmgType) != none)
-		{
-			BurnStatus = EBURN_Oil;
-		}
-		else
-		{
-			BurnStatus = EBURN_Fire;
-		}
+        if(dmgType != none && class<AOCDmgType_BoilingOilBurn>(dmgType) != none)
+        {
+            BurnStatus = EBURN_Oil;
+        }
+        else
+        {
+            BurnStatus = EBURN_Fire;
+        }
 
-		LastBurnHit = Cont;
+        LastBurnHit = Cont;
 
-		if (IsAliveAndWell())
-			PlayPawnOnFireSound();
+        if (IsAliveAndWell())
+            PlayPawnOnFireSound();
 
-		if (WorldInfo.NetMode == NM_STANDALONE || Worldinfo.NetMode == NM_ListenServer)
-		{
-			handleFireParticles();
-			StartFireSkinEffect();
-		}
-		
-		// Setting self on fire doesn't override inflicted by (prevents players from suiciding by fire to prevent fire kill by another)
-		if (InflictedBy == none)
-			SetOnFireBy = Controller;
-		else
-			SetOnFireBy = Cont;
+        if (WorldInfo.NetMode == NM_STANDALONE || Worldinfo.NetMode == NM_ListenServer)
+        {
+            handleFireParticles();
+            StartFireSkinEffect();
+        }
+        
+        // Setting self on fire doesn't override inflicted by (prevents players from suiciding by fire to prevent fire kill by another)
+        if (InflictedBy == none)
+            SetOnFireBy = Controller;
+        else
+            SetOnFireBy = Cont;
 
-		// Add the Instigator to this pawn's ContributingDamagers (assist list) if it isn't already on it
-		if (InflictedBy != none) {
-			if (ContributingDamagers.Find(AOCPRI(Cont.PlayerReplicationInfo)) == INDEX_NONE && !IsOnSameTeam(self, AOCPawn(InflictedBy)))
-				ContributingDamagers.AddItem(AOCPRI(Cont.PlayerReplicationInfo));
-		}
+        // Add the Instigator to this pawn's ContributingDamagers (assist list) if it isn't already on it
+        if (InflictedBy != none) {
+            if (ContributingDamagers.Find(AOCPRI(Cont.PlayerReplicationInfo)) == INDEX_NONE && !IsOnSameTeam(self, AOCPawn(InflictedBy)))
+                ContributingDamagers.AddItem(AOCPRI(Cont.PlayerReplicationInfo));
+        }
 
-	}
-	
-	// Check damage type
-	if (dmgType == none)
-	{
-		// Default AOCDmgType_Burn damage over time
-		// [bri] 10-6-14 take max of burn dmg and time; fixes issues with throwing fire into lava.
-		if (class'AOCDmgType_Burn'.default.DamageOverTime > burnDamage)
-		{	burnDamage = class'AOCDmgType_Burn'.default.DamageOverTime;
-		}
+    }
+    
+    // Check damage type
+    if (dmgType == none)
+    {
+        // Default AOCDmgType_Burn damage over time
+        // [bri] 10-6-14 take max of burn dmg and time; fixes issues with throwing fire into lava.
+        if (class'AOCDmgType_Burn'.default.DamageOverTime > burnDamage)
+        {	burnDamage = class'AOCDmgType_Burn'.default.DamageOverTime;
+        }
 
-		if (OverrideTime > 0.0f)
-		{
-			if (OverrideTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
-			{	ClearTimer('StopFireOnPawn');
-				SetTimer(OverrideTime, false, 'StopFireOnPawn');
-			}
- 		}
-		else
-		{
-			if (class'AOCDmgType_Burn'.default.DOTTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
-			{	ClearTimer('StopFireOnPawn');
-				SetTimer(class'AOCDmgType_Burn'.default.DOTTime, false, 'StopFireOnPawn');
-			}
- 		}
+        if (OverrideTime > 0.0f)
+        {
+            if (OverrideTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
+            {	ClearTimer('StopFireOnPawn');
+                SetTimer(OverrideTime, false, 'StopFireOnPawn');
+            }
+         }
+        else
+        {
+            if (class'AOCDmgType_Burn'.default.DOTTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
+            {	ClearTimer('StopFireOnPawn');
+                SetTimer(class'AOCDmgType_Burn'.default.DOTTime, false, 'StopFireOnPawn');
+            }
+         }
 
-		if (!bIsBot)
-			ToggleFirePE(true);
-	}
-	else
-	{
-		// Custom burn damage over time
-		// [bri] 10-6-14 take max of burn dmg and time; fixes issues with throwing fire into lava.
-		if (dmgType.default.DamageOverTime > burnDamage)
-		{	burnDamage = dmgType.default.DamageOverTime;
-		}
+        if (!bIsBot)
+            ToggleFirePE(true);
+    }
+    else
+    {
+        // Custom burn damage over time
+        // [bri] 10-6-14 take max of burn dmg and time; fixes issues with throwing fire into lava.
+        if (dmgType.default.DamageOverTime > burnDamage)
+        {	burnDamage = dmgType.default.DamageOverTime;
+        }
 
-		if (dmgType.default.DOTTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
-		{	ClearTimer('StopFireOnPawn');
-			SetTimer(dmgType.default.DOTTime, false, 'StopFireOnPawn');
-		}
+        if (dmgType.default.DOTTime > (GetTimerRate('StopFireOnPawn') - GetTimerCount('StopFireOnPawn')))
+        {	ClearTimer('StopFireOnPawn');
+            SetTimer(dmgType.default.DOTTime, false, 'StopFireOnPawn');
+        }
 
-		if (!bIsBot)
-		{
-			if (class<AOCDmgType_BoilingOilBurn>(dmgType) != none)
-			{				
-				ToggleOilPE(true);
-			}
-			else
-			{
-				ToggleFirePE(true);
-			}
-		}
-	}
+        if (!bIsBot)
+        {
+            if (class<AOCDmgType_BoilingOilBurn>(dmgType) != none)
+            {				
+                ToggleOilPE(true);
+            }
+            else
+            {
+                ToggleFirePE(true);
+            }
+        }
+    }
 }
 
 simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> UsedWeapon) {
-	// If the weapon is set never to flinch, don't flinch
-	if (UsedWeapon.default.bNeverFlinch)
-		return false;
+    // If the weapon is set never to flinch, don't flinch
+    if (UsedWeapon.default.bNeverFlinch)
+        return false;
 
-	// Don't flinch javelin
-	if (AOCWeapon_JavelinThrow(Info.HitActor.Weapon) != none)
-		return false;
+    // Don't flinch javelin
+    if (AOCWeapon_JavelinThrow(Info.HitActor.Weapon) != none)
+        return false;
 
-	// Smokepots and oil pots shouldn't flinch when they hit people
-	if (AOCWeapon_SmokePot(Info.Instigator.Weapon) != none || AOCWeapon_OilPot(Info.Instigator.Weapon) != none)
-		return false;
+    // Smokepots and oil pots shouldn't flinch when they hit people
+    if (AOCWeapon_SmokePot(Info.Instigator.Weapon) != none || AOCWeapon_OilPot(Info.Instigator.Weapon) != none)
+        return false;
 
-	// Don't flinch during release of riposte
-	if (AOCMeleeWeapon(Info.HitActor.Weapon) != none
-		&& Info.HitActor.Weapon.IsInState('Release')
-		&& AOCMeleeWeapon(Info.HitActor.Weapon).bParryHitCounter == true
-	)
-		return false;
+    // Don't flinch during release of riposte
+    if (AOCMeleeWeapon(Info.HitActor.Weapon) != none
+        && Info.HitActor.Weapon.IsInState('Release')
+        && AOCMeleeWeapon(Info.HitActor.Weapon).bParryHitCounter == true
+    )
+        return false;
 
-	// Don't flinch during the windup of riposte
-	if (AOCMeleeWeapon(Info.HitActor.Weapon) != none
-		&& Info.HitActor.Weapon.IsInState('ParryRelease')
-		&& AOCMeleeWeapon(Info.HitActor.Weapon).bParryHitCounter == true
-	)
-		return false;
+    // Don't flinch during the windup of riposte
+    if (AOCMeleeWeapon(Info.HitActor.Weapon) != none
+        && Info.HitActor.Weapon.IsInState('ParryRelease')
+        && AOCMeleeWeapon(Info.HitActor.Weapon).bParryHitCounter == true
+    )
+        return false;
 
 
-	// If the weapon is in any of the following states, activate flinch
-	if (Info.HitActor.Weapon.IsInState('Deflect')
-		|| Info.HitActor.Weapon.IsInState('Feint')
-		|| (Info.HitActor.Weapon.IsInState('Windup') && AOCRangeWeapon(Info.HitActor.Weapon) == none)
-		|| (Info.HitActor.Weapon.IsInState('Release') && AOCRangeWeapon(Info.HitActor.Weapon) == none)
-		|| Info.HitActor.Weapon.IsInState('Active')
-		|| Info.HitActor.Weapon.IsInState('Flinch')
-		|| Info.HitActor.Weapon.IsInState('Transition')
-		|| Info.HitActor.StateVariables.bIsManualJumpDodge
-		|| (Info.HitActor.Weapon.IsInState('Recovery') && AOCWeapon(Info.HitActor.Weapon).GetFlinchAnimLength(true) >= WeaponAnimationTimeLeft())
-	) {
-		return true;
-	}
+    // If the weapon is in any of the following states, activate flinch
+    if (Info.HitActor.Weapon.IsInState('Deflect')
+        || Info.HitActor.Weapon.IsInState('Feint')
+        || (Info.HitActor.Weapon.IsInState('Windup') && AOCRangeWeapon(Info.HitActor.Weapon) == none)
+        || (Info.HitActor.Weapon.IsInState('Release') && AOCRangeWeapon(Info.HitActor.Weapon) == none)
+        || Info.HitActor.Weapon.IsInState('Active')
+        || Info.HitActor.Weapon.IsInState('Flinch')
+        || Info.HitActor.Weapon.IsInState('Transition')
+        || Info.HitActor.StateVariables.bIsManualJumpDodge
+        || (Info.HitActor.Weapon.IsInState('Recovery') && AOCWeapon(Info.HitActor.Weapon).GetFlinchAnimLength(true) >= WeaponAnimationTimeLeft())
+    ) {
+        return true;
+    }
 
-	// If the user is holdig a projectile, activate flinch
-	if (AOCRangeWeapon(Info.HitActor.Weapon) != none)
-		return true;
+    // If the user is holdig a projectile, activate flinch
+    if (AOCRangeWeapon(Info.HitActor.Weapon) != none)
+        return true;
 
-	// Otherwise return false
-	return false;
+    // Otherwise return false
+    return false;
 }
 
 function RegenHealth() {
-	// No need to run this on the server
-	if(Role != ROLE_Authority)
-		return;
+    // No need to run this on the server
+    if(Role != ROLE_Authority)
+        return;
 
-	// Don't regen if sprinting, burning or other factors
-	if (!bCanHealthRegen || bIsBurning || StateVariables.bIsSprinting) {
-		PauseHealthRegeneration(true);
-		return;
-	}
+    // Don't regen if sprinting, burning or other factors
+    if (!bCanHealthRegen || bIsBurning || StateVariables.bIsSprinting) {
+        PauseHealthRegeneration(true);
+        return;
+    }
 
-	// If idle, regenerate with an interval of 0.4s
-	if (PawnState == ESTATE_IDLE && PawnInfo.myFamily.ClassReference != ECLASS_KING) {
-		RegenInterval = 0.4;
-		RestartHealthRegen();
-	}
+    // If idle, regenerate with an interval of 0.4s
+    if (PawnState == ESTATE_IDLE && PawnInfo.myFamily.ClassReference != ECLASS_KING) {
+        RegenInterval = 0.4;
+        RestartHealthRegen();
+    }
 
-	// If walking/running, regenerate with an interval of 1.0s
-	if (PawnState == ESTATE_RUN) {
-		RegenInterval = 1.0;
-		RestartHealthRegen();
-	}
+    // If walking/running, regenerate with an interval of 1.0s
+    if (PawnState == ESTATE_RUN) {
+        RegenInterval = 1.0;
+        RestartHealthRegen();
+    }
 
-	// Don't regen beyond the maximum health
-	if (Health != HealthMax)
-		HealDamage(HealAmount, Controller, none);
+    // Don't regen beyond the maximum health
+    if (Health != HealthMax)
+        HealDamage(HealAmount, Controller, none);
 
-	// Replicate this to other players
-	if (PlayerReplicationInfo != none) {
-		if (AOCPRI(PlayerReplicationInfo).CurrentHealth != Health)  {
-			AOCPRI(PlayerReplicationInfo).CurrentHealth = Health;
-			AOCPRI(PlayerReplicationInfo).bForceNetUpdate = true;
-		}
-	}
+    // Replicate this to other players
+    if (PlayerReplicationInfo != none) {
+        if (AOCPRI(PlayerReplicationInfo).CurrentHealth != Health)  {
+            AOCPRI(PlayerReplicationInfo).CurrentHealth = Health;
+            AOCPRI(PlayerReplicationInfo).bForceNetUpdate = true;
+        }
+    }
 }
 
 // This overrides a function in the base class
 function StartSprintRecovery() {
-	// Old code, but I will keep it here
-	/*if(IsTimerActive('EndSprintRecovery'))
-	{
-		ClearTimer('EndSprintRecovery');
-	}
-	bForceNoSprint = true;
-	SetTimer(0.5f, false, 'EndSprintRecovery');*/
+    // Old code, but I will keep it here
+    /*if(IsTimerActive('EndSprintRecovery'))
+    {
+        ClearTimer('EndSprintRecovery');
+    }
+    bForceNoSprint = true;
+    SetTimer(0.5f, false, 'EndSprintRecovery');*/
 }
 
 reliable server function AttackOtherPawn(HitInfo Info, string DamageString, optional bool bCheckParryOnly = false, optional bool bBoxParrySuccess, optional bool bHitShield = false, optional SwingTypeImpactSound LastHit = ESWINGSOUND_Slash, optional bool bQuickKick = false) {
-	local bool bParry;
-	local float ActualDamage;
-	local bool bSameTeam;
-	local bool bFlinch;
-	local IAOCAIListener AIList;
-	local int i;
-	local float Resistance;
-	local float GenericDamage;
-	local float HitForceMag;
-	local PlayerReplicationInfo PRI;
-	local bool bOnFire;
-	local bool bPassiveBlock;
-	local AOCWeaponAttachment HitActorWeaponAttachment;
-	local class<AOCWeapon> UsedWeapon;
-	local TraceHitInfo THI;
-	local bool bEnemyWasBot;
-	local bool bWasKilled;
-	local float StaminaAtKill;
-	local float StaminaGainOnHit;
+    local bool bParry;
+    local float ActualDamage;
+    local bool bSameTeam;
+    local bool bFlinch;
+    local IAOCAIListener AIList;
+    local int i;
+    local float Resistance;
+    local float GenericDamage;
+    local float HitForceMag;
+    local PlayerReplicationInfo PRI;
+    local bool bOnFire;
+    local bool bPassiveBlock;
+    local AOCWeaponAttachment HitActorWeaponAttachment;
+    local class<AOCWeapon> UsedWeapon;
+    local TraceHitInfo THI;
+    local bool bEnemyWasBot;
+    local bool bWasKilled;
+    local float StaminaAtKill;
+    local float StaminaGainOnHit;
 
-	// Initialise player replication information
-	if (PlayerReplicationInfo == none)
-		PRI = Info.PRI;
-	else
-		PRI = PlayerReplicationInfo;
+    // Initialise player replication information
+    if (PlayerReplicationInfo == none)
+        PRI = Info.PRI;
+    else
+        PRI = PlayerReplicationInfo;
 
-	Info.PRI = PRI;
+    Info.PRI = PRI;
 
-	if (!PerformAttackSSSC(Info) && WorldInfo.NetMode != NM_Standalone)
-		return;
+    if (!PerformAttackSSSC(Info) && WorldInfo.NetMode != NM_Standalone)
+        return;
 
-	// Select weapon (not sure this is necessary...?)
-	if (Info.UsedWeapon == 0)
-		UsedWeapon = PrimaryWeapon;
-	else if (Info.UsedWeapon == 1)
-		UsedWeapon = SecondaryWeapon;
-	else
-		UsedWeapon = TertiaryWeapon;
+    // Select weapon (not sure this is necessary...?)
+    if (Info.UsedWeapon == 0)
+        UsedWeapon = PrimaryWeapon;
+    else if (Info.UsedWeapon == 1)
+        UsedWeapon = SecondaryWeapon;
+    else
+        UsedWeapon = TertiaryWeapon;
 
-	HitActorWeaponAttachment = AOCWeaponAttachment(Info.HitActor.CurrentWeaponAttachment);
+    HitActorWeaponAttachment = AOCWeaponAttachment(Info.HitActor.CurrentWeaponAttachment);
 
-	// Is the player on the same team?
-	bSameTeam = IsOnSameTeam(self, Info.HitActor);
+    // Is the player on the same team?
+    bSameTeam = IsOnSameTeam(self, Info.HitActor);
 
-	bFlinch = false;
+    bFlinch = false;
 
-	bParry = (CheckProjectileParry(Info) || bBoxParrySuccess)
-			 && (Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding)
-			 && class<AOCDmgType_Generic>(Info.DamageType) == none
-			 && Info.DamageType != class'AOCDmgType_SiegeWeapon';
+    bParry = (CheckProjectileParry(Info) || bBoxParrySuccess)
+             && (Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding)
+             && class<AOCDmgType_Generic>(Info.DamageType) == none
+             && Info.DamageType != class'AOCDmgType_SiegeWeapon';
 
-	// Only fists can block fists
-	if (AOCWeapon_Fists(Info.HitActor.Weapon) != none && class<AOCDmgType_Fists>(Info.DamageType) == none)
-		bParry = false;
+    // Only fists can block fists
+    if (AOCWeapon_Fists(Info.HitActor.Weapon) != none && class<AOCDmgType_Fists>(Info.DamageType) == none)
+        bParry = false;
 
-	// Cause pawn to lose stamina, get stunned etc
-	if (bParry)
-			DetectSuccessfulParry(Info, i, bCheckParryOnly, 0);
+    // Cause pawn to lose stamina, get stunned etc
+    if (bParry)
+            DetectSuccessfulParry(Info, i, bCheckParryOnly, 0);
 
-	if (Info.DamageType.default.bIsProjectile && !bParry)
-		AOCPRI(PlayerReplicationInfo).NumHits += 1;
+    if (Info.DamageType.default.bIsProjectile && !bParry)
+        AOCPRI(PlayerReplicationInfo).NumHits += 1;
 
-	// Check for passive shield block
-	bPassiveBlock = false;
-	if (bHitShield && Info.DamageType.default.bIsProjectile) {
-		bParry = true;
-		Info.HitDamage = 0.0f;
-		bPassiveBlock = !Info.HitActor.StateVariables.bIsActiveShielding;
-	}
+    // Check for passive shield block
+    bPassiveBlock = false;
+    if (bHitShield && Info.DamageType.default.bIsProjectile) {
+        bParry = true;
+        Info.HitDamage = 0.0f;
+        bPassiveBlock = !Info.HitActor.StateVariables.bIsActiveShielding;
+    }
 
-	if (bCheckParryOnly)
-		return;
+    if (bCheckParryOnly)
+        return;
 
-	// Play correct hit sound depending on parry success/failure
-	AOCWeaponAttachment(CurrentWeaponAttachment).LastSwingType = LastHit;
-	if(!bParry) {
-		Info.HitActor.OnActionFailed(EACT_Block);
-		Info.HitSound = AOCWeaponAttachment(CurrentWeaponAttachment).PlayHitPawnSound(Info.HitActor);
-	} else
-		Info.HitSound = AOCWeaponAttachment(CurrentWeaponAttachment).PlayHitPawnSound(Info.HitActor, true);
+    // Play correct hit sound depending on parry success/failure
+    AOCWeaponAttachment(CurrentWeaponAttachment).LastSwingType = LastHit;
+    if(!bParry) {
+        Info.HitActor.OnActionFailed(EACT_Block);
+        Info.HitSound = AOCWeaponAttachment(CurrentWeaponAttachment).PlayHitPawnSound(Info.HitActor);
+    } else
+        Info.HitSound = AOCWeaponAttachment(CurrentWeaponAttachment).PlayHitPawnSound(Info.HitActor, true);
 
-	// Register the hit on the AOCMeleeWeapon class
-	if (AOCMeleeWeapon(Info.Instigator.Weapon) != none)
-		AOCMeleeWeapon(Info.Instigator.Weapon).bHitPawn = true;
+    // Register the hit on the AOCMeleeWeapon class
+    if (AOCMeleeWeapon(Info.Instigator.Weapon) != none)
+        AOCMeleeWeapon(Info.Instigator.Weapon).bHitPawn = true;
 
-	// Less damage for quick kick
-	if (bQuickKick)
-		Info.HitDamage = 3;
+    // Less damage for quick kick
+    if (bQuickKick)
+        Info.HitDamage = 3;
 
-	// Calculate damage of the attack
-	ActualDamage = Info.HitDamage;
-	GenericDamage = Info.HitDamage * Info.DamageType.default.DamageType[EDMG_Generic];
-	ActualDamage -= GenericDamage; //Generic damage is unaffected by resistances etc.
+    // Calculate damage of the attack
+    ActualDamage = Info.HitDamage;
+    GenericDamage = Info.HitDamage * Info.DamageType.default.DamageType[EDMG_Generic];
+    ActualDamage -= GenericDamage; //Generic damage is unaffected by resistances etc.
 
-	//Backstab damage for melee damage
-	if (!CheckOtherPawnFacingMe(Info.HitActor) && !Info.DamageType.default.bIsProjectile && !bParry)
-		ActualDamage *= PawnFamily.fBackstabModifier;
+    //Backstab damage for melee damage
+    if (!CheckOtherPawnFacingMe(Info.HitActor) && !Info.DamageType.default.bIsProjectile && !bParry)
+        ActualDamage *= PawnFamily.fBackstabModifier;
 
-	// If the hit was in a critical location, increase the damage
-	if (Info.UsedWeapon == 0 && ImbaModWeapon_Crossbow(Weapon) != none && Info.DamageType.default.bIsProjectile)
-		ActualDamage *= Info.HitActor.PawnFamily.CrossbowLocationModifiers[GetBoneLocation(Info.BoneName)];
-	else
-		ActualDamage *= (Info.DamageType.default.bIsProjectile ? Info.HitActor.PawnFamily.ProjectileLocationModifiers[GetBoneLocation(Info.BoneName)] :
-			Info.HitActor.PawnFamily.LocationModifiers[GetBoneLocation(Info.BoneName)]);
+    // If the hit was in a critical location, increase the damage
+    if (Info.UsedWeapon == 0 && ImbaModWeapon_Crossbow(Weapon) != none && Info.DamageType.default.bIsProjectile)
+        ActualDamage *= Info.HitActor.PawnFamily.CrossbowLocationModifiers[GetBoneLocation(Info.BoneName)];
+    else
+        ActualDamage *= (Info.DamageType.default.bIsProjectile ? Info.HitActor.PawnFamily.ProjectileLocationModifiers[GetBoneLocation(Info.BoneName)] :
+            Info.HitActor.PawnFamily.LocationModifiers[GetBoneLocation(Info.BoneName)]);
 
-	// Apply resistances
-	Resistance = 0;
-	for(i = 0; i < ArrayCount(Info.DamageType.default.DamageType); i++)
-		Resistance += Info.DamageType.default.DamageType[i] * Info.HitActor.PawnFamily.DamageResistances[i];
-	ActualDamage *= Resistance;
+    // Apply resistances
+    Resistance = 0;
+    for(i = 0; i < ArrayCount(Info.DamageType.default.DamageType); i++)
+        Resistance += Info.DamageType.default.DamageType[i] * Info.HitActor.PawnFamily.DamageResistances[i];
+    ActualDamage *= Resistance;
 
-	// If this was a team hit, reduce by team damage amount
-	if (PawnFamily.FamilyFaction == Info.HitActor.PawnFamily.FamilyFaction)
-		ActualDamage *= AOCGame(WorldInfo.Game).fTeamDamagePercent;
+    // If this was a team hit, reduce by team damage amount
+    if (PawnFamily.FamilyFaction == Info.HitActor.PawnFamily.FamilyFaction)
+        ActualDamage *= AOCGame(WorldInfo.Game).fTeamDamagePercent;
 
-	ActualDamage += GenericDamage;
+    ActualDamage += GenericDamage;
 
-	// Finally, round the result and finish up
-	ActualDamage = float(Round(ActualDamage));
+    // Finally, round the result and finish up
+    ActualDamage = float(Round(ActualDamage));
 
-	// Stun if the parry costs too much stamina
-	if (bParry && !bPassiveBlock && Info.HitActor.Stamina <= 0) {
-		bFlinch = true;
-		AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
-	}
+    // Stun if the parry costs too much stamina
+    if (bParry && !bPassiveBlock && Info.HitActor.Stamina <= 0) {
+        bFlinch = true;
+        AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
+    }
 
-	// If the other pawn is currently attacking, we just conducted a counter-attack
-	if (Info.AttackType == Attack_Shove && !bParry && !Info.HitActor.StateVariables.bIsSprintAttack) {
-		if (!bSameTeam) {
+    // If the other pawn is currently attacking, we just conducted a counter-attack
+    if (Info.AttackType == Attack_Shove && !bParry && !Info.HitActor.StateVariables.bIsSprintAttack) {
+        if (!bSameTeam) {
 
-			// If the receiver's shield is raised, heavy kicks will inflict a stun
-			if (Info.HitActor.StateVariables.bIsActiveShielding && !bQuickKick) {
-				bFlinch = true;
-				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, false);
-			// If the receiver's shield is not raised, any kick will inflict a minor kick flinch	
-			} else if (!Info.HitActor.StateVariables.bIsActiveShielding) {
-				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, true);
-			}
+            // If the receiver's shield is raised, heavy kicks will inflict a stun
+            if (Info.HitActor.StateVariables.bIsActiveShielding && !bQuickKick) {
+                bFlinch = true;
+                AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, false);
+            // If the receiver's shield is not raised, any kick will inflict a minor kick flinch	
+            } else if (!Info.HitActor.StateVariables.bIsActiveShielding) {
+                AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, true);
+            }
 
-			// If they got stamina stunned, regain stamina
-			if (Info.HitActor.StateVariables.bIsActiveShielding && Info.HitActor.Stamina <= 0)
-				Info.HitActor.ConsumeStamina(-30.0f);
-		}
-	}
+            // If they got stamina stunned, regain stamina
+            if (Info.HitActor.StateVariables.bIsActiveShielding && Info.HitActor.Stamina <= 0)
+                Info.HitActor.ConsumeStamina(-30.0f);
+        }
+    }
 
-	// If they weren't parrying or shielding, apply flinch
-	else if ((Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding) && !bSameTeam && !bParry) {
-		bFlinch = true;
-		AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
-	}
-	// If flinch needs to be activated...
-	else if ((ShouldActivateFlinch(Info, UsedWeapon) || AOCWeapon_Fists(Info.Instigator.Weapon) != none) && !bParry) {
-		// If they were on different teams, activate normal hit
-		if (!bSameTeam)
-			AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
-		// If they are on the same team, it wasn't a projectile and it's not pre-round, then flinch the instigator
-		else if (bSameTeam && !Info.DamageType.default.bIsProjectile && !WorldInfo.Game.IsInState('AOCPreRound'))
-			AOCWeapon(Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
-	}
-	// Otherwise we landed a hit on the enemy, play hit animation
-	else if (!bParry && !bSameTeam && AOCWeapon_JavelinThrow(Info.HitActor.Weapon) == none)
-		AOCWeapon(Info.HitActor.Weapon).ActivateHitAnim(Info.HitActor.GetHitDirection(Location, false, true), bSameTeam);
+    // If they weren't parrying or shielding, apply flinch
+    else if ((Info.HitActor.StateVariables.bIsParrying || Info.HitActor.StateVariables.bIsActiveShielding) && !bSameTeam && !bParry) {
+        bFlinch = true;
+        AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
+    }
+    // If flinch needs to be activated...
+    else if ((ShouldActivateFlinch(Info, UsedWeapon) || AOCWeapon_Fists(Info.Instigator.Weapon) != none) && !bParry) {
+        // If they were on different teams, activate normal hit
+        if (!bSameTeam)
+            AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
+        // If they are on the same team, it wasn't a projectile and it's not pre-round, then flinch the instigator
+        else if (bSameTeam && !Info.DamageType.default.bIsProjectile && !WorldInfo.Game.IsInState('AOCPreRound'))
+            AOCWeapon(Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), false, false, AOCWeapon(Weapon).bTwoHander);
+    }
+    // Otherwise we landed a hit on the enemy, play hit animation
+    else if (!bParry && !bSameTeam && AOCWeapon_JavelinThrow(Info.HitActor.Weapon) == none)
+        AOCWeapon(Info.HitActor.Weapon).ActivateHitAnim(Info.HitActor.GetHitDirection(Location, false, true), bSameTeam);
 
-	// Remnants of god mode. TODO: Is this redundant?
-	if (Info.HitActor.bInfiniteHealth)
-		ActualDamage = 0.0f;
+    // Remnants of god mode. TODO: Is this redundant?
+    if (Info.HitActor.bInfiniteHealth)
+        ActualDamage = 0.0f;
 
-	// If the hit caused damage
-	if (ActualDamage > 0.0f) {
-		// Register the effects on the pawn
-		Info.HitActor.SetHitDebuff();
-		LastAttackedBy = Info.Instigator;
-		PauseHealthRegeneration();
-		Info.HitActor.PauseHealthRegeneration();
-		Info.HitActor.DisableSprint(true);
-		Info.HitActor.StartSprintRecovery();
+    // If the hit caused damage
+    if (ActualDamage > 0.0f) {
+        // Register the effects on the pawn
+        Info.HitActor.SetHitDebuff();
+        LastAttackedBy = Info.Instigator;
+        PauseHealthRegeneration();
+        Info.HitActor.PauseHealthRegeneration();
+        Info.HitActor.DisableSprint(true);
+        Info.HitActor.StartSprintRecovery();
 
-		// Play a ping sound if we hit a player when shooting
-		if (Info.DamageType.default.bIsProjectile)
-			PlayRangedHitSound();
-		else {
-			if(!bSameTeam)
-				PlayMeleeHit();
-		}
+        // Play a ping sound if we hit a player when shooting
+        if (Info.DamageType.default.bIsProjectile)
+            PlayRangedHitSound();
+        else {
+            if(!bSameTeam)
+                PlayMeleeHit();
+        }
 
-		// If the pawn is still alive, play sounds for everyone
-		if (Info.HitActor.Health - ActualDamage > 0.0f)
-			Info.HitActor.PlayHitSounds(ActualDamage, bFlinch);
+        // If the pawn is still alive, play sounds for everyone
+        if (Info.HitActor.Health - ActualDamage > 0.0f)
+            Info.HitActor.PlayHitSounds(ActualDamage, bFlinch);
 
-		// Register the hit on the player countroller
-		if (AOCPlayerController(Controller) != none)
-			AOCPlayerController(Controller).PC_SuccessfulHit();
+        // Register the hit on the player countroller
+        if (AOCPlayerController(Controller) != none)
+            AOCPlayerController(Controller).PC_SuccessfulHit();
 
-		// Add to assist list if the pawn isn't already in it
-		if (Info.HitActor.ContributingDamagers.Find(AOCPRI(PlayerReplicationInfo)) == INDEX_NONE && !bSameTeam)
-			Info.HitActor.ContributingDamagers.AddItem(AOCPRI(PlayerReplicationInfo));
+        // Add to assist list if the pawn isn't already in it
+        if (Info.HitActor.ContributingDamagers.Find(AOCPRI(PlayerReplicationInfo)) == INDEX_NONE && !bSameTeam)
+            Info.HitActor.ContributingDamagers.AddItem(AOCPRI(PlayerReplicationInfo));
 
-		Info.HitActor.LastPawnToHurtYou = Controller;
+        Info.HitActor.LastPawnToHurtYou = Controller;
 
-		// Allow the last pawn to attack to be a potential killer:
-		// This applies when the player commits suicide (e.g falldamage, trap)
-		if( AOCDuel(WorldInfo.Game) == none || CDWDuel(WorldInfo.Game) == none )
-			Info.HitActor.SetTimer(10.f, false, 'ClearLastPawnToAttack');
+        // Allow the last pawn to attack to be a potential killer:
+        // This applies when the player commits suicide (e.g falldamage, trap)
+        if( AOCDuel(WorldInfo.Game) == none || CDWDuel(WorldInfo.Game) == none )
+            Info.HitActor.SetTimer(10.f, false, 'ClearLastPawnToAttack');
 
-		// If it was a projectile, do more stuff
-		if (Info.DamageType.default.bIsProjectile)
-			Info.HitActor.StruckByProjectile(self, UsedWeapon);
-	}
+        // If it was a projectile, do more stuff
+        if (Info.DamageType.default.bIsProjectile)
+            Info.HitActor.StruckByProjectile(self, UsedWeapon);
+    }
 
 
-	// Notify Pawn that we hit
-	if (AOCMeleeWeapon(Weapon) != none && Info.HitActor.Health - ActualDamage > 0.0f && Info.AttackType != Attack_Shove && Info.AttackType != Attack_Sprint && !bParry)
-		AOCMeleeWeapon(Weapon).NotifyHitPawn();
+    // Notify Pawn that we hit
+    if (AOCMeleeWeapon(Weapon) != none && Info.HitActor.Health - ActualDamage > 0.0f && Info.AttackType != Attack_Shove && Info.AttackType != Attack_Sprint && !bParry)
+        AOCMeleeWeapon(Weapon).NotifyHitPawn();
 
-	// Replicate the attack information to the clients
-	Info.bParry = bParry;
-	Info.DamageString = DamageString;
-	// Where did the hit take place at? Was it a projectile?
-	if (Info.BoneName == 'b_Neck' && !Info.DamageType.default.bIsProjectile && Info.DamageType.default.bCanDecap && Info.AttackType != Attack_Stab)
-		Info.DamageString $= "3";
-	// Check for headshot (by decapitation)
-	else if ((Info.BoneName == 'b_Neck' || Info.BoneName == 'b_Head') && Info.DamageType.default.bIsProjectile) {
-		Info.DamageString $= "4";
+    // Replicate the attack information to the clients
+    Info.bParry = bParry;
+    Info.DamageString = DamageString;
+    // Where did the hit take place at? Was it a projectile?
+    if (Info.BoneName == 'b_Neck' && !Info.DamageType.default.bIsProjectile && Info.DamageType.default.bCanDecap && Info.AttackType != Attack_Stab)
+        Info.DamageString $= "3";
+    // Check for headshot (by decapitation)
+    else if ((Info.BoneName == 'b_Neck' || Info.BoneName == 'b_Head') && Info.DamageType.default.bIsProjectile) {
+        Info.DamageString $= "4";
 
-		if ( AOCPlayerController(Controller) != none)
-			AOCPlayerController(Controller).NotifyAchievementHeadshot();
-	}
-	// Did it hit the spine?
-	else if ((Info.BoneName == 'b_spine_A' || Info.BoneName == 'b_spine_B' || Info.BoneName == 'b_spine_C' || Info.BoneName == 'b_spine_D') && Info.DamageType.default.bIsProjectile) {
-		if ( AOCPlayerController(Controller) != none)
-			AOCPlayerController(Controller).NotifyCupidProgress();
-	}
+        if ( AOCPlayerController(Controller) != none)
+            AOCPlayerController(Controller).NotifyAchievementHeadshot();
+    }
+    // Did it hit the spine?
+    else if ((Info.BoneName == 'b_spine_A' || Info.BoneName == 'b_spine_B' || Info.BoneName == 'b_spine_C' || Info.BoneName == 'b_spine_D') && Info.DamageType.default.bIsProjectile) {
+        if ( AOCPlayerController(Controller) != none)
+            AOCPlayerController(Controller).NotifyCupidProgress();
+    }
 
-	// Fill out the rest of the values
-	Info.HitActor.ReplicatedHitInfo = Info;
-	Info.HitDamage = ActualDamage;
-	Info.HitForce *= int(PawnState != ESTATE_PUSH && PawnState != ESTATE_BATTERING);
-	Info.HitForce *= int(!bFlinch);
-	HitForceMag = VSize( Info.HitForce );
-	Info.HitForce.Z = 0.f;
-	Info.HitForce = Normal(Info.HitForce) * HitForceMag;
+    // Fill out the rest of the values
+    Info.HitActor.ReplicatedHitInfo = Info;
+    Info.HitDamage = ActualDamage;
+    Info.HitForce *= int(PawnState != ESTATE_PUSH && PawnState != ESTATE_BATTERING);
+    Info.HitForce *= int(!bFlinch);
+    HitForceMag = VSize( Info.HitForce );
+    Info.HitForce.Z = 0.f;
+    Info.HitForce = Normal(Info.HitForce) * HitForceMag;
 
-	// Track statistics for each weapon
-	if (PRI != none) {
-		// Register non-team damage
-		if (!bSameTeam)
-			AOCPRI(PRI).EnemyDamageDealt += ActualDamage;
-		// Register team damage with the PlayerController
-		else
-			if (Info.HitActor.PawnInfo.myFamily.ClassReference != ECLASS_Peasant
-				&& Info.HitActor.PlayerReplicationInfo != PRI) {
-				AOCPRI(PRI).TeamDamageDealt += ActualDamage;
-				AOCPlayerController(Controller).TeamDamageDealt += ActualDamage;
-			}
+    // Track statistics for each weapon
+    if (PRI != none) {
+        // Register non-team damage
+        if (!bSameTeam)
+            AOCPRI(PRI).EnemyDamageDealt += ActualDamage;
+        // Register team damage with the PlayerController
+        else
+            if (Info.HitActor.PawnInfo.myFamily.ClassReference != ECLASS_Peasant
+                && Info.HitActor.PlayerReplicationInfo != PRI) {
+                AOCPRI(PRI).TeamDamageDealt += ActualDamage;
+                AOCPlayerController(Controller).TeamDamageDealt += ActualDamage;
+            }
 
-		// Force an update
-		AOCPRI(PRI).bForceNetUpdate = TRUE;
-	}
+        // Force an update
+        AOCPRI(PRI).bForceNetUpdate = TRUE;
+    }
 
-	// Replicate this information
-	if (Info.HitActor.PlayerReplicationInfo != none) {
-		AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
-		AOCPRI(Info.HitActor.PlayerReplicationInfo).bForceNetUpdate = TRUE;
-	}
+    // Replicate this information
+    if (Info.HitActor.PlayerReplicationInfo != none) {
+        AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
+        AOCPRI(Info.HitActor.PlayerReplicationInfo).bForceNetUpdate = TRUE;
+    }
 
-	// Is the target burning?
-	bOnFire = Info.HitActor.bIsBurning;
+    // Is the target burning?
+    bOnFire = Info.HitActor.bIsBurning;
 
-	// Get the trace/hit info
-	THI = MakeTraceHitInfoFromHitInfo(Info);
+    // Get the trace/hit info
+    THI = MakeTraceHitInfoFromHitInfo(Info);
 
-	// Was the target a bot?
-	bEnemyWasBot = Info.HitActor.bIsBot || Info.HitActor.PlayerReplicationInfo.bBot || AOCPRI(Info.HitActor.PlayerReplicationInfo).bIsBot || AOCAIController(Info.HitActor.Controller) != none;
+    // Was the target a bot?
+    bEnemyWasBot = Info.HitActor.bIsBot || Info.HitActor.PlayerReplicationInfo.bBot || AOCPRI(Info.HitActor.PlayerReplicationInfo).bIsBot || AOCAIController(Info.HitActor.Controller) != none;
 
-	// Call take damage on the targeted pawn
-	Info.HitActor.TakeDamage(ActualDamage, Controller != none ? Controller : CurrentSiegeWeapon.Controller, Info.HitLocation, Info.HitForce, Info.DamageType, THI);
+    // Call take damage on the targeted pawn
+    Info.HitActor.TakeDamage(ActualDamage, Controller != none ? Controller : CurrentSiegeWeapon.Controller, Info.HitLocation, Info.HitForce, Info.DamageType, THI);
 
-	// Was the enemy killed?
-	bWasKilled = (Info.HitActor == none || Info.HitActor.Health <= 0);
-	Info.HitActor.ReplicatedHitInfo.bWasKilled = bWasKilled;
+    // Was the enemy killed?
+    bWasKilled = (Info.HitActor == none || Info.HitActor.Health <= 0);
+    Info.HitActor.ReplicatedHitInfo.bWasKilled = bWasKilled;
 
-	// If they were killed, regain stamina
-	if(Info.HitActor.Health <= 0 && !bSameTeam) {
+    // If they were killed, regain stamina
+    if(Info.HitActor.Health <= 0 && !bSameTeam) {
 
-		// MAA gets extra stamina on kill
-		if (PawnInfo.myFamily.ClassReference == ECLASS_ManAtArms) {
-	        	Info.Instigator.ConsumeStamina(-50.f);
-		} else {
-			Info.Instigator.ConsumeStamina(-30.f);
-		}
-		StaminaAtKill = Info.Instigator.Stamina;
+        // MAA gets extra stamina on kill
+        if (PawnInfo.myFamily.ClassReference == ECLASS_ManAtArms) {
+                Info.Instigator.ConsumeStamina(-50.f);
+        } else {
+            Info.Instigator.ConsumeStamina(-30.f);
+        }
+        StaminaAtKill = Info.Instigator.Stamina;
 
-	// Otherwise gain stamina on hit where...
-	} else if (
-		!bSameTeam 										&&	// We didn't smak our own teammate
-		ActualDamage > 0.0f 							&&	// We actually dealt damage
-		AOCMeleeWeapon(Info.Instigator.Weapon) != none 	&&	// We used a melee weapon
-		!Info.DamageType.default.bIsProjectile 			&&	// We didn't deal damage with a projectile
-		Info.AttackType != Attack_Shove						// We didn't use any sort of shove
-	) {
-		// If we can cast the Instigator's Weapon to the new ImbaModMeleeWeapon then use its specific fStaminaGainOnHit, otherwise use the default
-		StaminaGainOnHit = ImbaModMeleeWeapon(Info.Instigator.Weapon) != none
-			? ImbaModMeleeWeapon(Info.Instigator.Weapon).fStaminaGainOnHit
-			: class'ImbaModMeleeWeapon'.default.fStaminaGainOnHit;
-		
-		// Reward stamina
-		Info.Instigator.ConsumeStamina(- StaminaGainOnHit);
-	}
+    // Otherwise gain stamina on hit where...
+    } else if (
+        !bSameTeam                                      &&  // We didn't smak our own teammate
+        ActualDamage > 0.0f                             &&  // We actually dealt damage
+        AOCMeleeWeapon(Info.Instigator.Weapon) != none  &&  // We used a melee weapon
+        !Info.DamageType.default.bIsProjectile          &&  // We didn't deal damage with a projectile
+        Info.AttackType != Attack_Shove                     // We didn't use any sort of shove
+    ) {
+        // If we can cast the Instigator's Weapon to the new ImbaModMeleeWeapon then use its specific fStaminaGainOnHit, otherwise use the default
+        StaminaGainOnHit = ImbaModMeleeWeapon(Info.Instigator.Weapon) != none
+            ? ImbaModMeleeWeapon(Info.Instigator.Weapon).fStaminaGainOnHit
+            : class'ImbaModMeleeWeapon'.default.fStaminaGainOnHit;
+        
+        // Reward stamina
+        Info.Instigator.ConsumeStamina(- StaminaGainOnHit);
+    }
 
-	if (bWasKilled && WorldInfo.NetMode == NM_DedicatedServer) {
-		// Make sure this wasn't a team kill
-		if (AOCPlayerController(Controller).StatWrapper != none
-			&& !bSameTeam
-			&& Info.UsedWeapon < 2
-			&& !bEnemyWasBot) {
+    if (bWasKilled && WorldInfo.NetMode == NM_DedicatedServer) {
+        // Make sure this wasn't a team kill
+        if (AOCPlayerController(Controller).StatWrapper != none
+            && !bSameTeam
+            && Info.UsedWeapon < 2
+            && !bEnemyWasBot) {
 
-			// Increment kill stats
-			AOCPlayerController(Controller).StatWrapper.IncrementKillStats(
-				Info.UsedWeapon == 0 ? PrimaryWeapon : SecondaryWeapon,
-				PawnFamily,
-				Info.HitActor.PawnFamily,
-				class<AOCWeapon>(HitActorWeaponAttachment.WeaponClass)
-			);
-		}
+            // Increment kill stats
+            AOCPlayerController(Controller).StatWrapper.IncrementKillStats(
+                Info.UsedWeapon == 0 ? PrimaryWeapon : SecondaryWeapon,
+                PawnFamily,
+                Info.HitActor.PawnFamily,
+                class<AOCWeapon>(HitActorWeaponAttachment.WeaponClass)
+            );
+        }
 
-		// Do another check for a headshot here
-		if (Info.BoneName == 'b_Neck' && !Info.DamageType.default.bIsProjectile && Info.DamageType.default.bCanDecap && Info.AttackType != Attack_Stab) {
-			// Award rotiserie chef achievement on client
-			if (AOCPlayerController(Controller) != none && bOnFire)
-				AOCPlayerController(Controller).UnlockRotisserieChef();
+        // Do another check for a headshot here
+        if (Info.BoneName == 'b_Neck' && !Info.DamageType.default.bIsProjectile && Info.DamageType.default.bCanDecap && Info.AttackType != Attack_Stab) {
+            // Award rotiserie chef achievement on client
+            if (AOCPlayerController(Controller) != none && bOnFire)
+                AOCPlayerController(Controller).UnlockRotisserieChef();
 
-			// Notify decap
-			AOCPlayerController(Controller).NotifyAchievementDecap();
-		}
+            // Notify decap
+            AOCPlayerController(Controller).NotifyAchievementDecap();
+        }
 
-		// Check if fists
-		if (class<AOCDmgType_Fists>(Info.DamageType) != none)
-			if (AOCPlayerController(Controller) != none)
-				// Update achievement progress
-				AOCPlayerController(Controller).NotifyFistofFuryProgress();
-	}
+        // Check if fists
+        if (class<AOCDmgType_Fists>(Info.DamageType) != none)
+            if (AOCPlayerController(Controller) != none)
+                // Update achievement progress
+                AOCPlayerController(Controller).NotifyFistofFuryProgress();
+    }
 
-	// Update the AI
-	foreach AICombatInterests(AIList) {
-		AIList.NotifyPawnPerformSuccessfulAttack(self);
-	}
+    // Update the AI
+    foreach AICombatInterests(AIList) {
+        AIList.NotifyPawnPerformSuccessfulAttack(self);
+    }
 
-	// More AI stuff
-	foreach Info.HitActor.AICombatInterests(AIList) {
-		if (!bParry)
-			AIList.NotifyPawnReceiveHit(Info.HitActor,self);
-		else
-			AIList.NotifyPawnSuccessBlock(Info.HitActor, self);
-	}
+    // More AI stuff
+    foreach Info.HitActor.AICombatInterests(AIList) {
+        if (!bParry)
+            AIList.NotifyPawnReceiveHit(Info.HitActor,self);
+        else
+            AIList.NotifyPawnSuccessBlock(Info.HitActor, self);
+    }
 
-	// Manually do the replication if we're on the standalone
-	if (WorldInfo.NetMode == NM_Standalone || Worldinfo.NetMode == NM_ListenServer)
-		Info.HitActor.HandlePawnGetHit();
+    // Manually do the replication if we're on the standalone
+    if (WorldInfo.NetMode == NM_Standalone || Worldinfo.NetMode == NM_ListenServer)
+        Info.HitActor.HandlePawnGetHit();
 }
 
 simulated function bool CheckProjectileParry(HitInfo Info) {
-	local vector DirVector;
-	local vector OtherPawnFaceDirection;
-	local float fAngle;
+    local vector DirVector;
+    local vector OtherPawnFaceDirection;
+    local float fAngle;
 
-	if (Info.DamageType.default.bIsProjectile && class<AOCDmgType_BallistaBolt>(Info.DamageType) == none) {
-		DirVector = Normal(Location - Info.HitActor.Location);
-		OtherPawnFaceDirection = Normal(Info.HitActor.GetForwardDirection());
-		fAngle = Acos(DirVector dot OtherPawnFaceDirection);
+    if (Info.DamageType.default.bIsProjectile && class<AOCDmgType_BallistaBolt>(Info.DamageType) == none) {
+        DirVector = Normal(Location - Info.HitActor.Location);
+        OtherPawnFaceDirection = Normal(Info.HitActor.GetForwardDirection());
+        fAngle = Acos(DirVector dot OtherPawnFaceDirection);
 
-		if (fAngle < Pi / 3)
-			return true;
-		else
-			return false;
-	}
+        if (fAngle < Pi / 3)
+            return true;
+        else
+            return false;
+    }
 
-	return false;
+    return false;
 }
 
 simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, bool bCheckParryOnly, int ParryLR) {
-	local int StaminaDamage;
-	local bool bOutOfStamina;
+    local int StaminaDamage;
+    local bool bOutOfStamina;
 
-	// Don't (non-shield) parry oil pots or smoke pots
-	if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || ImbaModWeapon_SmokePot(Info.Instigator.Weapon) != none))
-		return false;
+    // Don't (non-shield) parry oil pots or smoke pots
+    if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || ImbaModWeapon_SmokePot(Info.Instigator.Weapon) != none))
+        return false;
 
-	bParry = 1;
-	StaminaDamage = 0;
+    bParry = 1;
+    StaminaDamage = 0;
 
-	// Make the weapon (and thus the pawn) go into a deflect state
-	if (!Info.DamageType.default.bIsProjectile) {
-		AOCWeapon(Weapon).ActivateDeflect(Info.HitActor.StateVariables.bIsParrying);
-		AOCWeaponAttachment( CurrentWeaponAttachment ).PlayParriedSound();
+    // Make the weapon (and thus the pawn) go into a deflect state
+    if (!Info.DamageType.default.bIsProjectile) {
+        AOCWeapon(Weapon).ActivateDeflect(Info.HitActor.StateVariables.bIsParrying);
+        AOCWeaponAttachment( CurrentWeaponAttachment ).PlayParriedSound();
 
-		DisableSprint(true);
-		StartSprintRecovery();
-	}
+        DisableSprint(true);
+        StartSprintRecovery();
+    }
 
-	// Opponent has a successful parry
-	AOCWeapon(Info.HitActor.Weapon).NotifySuccessfulParry(Info.AttackType, ParryLR);
+    // Opponent has a successful parry
+    AOCWeapon(Info.HitActor.Weapon).NotifySuccessfulParry(Info.AttackType, ParryLR);
 
-	// If it hit the shield
-	if(Info.HitActor.StateVariables.bIsActiveShielding) {
-		AOCWeaponAttachment( Info.HitActor.CurrentWeaponAttachment ).PlayParrySound(true);
+    // If it hit the shield
+    if(Info.HitActor.StateVariables.bIsActiveShielding) {
+        AOCWeaponAttachment( Info.HitActor.CurrentWeaponAttachment ).PlayParrySound(true);
 
-		// Only lose stamina if it was a melee attack
-		if (!Info.DamageType.default.bIsProjectile) {
+        // Only lose stamina if it was a melee attack
+        if (!Info.DamageType.default.bIsProjectile) {
 
-			// Calculate stamina drain
-			StaminaDamage = Info.HitActor.ShieldClass.NewShield.static.CalculateParryDamage(Info.HitDamage);
+            // Calculate stamina drain
+            StaminaDamage = Info.HitActor.ShieldClass.NewShield.static.CalculateParryDamage(Info.HitDamage);
 
-			// Enter stun state if the player is out of stamina
-			if (!Info.HitActor.HasEnoughStamina(StaminaDamage)) {
-				StaminaDamage = Info.HitActor.Stamina;
-				Info.HitActor.ConsumeStamina(StaminaDamage);
+            // Enter stun state if the player is out of stamina
+            if (!Info.HitActor.HasEnoughStamina(StaminaDamage)) {
+                StaminaDamage = Info.HitActor.Stamina;
+                Info.HitActor.ConsumeStamina(StaminaDamage);
 
-				// Regain 30 stamina
-				Info.HitActor.ConsumeStamina(-30.f);
-				AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
+                // Regain 30 stamina
+                Info.HitActor.ConsumeStamina(-30.f);
+                AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
 
-				// The hit does zero damage
-				Info.HitDamage = 0.0f;
-				bOutOfStamina = true;
-			}
+                // The hit does zero damage
+                Info.HitDamage = 0.0f;
+                bOutOfStamina = true;
+            }
 
-			// Replicate and log the parry
-			AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
+            // Replicate and log the parry
+            AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
 
-			if(AOCPlayerController(Controller) != none)
-				AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
+            if(AOCPlayerController(Controller) != none)
+                AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
 
-			if(AOCPlayerController(Info.HitActor.Controller) != none)
-				AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+            if(AOCPlayerController(Info.HitActor.Controller) != none)
+                AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
 
-			if(bOutOfStamina)
-				return true;
+            if(bOutOfStamina)
+                return true;
 
-			Info.HitActor.ConsumeStamina(StaminaDamage);
-		}
+            Info.HitActor.ConsumeStamina(StaminaDamage);
+        }
 
-		// Parry means health damage is completely negated
-		Info.HitDamage = 0.0f;
+        // Parry means health damage is completely negated
+        Info.HitDamage = 0.0f;
 
-		AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
+        AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
 
-		// Flinch if it's a kick: TODO: is this still relevant? (v1.0.2)
-		if (Info.AttackType == Attack_Shove)
-			AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, false);
-	}
-	// Was it a normal parry?
-	else if (Info.HitActor.StateVariables.bIsParrying) {
-		AOCWeaponAttachment(Info.HitActor.CurrentWeaponAttachment).PlayParrySound(false);
+        // Flinch if it's a kick: TODO: is this still relevant? (v1.0.2)
+        if (Info.AttackType == Attack_Shove)
+            AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, false);
+    }
+    // Was it a normal parry?
+    else if (Info.HitActor.StateVariables.bIsParrying) {
+        AOCWeaponAttachment(Info.HitActor.CurrentWeaponAttachment).PlayParrySound(false);
 
-		// Lose 15 stamina for projectiles, otherwise calculate stamina loss
-		if (Info.DamageType.default.bIsProjectile)
-			StaminaDamage = 15.0f;
-		else
-			StaminaDamage = AOCWeapon(Info.HitActor.Weapon).CalculateParryDamage(AOCWeapon(Info.Instigator.Weapon), Info.AttackType);
+        // Lose 15 stamina for projectiles, otherwise calculate stamina loss
+        if (Info.DamageType.default.bIsProjectile)
+            StaminaDamage = 15.0f;
+        else
+            StaminaDamage = AOCWeapon(Info.HitActor.Weapon).CalculateParryDamage(AOCWeapon(Info.Instigator.Weapon), Info.AttackType);
 
-		// Enter stun state if the player is out of stamina
-		if (!Info.HitActor.HasEnoughStamina(StaminaDamage)) {
-			StaminaDamage = Info.HitActor.Stamina;
-			Info.HitActor.ConsumeStamina(StaminaDamage);
+        // Enter stun state if the player is out of stamina
+        if (!Info.HitActor.HasEnoughStamina(StaminaDamage)) {
+            StaminaDamage = Info.HitActor.Stamina;
+            Info.HitActor.ConsumeStamina(StaminaDamage);
 
-			// Regain 30 stamina
-			Info.HitActor.ConsumeStamina(-30.f);
-			AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
+            // Regain 30 stamina
+            Info.HitActor.ConsumeStamina(-30.f);
+            AOCWeapon(Info.HitActor.Weapon).ActivateFlinch(true, Info.HitActor.GetHitDirection(Location), true, true, AOCWeapon(Weapon).bTwoHander);
 
-			// The hit does zero damage
-			Info.HitDamage = 0.0f;
-			bOutOfStamina = true;
-		}
+            // The hit does zero damage
+            Info.HitDamage = 0.0f;
+            bOutOfStamina = true;
+        }
 
-		// Replicate and log the parry
-		AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
-		if(AOCPlayerController(Controller) != none)
-			AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
+        // Replicate and log the parry
+        AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
+        if(AOCPlayerController(Controller) != none)
+            AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
 
-		if(AOCPlayerController(Info.HitActor.Controller) != none)
-			AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+        if(AOCPlayerController(Info.HitActor.Controller) != none)
+            AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
 
-		if(bOutOfStamina)
-			return true;
+        if(bOutOfStamina)
+            return true;
 
-		Info.HitActor.ConsumeStamina(StaminaDamage);
+        Info.HitActor.ConsumeStamina(StaminaDamage);
 
-		// Parry means health damage is completely negated
-		Info.HitDamage = 0.0f;
-	}
+        // Parry means health damage is completely negated
+        Info.HitDamage = 0.0f;
+    }
 
-	// The parry was successful
-	return true;
+    // The parry was successful
+    return true;
 
 }
 
 function int CalcDodgeCost() {
-	if (StateVariables.bIsParrying) {
-		return PawnFamily.iDodgeCost + 10.0f;
-	}
-	return PawnFamily.iDodgeCost;
+    if (StateVariables.bIsParrying) {
+        return PawnFamily.iDodgeCost + 10.0f;
+    }
+    return PawnFamily.iDodgeCost;
 }
 
 // This gets called whenever the server initiates a dodge
 reliable server function ServerStartDodge(byte direction, byte WeaponId) {
-	// Set last dodge time
-	if (AOCPlayerController(Controller) != none)
-		AOCPlayerController(Controller).LastDodgeTime = WorldInfo.TimeSeconds;
+    // Set last dodge time
+    if (AOCPlayerController(Controller) != none)
+        AOCPlayerController(Controller).LastDodgeTime = WorldInfo.TimeSeconds;
 
-	// Fill out information about dodge
-	DodgeInfo.Direction = Direction;
-	DodgeInfo.WeaponId = WeaponId;
+    // Fill out information about dodge
+    DodgeInfo.Direction = Direction;
+    DodgeInfo.WeaponId = WeaponId;
 
-	// Lock the player out from attacking until the dodge ends
-	StateVariables.bCanAttack = false;
+    // Lock the player out from attacking until the dodge ends
+    StateVariables.bCanAttack = false;
 
-	// Start the dodge
-	DodgeSM.StartDodgeSM(direction, WeaponId);
+    // Start the dodge
+    DodgeSM.StartDodgeSM(direction, WeaponId);
 
-	// Consume extra stamina
-	ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
+    // Consume extra stamina
+    ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
 }
 
 function bool StartDodge(int direction)
 {
-	local byte WeaponId;
+    local byte WeaponId;
 
-	OnActionInitiated(EACT_Dodge);
+    OnActionInitiated(EACT_Dodge);
 
-	if ( bIsCrouching || (Physics != PHYS_Walking && Physics != PHYS_Falling) || PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON || PawnState == ESTATE_DODGE )
-		return false;
-	if( StateVariables.bCanDodge && !StateVariables.bIsSprinting && !StateVariables.bDodgeDebuffActive && PawnFamily.bCanDodge && AOCWeapon(Weapon).bCanDodge && Velocity.Z ~= 0.0 )
-	{
-		if (!HasEnoughStamina(CalcDodgeCost()))
-		{
-			PlayLowStaminaGrunt();
-			OnActionFailed(EACT_Dodge);
-			return false;
-		}
+    if ( bIsCrouching || (Physics != PHYS_Walking && Physics != PHYS_Falling) || PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON || PawnState == ESTATE_DODGE )
+        return false;
+    if( StateVariables.bCanDodge && !StateVariables.bIsSprinting && !StateVariables.bDodgeDebuffActive && PawnFamily.bCanDodge && AOCWeapon(Weapon).bCanDodge && Velocity.Z ~= 0.0 )
+    {
+        if (!HasEnoughStamina(CalcDodgeCost()))
+        {
+            PlayLowStaminaGrunt();
+            OnActionFailed(EACT_Dodge);
+            return false;
+        }
 
-		if (Weapon.Class == PrimaryWeapon)
-		{
-			WeaponId = 0;
-		}
-		else if (Weapon.Class == SecondaryWeapon)
-		{
-			WeaponId = 1;
-		}
-		else if (Weapon.Class == TertiaryWeapon)
-		{
-			WeaponId = 2;
-		}
-		else
-		{
-			WeaponId = 3;
-		}
+        if (Weapon.Class == PrimaryWeapon)
+        {
+            WeaponId = 0;
+        }
+        else if (Weapon.Class == SecondaryWeapon)
+        {
+            WeaponId = 1;
+        }
+        else if (Weapon.Class == TertiaryWeapon)
+        {
+            WeaponId = 2;
+        }
+        else
+        {
+            WeaponId = 3;
+        }
 
-		// MT CCheng 8/7/2014: Whether it's a dedicated or listen server, if we call StartDodgeSM()
-		// here, it will be called twice, since it's also called in ServerStartDodge().
-		if (!(WorldInfo.NetMode == NM_DedicatedServer || WorldInfo.NetMode == NM_ListenServer))
-		{
-			DodgeSM.StartDodgeSM(direction, WeaponId);
+        // MT CCheng 8/7/2014: Whether it's a dedicated or listen server, if we call StartDodgeSM()
+        // here, it will be called twice, since it's also called in ServerStartDodge().
+        if (!(WorldInfo.NetMode == NM_DedicatedServer || WorldInfo.NetMode == NM_ListenServer))
+        {
+            DodgeSM.StartDodgeSM(direction, WeaponId);
 
-			// Consume extra stamina
-			ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
-		}
+            // Consume extra stamina
+            ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
+        }
 
-		if (WorldInfo.NetMode != NM_Standalone)
-		{
-			ServerStartDodge(direction, WeaponId);
-		}
+        if (WorldInfo.NetMode != NM_Standalone)
+        {
+            ServerStartDodge(direction, WeaponId);
+        }
 
-		OnActionSucceeded(EACT_Dodge);
-		return true;
-	}
-	return false;
+        OnActionSucceeded(EACT_Dodge);
+        return true;
+    }
+    return false;
 }
 
 // This gets called when the dodge queue ends
 simulated function EndDodgeQueue() {
-	if (DodgeSM.AttackQueue != Attack_Parry) {
-		// Wait 0.3s and call 'FinishDodgeFlinch'
-		if (DodgeSM.DodgeDir == 0)
-			SetTimer(0.2f, false, 'FinishDodgeFlinch');
-		else
-			SetTimer(0.3f, false, 'FinishDodgeFlinch');
-	} else {
-		// Execute parry now
-		FinishDodgeFlinch();
-	}
+    if (DodgeSM.AttackQueue != Attack_Parry) {
+        // Wait 0.3s and call 'FinishDodgeFlinch'
+        if (DodgeSM.DodgeDir == 0)
+            SetTimer(0.2f, false, 'FinishDodgeFlinch');
+        else
+            SetTimer(0.3f, false, 'FinishDodgeFlinch');
+    } else {
+        // Execute parry now
+        FinishDodgeFlinch();
+    }
 }
 
 simulated function FinishDodgeFlinch() {
-	// Allow the player to attack again
-	StateVariables.bCanAttack = true;
+    // Allow the player to attack again
+    StateVariables.bCanAttack = true;
 
-	// Start a queued attack
-	DodgeSM.StartQueuedAttack();
+    // Start a queued attack
+    DodgeSM.StartQueuedAttack();
 }
 
 simulated function StartStaminaRegenCooldown()
 {
-	if (IsTimerActive('ResumeStaminaRegen'))
-		ClearTimer('ResumeStaminaRegen');
-	
-	bRegenStamina = false;
-	SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+    if (IsTimerActive('ResumeStaminaRegen'))
+        ClearTimer('ResumeStaminaRegen');
+    
+    bRegenStamina = false;
+    SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
 }
 
 simulated function bool ConsumeStamina( float Amount )
 {
-	if (bInfiniteStamina)
-		return true;
-	
-	Stamina -= Amount;
-		
-	if (Amount > 0.f)
-		StartStaminaRegenCooldown();
+    if (bInfiniteStamina)
+        return true;
+    
+    Stamina -= Amount;
+        
+    if (Amount > 0.f)
+        StartStaminaRegenCooldown();
 
-	ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+    ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
 
-	if (Stamina < 0.0f) {
-		Stamina = 0.0f;
-		ReplicatedStamina = 0;
-		return false;
-	}
-	else if (Stamina > MaxStamina) {
-		Stamina = MaxStamina;
-	}
+    if (Stamina < 0.0f) {
+        Stamina = 0.0f;
+        ReplicatedStamina = 0;
+        return false;
+    }
+    else if (Stamina > MaxStamina) {
+        Stamina = MaxStamina;
+    }
 
-	return true;
+    return true;
 }
 
 function bool DoJump( bool bUpdating )
 {
-	local Vector VelocityXY;
-	if (StateVariables.bCanJump
-		&& bJumpCapable
-		&& !bIsCrouching
-		&& (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider)
-		&& !(StateVariables.bIsAttacking && AOCWeapon(Weapon).CurrentFireMode == Attack_Shove)
-		&& (PawnState == ESTATE_IDLE || PawnState == ESTATE_RUN || PawnState == ESTATE_SPRINT))
-	{
+    local Vector VelocityXY;
+    if (StateVariables.bCanJump
+        && bJumpCapable
+        && !bIsCrouching
+        && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider)
+        && !(StateVariables.bIsAttacking && AOCWeapon(Weapon).CurrentFireMode == Attack_Shove)
+        && (PawnState == ESTATE_IDLE || PawnState == ESTATE_RUN || PawnState == ESTATE_SPRINT))
+    {
 
-		// Put Stamina regen on cooldown
-		if(Role == Role_Authority)
-			StartStaminaRegenCooldown();
+        // Put Stamina regen on cooldown
+        if(Role == Role_Authority)
+            StartStaminaRegenCooldown();
 
-		if (bJumpCapable && !bIsCrouched && !bWantsToCrouch && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider))
-		{
-			if ( Physics == PHYS_Spider )
-				Velocity = JumpZ * Floor;
-			else if ( Physics == PHYS_Ladder )
-				Velocity.Z = 0;
-			else if ( bIsWalking )
-				Velocity.Z = Default.JumpZ;
-			else
-				Velocity.Z = JumpZ;
-			if (Base != None && !Base.bWorldGeometry && Base.Velocity.Z > 0.f)
-			{
-				Velocity.Z += Base.Velocity.Z;
-			}
-			SetPhysics(PHYS_Falling);
-		}
-		
+        if (bJumpCapable && !bIsCrouched && !bWantsToCrouch && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider))
+        {
+            if ( Physics == PHYS_Spider )
+                Velocity = JumpZ * Floor;
+            else if ( Physics == PHYS_Ladder )
+                Velocity.Z = 0;
+            else if ( bIsWalking )
+                Velocity.Z = Default.JumpZ;
+            else
+                Velocity.Z = JumpZ;
+            if (Base != None && !Base.bWorldGeometry && Base.Velocity.Z > 0.f)
+            {
+                Velocity.Z += Base.Velocity.Z;
+            }
+            SetPhysics(PHYS_Falling);
+        }
+        
 
-		// Cap velocity X/Y
-		VelocityXY.X = Velocity.X;
-		VelocityXY.Y = Velocity.Y;
-		VelocityXY = Normal(VelocityXY) * Min(VSize(VelocityXY), GroundSpeed);
-		Velocity.X = VelocityXY.X;
-		Velocity.Y = VelocityXY.Y;
+        // Cap velocity X/Y
+        VelocityXY.X = Velocity.X;
+        VelocityXY.Y = Velocity.Y;
+        VelocityXY = Normal(VelocityXY) * Min(VSize(VelocityXY), GroundSpeed);
+        Velocity.X = VelocityXY.X;
+        Velocity.Y = VelocityXY.Y;
 
-		// Update state
-		StateVariables.bIsManualJumpDodge = true;
-		StateVariables.bCanCrouch = false;
+        // Update state
+        StateVariables.bIsManualJumpDodge = true;
+        StateVariables.bCanCrouch = false;
 
-		return true;
-	}
+        return true;
+    }
 
-	 return false;
+     return false;
 
 }
 
 function ToggleSprint(bool bSprint, optional bool bForce)
 {
-	local vector Forward, Vel;
-	local float fAngle;
+    local vector Forward, Vel;
+    local float fAngle;
 
-	if (PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON)
-	{
-		return;
-	}
+    if (PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON)
+    {
+        return;
+    }
 
-	// change pawn state
-	if (bSprint && CanSprint())
-	{
-		Vel = Normal(Velocity);
-		Forward = Normal(GetForwardDirection());
-		fAngle = acos(Vel dot Forward);
+    // change pawn state
+    if (bSprint && CanSprint())
+    {
+        Vel = Normal(Velocity);
+        Forward = Normal(GetForwardDirection());
+        fAngle = acos(Vel dot Forward);
 
-		// Only turn on sprint if the player is running forward
-		if (PawnState == ESTATE_RUN && fAngle <= Pi / 2 - STRAFE_BUFFER)
-		{
-			bIsSprintMaxSpeed = false;
-			bFirstAttackInSprint = false;
+        // Only turn on sprint if the player is running forward
+        if (PawnState == ESTATE_RUN && fAngle <= Pi / 2 - STRAFE_BUFFER)
+        {
+            bIsSprintMaxSpeed = false;
+            bFirstAttackInSprint = false;
 
-			StartSprintTime = WorldInfo.TimeSeconds;
-			ChangePawnState(ESTATE_SPRINT);
-			AddDebuff(true, EDEBF_SPRINT, 1.3f, -1.0f, false);
-		}
-	}
-	else 
-	{
-		if ( PawnState == ESTATE_SPRINT )
-		{
-			StateVariables.bCanSprint = true;
-			ChangePawnState(ESTATE_IDLE);
-		}
+            StartSprintTime = WorldInfo.TimeSeconds;
+            ChangePawnState(ESTATE_SPRINT);
+            AddDebuff(true, EDEBF_SPRINT, 1.3f, -1.0f, false);
+        }
+    }
+    else 
+    {
+        if ( PawnState == ESTATE_SPRINT )
+        {
+            StateVariables.bCanSprint = true;
+            ChangePawnState(ESTATE_IDLE);
+        }
 
-		// stop sprinting
-		AccelRate = BaseAccel;
-		RemoveDebuff(EDEBF_SPRINT);
+        // stop sprinting
+        AccelRate = BaseAccel;
+        RemoveDebuff(EDEBF_SPRINT);
 
-		// stop drafting
-		RemoveDebuff(EDEBF_DRAFT);
-		ClearTimer('StartDrafting');
+        // stop drafting
+        RemoveDebuff(EDEBF_DRAFT);
+        ClearTimer('StartDrafting');
 
-		// Re-enable regen of Health
-		SetTimer(4.0f, false, 'RestartHealthRegen');
+        // Re-enable regen of Health
+        SetTimer(4.0f, false, 'RestartHealthRegen');
 
-		// Put Stamina regen on cooldown
-		if (Role == Role_Authority)
-			StartStaminaRegenCooldown();
-	}
-	
-	StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;
+        // Put Stamina regen on cooldown
+        if (Role == Role_Authority)
+            StartStaminaRegenCooldown();
+    }
+    
+    StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;
 }
 
-// Default class properties
+
 DefaultProperties
 {
-	bIsInSmoke=false
+    bIsInSmoke=false
 
-	fStaminaRegenCooldown=2.4
+    fStaminaRegenCooldown=2.4
 
-	HealthTimeElapse=0.0
-	HealAmount=3.0
+    HealthTimeElapse=0.0
+    HealAmount=3.0
 
-	Begin Object Name=OuterCylinder
-	    CollisionRadius=+0039.000000
-	    CollisionHeight=+0065.000000
-	    BlockNonZeroExtent=true
-	    BlockZeroExtent=false
-	    BlockActors=true
-	    CollideActors=true
-	    bDrawBoundingBox=true
-	    BlockNonTeamActors=true
-	End Object
+    Begin Object Name=OuterCylinder
+        CollisionRadius=+0039.000000
+        CollisionHeight=+0065.000000
+        BlockNonZeroExtent=true
+        BlockZeroExtent=false
+        BlockActors=true
+        CollideActors=true
+        bDrawBoundingBox=true
+        BlockNonTeamActors=true
+    End Object
 
-	Begin Object Name=CollisionCylinder
-		BlockZeroExtent=FALSE
-		AlwaysCheckCollision=true
-		CollisionRadius=+0036.000000
-		CollisionHeight=+0065.000000
-	End Object
+    Begin Object Name=CollisionCylinder
+        BlockZeroExtent=FALSE
+        AlwaysCheckCollision=true
+        CollisionRadius=+0036.000000
+        CollisionHeight=+0065.000000
+    End Object
 }

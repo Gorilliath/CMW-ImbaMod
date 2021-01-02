@@ -5,7 +5,5 @@ class ImbaModKOTH extends AOCKOTH;
 
 DefaultProperties
 {
-	
-	ModDisplayString="Chivalry: Advanced"
 
 }

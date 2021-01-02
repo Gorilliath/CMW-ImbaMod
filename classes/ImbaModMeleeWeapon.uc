@@ -210,7 +210,13 @@ simulated state Release
 		AOCOwner.FinishSprintAttack();
 		AOCWepAttachment.GotoState('');
 		bParryHitCounter = false;
-		super.EndState(NextStateName);
+		
+		// Deal with super.super
+		//super.EndState(NextStateName);
+		AOCOwner.FinishLunge();
+		AOCOwner.ResetSprintSpeed();
+		NumVerticalReversals = 0;
+		NumHorizontalReversals = 0;
 
 		// put weapon out of attack state
 		AOCWepAttachment.bUseAlternativeTracers = false;

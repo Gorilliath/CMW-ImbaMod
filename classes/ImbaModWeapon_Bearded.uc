@@ -1,100 +1,10 @@
-/**
-* Copyright 2010-2012, Torn Banner Studios, All rights reserved
-*
-* Original Author: Michael Bao
-*
-* The weapon class to contain information for the Bearded Axe.
-*/
+class ImbaModWeapon_Bearded extends ImbaModMeleeWeapon;
 
-class ImbaModWeapon_Bearded extends AOCWeapon_Bearded;
-
-simulated state ParryRelease
-{
-	simulated function BeginFire(byte FireModeNum)
-	{
-		super.BeginFire(FireModeNum);
-
-		if (AOCOwner.IsLocallyControlled())
-		{
-			if (bSuccessfulParry && bParryHitCounter && FireModeNum == Attack_Parry) {
-				ClearTimer('PlayRiposteAnimation');
-				ClearTimer('OnStateAnimationEnd');
-				AOCOwner.ConsumeStamina(iFeintStaminaCost);
-				ActivateParry();
-				if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-					ServerActivateParry();
-				}
-			}
-		}
-	}
-}
-
-/** Release state. User releasing weapon. Ranged weapon firing state.
- *  This state will handle comboing if it is allowed for.
- */
-simulated state Release
-{
-
-	simulated function BeginFire(byte FireModeNum)
-	{
-		super.BeginFire(FireModeNum);
-		if (FireModeNum == Attack_Parry && bParryHitCounter) {
-			AttackQueue = Attack_Null;
-			ClearTimer('OnStateAnimationEnd');
-			AOCOwner.ConsumeStamina(iFeintStaminaCost);
-			ActivateParry();
-			if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-				ServerActivateParry();
-			}
-		}
-	}
-
-	/** Play Release animation */
-	simulated function PlayStateAnimation()
-	{
-		local AnimationInfo Info;
-		//`log("RELEASE PLAY STATE ANIMATION");
-		if (bIsInCombo)
-		{
-			// add to number of combos performed
-			iComboCount++;
-			AOCOwner.OnComboIncreased();
-
-			if (CurrentFireMode != Attack_Sprint && !AOCOwner.bIsCrouching && AOCOwner.Physics != PHYS_Falling)
-			{
-				if (VSize(AOCOwner.Velocity) > 2.0f && !Info.bUseRMM)
-					AOCOwner.Lunge(,,true);
-				else if (VSize(AOCOwner.Velocity) <= 2.f && !Info.bUseRMM)
-					Info.bFullBody = false;
-			}
-
-			// pass this information down to the weapon attachment
-			AOCWepAttachment.ComboCount = iComboCount;
-
-			// pass in proper animation, let pawn determine which node to use on the AnimTree
-			if (bJustPlayedCombo || ePreviousAttack == Attack_Stab)
-			{
-				// odd sequential attacks should be the normal attack animation
-				AOCOwner.ReplicateCompressedAnimation(ReleaseAnimations[CurrentFireMode], EWST_Release, CurrentFireMode);
-				bJustPlayedCombo = false;
-			}
-			else
-			{
-				// even sequential attacks should be the combo attack animation
-				Info = ReleaseAnimations[CurrentFireMode];
-				//`log(bEquipShield@"GOING TO PLAY"@Info.AnimationName);
-				Info.bCombo = true;
-				AOCOwner.ReplicateCompressedAnimation(Info, EWST_Release, CurrentFireMode);
-				bJustPlayedCombo = true;
-			}
-		}
-		else
-			super.PlayStateAnimation(); // default handle for playing animation is fine if we are not doing a combo
-	}
-}
 
 DefaultProperties
 {
+	bRequiresComboAnimFix=true
+
 	AlternativeMode=none
 	bTwoHander=true
 	FlinchTime2H=1.0

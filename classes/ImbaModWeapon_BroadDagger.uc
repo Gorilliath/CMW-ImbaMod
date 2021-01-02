@@ -1,50 +1,5 @@
-/**
-* Copyright 2010-2012, Torn Banner Studios, All rights reserved
-*
-* Original Author: Michael Bao
-*
-* Weapon class for the Broad Dagger.
-*/
-class ImbaModWeapon_BroadDagger extends AOCWeapon_BroadDagger;
+class ImbaModWeapon_BroadDagger extends ImbaModMeleeWeapon;
 
-simulated state Release
-{
-	simulated function BeginFire(byte FireModeNum)
-	{
-		super.BeginFire(FireModeNum);
-		if (FireModeNum == Attack_Parry && bParryHitCounter) {
-			AttackQueue = Attack_Null;
-			ClearTimer('OnStateAnimationEnd');
-			AOCOwner.ConsumeStamina(iFeintStaminaCost);
-			ActivateParry();
-			if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-				ServerActivateParry();
-			}
-		}
-	}
-
-}
-
-simulated state ParryRelease
-{
-	simulated function BeginFire(byte FireModeNum)
-	{
-		super.BeginFire(FireModeNum);
-
-		if (AOCOwner.IsLocallyControlled())
-		{
-			if (bSuccessfulParry && bParryHitCounter && FireModeNum == Attack_Parry) {
-				ClearTimer('PlayRiposteAnimation');
-				ClearTimer('OnStateAnimationEnd');
-				AOCOwner.ConsumeStamina(iFeintStaminaCost);
-				ActivateParry();
-				if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-					ServerActivateParry();
-				}
-			}
-		}
-	}
-}
 
 DefaultProperties
 {

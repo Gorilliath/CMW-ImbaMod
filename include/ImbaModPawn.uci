@@ -1,5 +1,5 @@
 var bool bIsInSmoke;
-
+var float fStaminaRegenCooldown;
 
 function SetPawnInSmoke(float maxBuffUptime)
 {
@@ -313,6 +313,7 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 	local bool bEnemyWasBot;
 	local bool bWasKilled;
 	local float StaminaAtKill;
+	local float StaminaGainOnHit;
 
 	// Initialise player replication information
 	if (PlayerReplicationInfo == none)
@@ -584,11 +585,23 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 		} else {
 			Info.Instigator.ConsumeStamina(-30.f);
 		}
-	        StaminaAtKill = Info.Instigator.Stamina;
+		StaminaAtKill = Info.Instigator.Stamina;
 
-		// Make sure that it doesn't exceed max stamina
-	        if(StaminaAtKill > MaxStamina)
-	            Info.Instigator.Stamina = MaxStamina;
+	// Otherwise gain stamina on hit where...
+	} else if (
+		!bSameTeam 										&&	// We didn't smak our own teammate
+		ActualDamage > 0.0f 							&&	// We actually dealt damage
+		AOCMeleeWeapon(Info.Instigator.Weapon) != none 	&&	// We used a melee weapon
+		!Info.DamageType.default.bIsProjectile 			&&	// We didn't deal damage with a projectile
+		Info.AttackType != Attack_Shove						// We didn't use any sort of shove
+	) {
+		// If we can cast the Instigator's Weapon to the new ImbaModMeleeWeapon then use its specific fStaminaGainOnHit, otherwise use the default
+		StaminaGainOnHit = ImbaModMeleeWeapon(Info.Instigator.Weapon) != none
+			? ImbaModMeleeWeapon(Info.Instigator.Weapon).fStaminaGainOnHit
+			: class'ImbaModMeleeWeapon'.default.fStaminaGainOnHit;
+		
+		// Reward stamina
+		Info.Instigator.ConsumeStamina(- StaminaGainOnHit);
 	}
 
 	if (bWasKilled && WorldInfo.NetMode == NM_DedicatedServer) {
@@ -882,10 +895,151 @@ simulated function FinishDodgeFlinch() {
 	DodgeSM.StartQueuedAttack();
 }
 
+simulated function StartStaminaRegenCooldown()
+{
+	if (IsTimerActive('ResumeStaminaRegen'))
+		ClearTimer('ResumeStaminaRegen');
+	
+	bRegenStamina = false;
+	SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+}
+
+simulated function bool ConsumeStamina( float Amount )
+{
+	if (bInfiniteStamina)
+		return true;
+	
+	Stamina -= Amount;
+		
+	if (Amount > 0.f)
+		StartStaminaRegenCooldown();
+
+	ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+
+	if (Stamina < 0.0f) {
+		Stamina = 0.0f;
+		ReplicatedStamina = 0;
+		return false;
+	}
+	else if (Stamina > MaxStamina) {
+		Stamina = MaxStamina;
+	}
+
+	return true;
+}
+
+function bool DoJump( bool bUpdating )
+{
+	local Vector VelocityXY;
+	if (StateVariables.bCanJump
+		&& bJumpCapable
+		&& !bIsCrouching
+		&& (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider)
+		&& !(StateVariables.bIsAttacking && AOCWeapon(Weapon).CurrentFireMode == Attack_Shove)
+		&& (PawnState == ESTATE_IDLE || PawnState == ESTATE_RUN || PawnState == ESTATE_SPRINT))
+	{
+
+		// Put Stamina regen on cooldown
+		if(Role == Role_Authority)
+			StartStaminaRegenCooldown();
+
+		if (bJumpCapable && !bIsCrouched && !bWantsToCrouch && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider))
+		{
+			if ( Physics == PHYS_Spider )
+				Velocity = JumpZ * Floor;
+			else if ( Physics == PHYS_Ladder )
+				Velocity.Z = 0;
+			else if ( bIsWalking )
+				Velocity.Z = Default.JumpZ;
+			else
+				Velocity.Z = JumpZ;
+			if (Base != None && !Base.bWorldGeometry && Base.Velocity.Z > 0.f)
+			{
+				Velocity.Z += Base.Velocity.Z;
+			}
+			SetPhysics(PHYS_Falling);
+		}
+		
+
+		// Cap velocity X/Y
+		VelocityXY.X = Velocity.X;
+		VelocityXY.Y = Velocity.Y;
+		VelocityXY = Normal(VelocityXY) * Min(VSize(VelocityXY), GroundSpeed);
+		Velocity.X = VelocityXY.X;
+		Velocity.Y = VelocityXY.Y;
+
+		// Update state
+		StateVariables.bIsManualJumpDodge = true;
+		StateVariables.bCanCrouch = false;
+
+		return true;
+	}
+
+	 return false;
+
+}
+
+function ToggleSprint(bool bSprint, optional bool bForce)
+{
+	local vector Forward, Vel;
+	local float fAngle;
+
+	if (PawnState == ESTATE_FROZEN || PawnState == ESTATE_SIEGEWEAPON)
+	{
+		return;
+	}
+
+	// change pawn state
+	if (bSprint && CanSprint())
+	{
+		Vel = Normal(Velocity);
+		Forward = Normal(GetForwardDirection());
+		fAngle = acos(Vel dot Forward);
+
+		// Only turn on sprint if the player is running forward
+		if (PawnState == ESTATE_RUN && fAngle <= Pi / 2 - STRAFE_BUFFER)
+		{
+			bIsSprintMaxSpeed = false;
+			bFirstAttackInSprint = false;
+
+			StartSprintTime = WorldInfo.TimeSeconds;
+			ChangePawnState(ESTATE_SPRINT);
+			AddDebuff(true, EDEBF_SPRINT, 1.3f, -1.0f, false);
+		}
+	}
+	else 
+	{
+		if ( PawnState == ESTATE_SPRINT )
+		{
+			StateVariables.bCanSprint = true;
+			ChangePawnState(ESTATE_IDLE);
+		}
+
+		// stop sprinting
+		AccelRate = BaseAccel;
+		RemoveDebuff(EDEBF_SPRINT);
+
+		// stop drafting
+		RemoveDebuff(EDEBF_DRAFT);
+		ClearTimer('StartDrafting');
+
+		// Re-enable regen of Health
+		SetTimer(4.0f, false, 'RestartHealthRegen');
+
+		// Put Stamina regen on cooldown
+		if (Role == Role_Authority)
+			StartStaminaRegenCooldown();
+	}
+	
+	StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;
+}
+
 // Default class properties
 DefaultProperties
 {
 	bIsInSmoke=false
+
+	fStaminaRegenCooldown=2.4
 
 	HealthTimeElapse=0.0
 	HealAmount=3.0

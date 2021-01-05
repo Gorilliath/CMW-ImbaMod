@@ -324,6 +324,60 @@ exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
 
 }
 
+reliable client function ClientNotifyKilled(AOCPRI Killer, AOCPRI Killed, EAOCFaction KillerTeam, EAOCFaction DeadTeam, string DeathReason, EAOCClass ClassRef, bool bAchievement)
+{
+    local int FoundIndex;
+    local SPerPRIKillTracking NewEntry;
+
+    DeathReason = Repl(DeathReason, "&", "5");
+
+    AOCBaseHUD(myHUD).AddDeathInfo(Killer.GetPlayerNameForMarkup(), Killed.GetPlayerNameForMarkup(), KillerTeam, DeadTeam, DeathReason, Killer, Killed);
+
+    // Pass class ref to the achievements
+    if (bAchievement && StatWrapper != none && StatWrapper.Achievements != none)
+    {
+        StatWrapper.Achievements.IncreaseClassKillStat(ClassRef, PlayerReplicationInfo.UniqueId);
+        StatWrapper.Achievements.CheckOtherWeaponUnlocks();
+    }
+
+    if(Killer == PlayerReplicationInfo)
+    {
+        //I got a kill
+        //`LogAnalyticsGameStringStat(PLAYER_KILLED, Class'OnlineSubsystem'.static.UniqueNetIdToString(Killed.UniqueId));
+
+        FoundIndex = PerPRIKillTracking.Find('PRI', Killed);
+        if(FoundIndex == -1)
+        {
+            FoundIndex = PerPRIKillTracking.Length;
+            NewEntry.PRI = Killed;
+            PerPRIKillTracking.AddItem(NewEntry);
+        }
+
+        PerPRIKillTracking[FoundIndex].TimesIHaveKilled++;
+    }
+    
+    if(Killed == PlayerReplicationInfo)
+    {
+        //I was killed
+        //`LogAnalyticsGameStringStat(PLAYER_DIED, Class'OnlineSubsystem'.static.UniqueNetIdToString(Killer.UniqueId));
+
+        FoundIndex = PerPRIKillTracking.Find('PRI', Killer);
+        if(FoundIndex == -1)
+        {
+            FoundIndex = PerPRIKillTracking.Length;
+            NewEntry.PRI = Killer;
+            PerPRIKillTracking.AddItem(NewEntry);
+        }
+
+        PerPRIKillTracking[FoundIndex].TimesKilledBy++;
+    }
+
+    if(Killed == PlayerReplicationInfo)
+    {
+        ShowKilledByPopup(Killer, DeathReason, KillerTeam, DeadTeam);
+    }
+}
+
 exec function ShowMatchupStats(optional string PlayerName) {
     local SPerPRIKillTracking log;
     local string name;

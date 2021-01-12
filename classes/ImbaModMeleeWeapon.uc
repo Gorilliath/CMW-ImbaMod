@@ -37,8 +37,6 @@ simulated state ParryRelease
 
     simulated function SuccessfulParry(EAttack Type, int Dir)
     {
-        bSuccessfulParry = true;
-
         // If the parry was during riposte resolve rewards
         if (bParryWasDuringRiposte) {
 
@@ -55,6 +53,8 @@ simulated state ParryRelease
             // Reward the parry with the weapon's bonus stamina gain
             AOCOwner.ConsumeStamina(- fStaminaGainOnRiposteParry);
         }
+
+        super.SuccessfulParry(Type, Dir);
     }
 
     simulated event EndState(Name NextStateName)

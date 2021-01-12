@@ -3,6 +3,8 @@ class ImbaModWeapon_GrandMace extends ImbaModMeleeWeapon;
 
 DefaultProperties
 {
+    bRequiresComboAnimFix=true
+
     Begin Object class=AnimNodeSequence Name=MeshSequenceA
         bCauseActorAnimEnd=true
     End Object

@@ -180,9 +180,15 @@ simulated state Release
                         AOCOwner.OnActionFailed(EACT_Kick);
                     }
                 }
-            
-                if (CurrentFireMode != Attack_Parry && NextStateName != 'Flinch' && CurrentFireMode != Attack_Shove && !AOCWepAttachment.bHitDestructibleObject)
-                {
+
+                // Handle missed attacks
+                if (CurrentFireMode != Attack_Parry &&          // Missing a parry shouldn't cost stamina
+                    NextStateName != 'Flinch'       &&          // An attack being flinched shouldn't count as a miss
+                    NextStateName != 'Parry'        &&          // A riposte which hit no pawns and was stopped with a parry shouldn't count as a miss
+                    NextStateName != 'ParryRelease' &&          // ^
+                    CurrentFireMode != Attack_Shove &&          // Kicks have a stamina cost regardless of hitting, so misses shouldn't be punished further
+                    !AOCWepAttachment.bHitDestructibleObject    // Hitting objective material but no pawns shouldn't cost stamina
+                ) {
                     MissCount++;
                     AOCOwner.RemoveDebuff(EDEBF_ATTACK);
 
@@ -190,7 +196,6 @@ simulated state Release
 
                     AOCOwner.S_ConsumeStamina(StaminaLoss);
                     CurrentStamina -= StaminaLoss;
-
                 }
 
                 ComboHitCount = 0;

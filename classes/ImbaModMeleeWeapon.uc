@@ -283,6 +283,27 @@ simulated state Release
     }
 }
 
+simulated state Transition
+{
+    simulated function DoFeintAttack()
+    {
+        if (bCanFeint && AOCOwner.HasEnoughStamina(iFeintStaminaCost))
+        {
+            if (AOCOwner.IsLocallyControlled())
+                AOCOwner.S_ConsumeStamina(iFeintStaminaCost);
+
+            AOCOwner.ClearTimer('OnAttackAnimEnd');
+            ClearTimer('EndFeintWindow');
+            GotoState('Feint');
+            AOCOwner.OnActionSucceeded(EACT_Feint);
+        }
+        else
+        {
+            AOCOwner.OnActionFailed(EACT_Feint);
+        }
+    }
+}
+
 simulated state AlternateRecovery
 {
     simulated function HandleCombo(EAttack ComboAttack)

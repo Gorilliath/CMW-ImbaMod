@@ -16,23 +16,20 @@ simulated state ParryRelease
 {
     simulated function BeginFire(byte FireModeNum)
     {
-        super.BeginFire(FireModeNum);
-
-        if (AOCOwner.IsLocallyControlled()) {
-
-            // Riposte can be cancelled with a parry
-            if (bSuccessfulParry && bParryHitCounter && FireModeNum == Attack_Parry) {
-                ClearTimer('PlayRiposteAnimation');
-                ClearTimer('OnStateAnimationEnd');
-                AOCOwner.ConsumeStamina(iFeintStaminaCost);
-                ActivateParry();
-                if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
-                    ServerActivateParry();
-                }
-
-                bParryWasDuringRiposte = true;
+        // Riposte can be cancelled with a parry
+        if (bSuccessfulParry && bParryHitCounter && FireModeNum == Attack_Parry) {
+            ClearTimer('PlayRiposteAnimation');
+            ClearTimer('OnStateAnimationEnd');
+            AOCOwner.ConsumeStamina(iFeintStaminaCost);
+            ActivateParry();
+            if (WorldInfo.NetMode != NM_Standalone && (Worldinfo.NetMode != NM_ListenServer || !AOCOwner.IsLocallyControlled())) {
+                ServerActivateParry();
             }
+
+            bParryWasDuringRiposte = true;
         }
+
+        super.BeginFire(FireModeNum);
     }
 
     simulated function SuccessfulParry(EAttack Type, int Dir)
@@ -68,8 +65,6 @@ simulated state Release
 {
     simulated function BeginFire(byte FireModeNum)
     {
-        super.BeginFire(FireModeNum);
-
         // Riposte can be cancelled with a parry
         if (FireModeNum == Attack_Parry && bParryHitCounter) {
             AttackQueue = Attack_Null;
@@ -82,6 +77,8 @@ simulated state Release
 
             bParryWasDuringRiposte = true;
         }
+
+        super.BeginFire(FireModeNum);
     }
 
     simulated function PlayStateAnimation()

@@ -62,16 +62,6 @@ simulated state ParryRelease
         super.SuccessfulParry(Type, Dir);
     }
 
-    simulated event EndState(Name NextStateName)
-    {
-        super.EndState(NextStateName);
-        AOCOwner.StateVariables.bIsParrying = false;
-        AOCOwner.StateVariables.bIsActiveShielding = false;
-
-        // Every parry invokes the global stamina regen cooldown
-        ImbaModPawn(AOCOwner).StartStaminaRegenCooldown();
-    }
-
 }
 
 simulated state Release

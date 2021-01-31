@@ -37,21 +37,26 @@ simulated state ParryRelease
 
     simulated function SuccessfulParry(EAttack Type, int Dir)
     {
+        local float ParryInRiposteReward;
+
         // If the parry was during riposte resolve rewards
         if (bParryWasDuringRiposte) {
 
             // If the stamina cost for parrying during riposte has not been refunded
             if (!bFeintCostWasRefunded) {
-                
-                // Refund the cost
-                AOCOwner.ConsumeStamina(- iFeintStaminaCost);
+
+                // Refund the cost for feinting
+                ParryInRiposteReward += iFeintStaminaCost;
 
                 // Record that it has been refunded
                 bFeintCostWasRefunded = true;
             }
 
             // Reward the parry with the weapon's bonus stamina gain
-            AOCOwner.ConsumeStamina(- fStaminaGainOnRiposteParry);
+            ParryInRiposteReward += fStaminaGainOnRiposteParry;
+
+            // Actually reward stamina
+            AOCOwner.ConsumeStamina(- ParryInRiposteReward);
         }
 
         super.SuccessfulParry(Type, Dir);

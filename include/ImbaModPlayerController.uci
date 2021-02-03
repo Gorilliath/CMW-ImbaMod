@@ -486,29 +486,65 @@ exec function AdminForceSpectate(String PlayerName) {
 
 reliable server function S_AdminForceSpectate(String PlayerName) {
     local AOCPlayerController Target;
-    local AOCAccessControl AccessControl;
-
-    AccessControl = AOCAccessControl(WorldInfo.Game.AccessControl);
+    local String TargetName;
 
     if (!IsAdmin()) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
         return;
     }
 
-    Target = AOCPlayerController(AccessControl.GetControllerFromString(PlayerName));
+    Target = AOCPlayerController(WorldInfo.Game.AccessControl.GetControllerFromString(PlayerName));
+
     if (Target == none) {
         ClientDisplayConsoleMessage("The specified player was not found.");
         return;
     }
 
-    if(Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' || Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' || AOCPRI(Target.PlayerReplicationInfo).bAdmin) {
-        ClientDisplayConsoleMessage("The specified player cannot be moved to spectate.");
+    TargetName = Target.PlayerReplicationInfo.GetHumanReadableName();
+
+    if (Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' ||
+        Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' ||
+        Target.PlayerReplicationInfo.bAdmin
+    ) {
+        ClientDisplayConsoleMessage("'" $ TargetName $ "' cannot be forced to spectate.");
         return;
     }
 
     Target.JoinSpectatorTeam();
 
-    S_AdminBroadcastMessage("AdminForceSpectate "$AOCPRI(Target.PlayerReplicationInfo).GetHumanReadableName());
+    S_AdminBroadcastMessage("AdminForceSpectate" @ TargetName);
+}
+
+exec function AdminForceSpectateAll() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminForceSpectateAll();
+}
+
+reliable server function S_AdminForceSpectateAll() {
+    local AOCPlayerController Target;
+
+    if (!IsAdmin()) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', Target)
+    {
+        if (Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' ||
+            Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' ||
+            Target.PlayerReplicationInfo.bAdmin
+        ) {
+            ClientDisplayConsoleMessage("'" $ Target.PlayerReplicationInfo.GetHumanReadableName() $ "' cannot be forced to spectate.");
+            continue;
+        }
+
+        Target.JoinSpectatorTeam();
+    }
+
+    S_AdminBroadcastMessage("AdminForceSpectateAll");
 }
 
 exec function Reload() {

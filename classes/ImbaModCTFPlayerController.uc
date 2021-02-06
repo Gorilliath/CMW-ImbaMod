@@ -5,6 +5,52 @@ class ImbaModCTFPlayerController extends AOCCTFPlayerController
 `include(ImbaMod/Include/ImbaModPlayerController.uci)
 
 
+exec function AdminResetFlags() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+
+    S_AdminResetFlags();
+}
+
+reliable server function S_AdminResetFlags() {
+    local AOCFlag Flag;
+
+    // Verify admin permissions
+    if (!IsAdmin()) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+
+    // Verify gamemode is CTF
+    if (AOCCTF(WorldInfo.Game) == none) {
+        ClientDisplayConsoleMessage("The current gamemode is not CTF.");
+        return;
+    }
+
+    // Log action to players
+    S_AdminBroadcastMessage("AdminResetFlags");
+
+    // Reset Agatha flag
+    Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_Agatha);
+    if (Flag.CurrentUser != none)
+        Flag.DropFlag(Flag.CurrentUser, false);
+    Flag.DeactivateFlag();
+    Flag.ResetFlag(false);
+
+    // Reset Mason flag
+    Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_Mason);
+    if (Flag.CurrentUser != none)
+        Flag.DropFlag(Flag.CurrentUser, false);
+    Flag.DeactivateFlag();
+    Flag.ResetFlag(false);
+
+    // Set new flags
+    AOCCTF(Worldinfo.Game).ChooseRandomFlag(EFAC_AGATHA);
+    AOCCTF(Worldinfo.Game).ChooseRandomFlag(EFAC_MASON);
+}
+
 exec function AdminIncreaseScore(string Team, optional string PlayerName) {
     if (!PlayerReplicationInfo.bAdmin) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");

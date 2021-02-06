@@ -5,16 +5,16 @@ class ImbaModCTFPlayerController extends AOCCTFPlayerController
 `include(ImbaMod/Include/ImbaModPlayerController.uci)
 
 
-exec function AdminResetFlags() {
+exec function AdminResetFlag(string Team) {
     if (!PlayerReplicationInfo.bAdmin) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
         return;
     }
 
-    S_AdminResetFlags();
+    S_AdminResetFlag(Team);
 }
 
-reliable server function S_AdminResetFlags() {
+reliable server function S_AdminResetFlag(string Team) {
     local AOCFlag Flag;
 
     // Verify admin permissions
@@ -29,26 +29,43 @@ reliable server function S_AdminResetFlags() {
         return;
     }
 
-    // Log action to players
-    S_AdminBroadcastMessage("AdminResetFlags");
+    // Verify Team
+    if ( !(Team ~= "agatha" || Team ~= "mason" || Team ~= "all" || Team ~= "both") ) {
+        ClientDisplayConsoleMessage("'" $ Team $ "' is not a valid team. Use AGATHA, MASON, ALL, BOTH");
+        return;
+    }
 
-    // Reset Agatha flag
-    Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_Agatha);
-    if (Flag.CurrentUser != none)
-        Flag.DropFlag(Flag.CurrentUser, false);
-    Flag.DeactivateFlag();
-    Flag.ResetFlag(false);
+    // Reset Agatha
+    if (Team ~= "agatha" || Team ~= "all" || Team ~= "both") {
 
-    // Reset Mason flag
-    Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_Mason);
-    if (Flag.CurrentUser != none)
-        Flag.DropFlag(Flag.CurrentUser, false);
-    Flag.DeactivateFlag();
-    Flag.ResetFlag(false);
+        // Log action to players
+        S_AdminBroadcastMessage("AdminResetFlag: AGATHA");
 
-    // Set new flags
-    AOCCTF(Worldinfo.Game).ChooseRandomFlag(EFAC_AGATHA);
-    AOCCTF(Worldinfo.Game).ChooseRandomFlag(EFAC_MASON);
+        // Reset Agatha flag
+        Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_MASON);
+        if (Flag.CurrentUser != none)
+            Flag.DropFlag(Flag.CurrentUser, false);
+        Flag.DeactivateFlag();
+        Flag.ResetFlag(false);
+
+        AOCCTF(Worldinfo.Game).ChooseRandomFlag(EFAC_MASON);
+    }
+
+    // Reset Mason
+    if (Team ~= "mason" || Team ~= "all" || Team ~= "both") {
+
+        // Log action to players
+        S_AdminBroadcastMessage("AdminResetFlag: MASON");
+
+        // Reset Mason flag
+        Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_AGATHA);
+        if (Flag.CurrentUser != none)
+            Flag.DropFlag(Flag.CurrentUser, false);
+        Flag.DeactivateFlag();
+        Flag.ResetFlag(false);
+
+        AOCCTF(Worldinfo.Game).ChooseRandomFlag(EFAC_AGATHA);
+    }
 }
 
 exec function AdminIncreaseScore(string Team, optional string PlayerName) {

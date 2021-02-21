@@ -1,10 +1,10 @@
-// AdminGoTo (Map change aliases)
-struct mapLink
+// AdminGoTo
+struct MapAliasMapping
 {
     var string url;
     var string alias;
 };
-var array<mapLink> maps;
+var array<MapAliasMapping> MapAliasMappings;
 
 
 reliable server function bool IsAdmin() {
@@ -175,7 +175,7 @@ reliable client function NotifyTournamentWaiting(float Threshold) {
 }
 
 reliable server function S_SendF10Message() {
-    ReceiveChatMessage("You will implode in 1 second.", EFAC_ALL, false, false, ,false);
+    ReceiveChatMessage("You will implode in" @ suicideDelay @ "second(s).", EFAC_ALL, false, false, ,false);
 }
 
 exec function FOV(float F) {
@@ -231,23 +231,16 @@ exec function RollDice(optional int Dice = 2, optional int Sides = 6) {
     S_AdminBroadcastMessage(message);
 }
 
-/**
- *  This allows the client to view and modify their AudioGroup volumes via the console.
- *
- *  This would be a nice and terse solution which iterates wherever possible,
- *  if UnrealScript supported pointers or referencing object properties using string variables...
- *  However it apparently doesn't (or perhaps I don't know the syntax) so we're stuck with this.
- */
 exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
 
-    // If the first param was 'help' or empty, display help
-    if ((AudioGroup ~= "help") || (AudioGroup == "")) {
+    // Help
+    if (AudioGroup == "" || AudioGroup ~= "help") {
         ClientDisplayConsoleMessage("------");
-        ClientDisplayConsoleMessage("volume\n    Displays this help message\n");
-        ClientDisplayConsoleMessage("volume help\n    Displays this help message\n");
-        ClientDisplayConsoleMessage("volume all\n    Displays all AudioGroups and their current Value (%)\n");
-        ClientDisplayConsoleMessage("volume master\n    Displays the current Value (%) for the 'Master' AudioGroup\n");
-        ClientDisplayConsoleMessage("volume master 50\n    Sets the Value for the 'Master' AudioGroup to 50%\n");
+        ClientDisplayConsoleMessage("volume\n"              $ "    Displays this help message");
+        ClientDisplayConsoleMessage("volume help\n"         $ "    Displays this help message");
+        ClientDisplayConsoleMessage("volume all\n"          $ "    Displays all AudioGroups and their current Value (%)");
+        ClientDisplayConsoleMessage("volume master\n"       $ "    Displays the current Value (%) for the 'Master' AudioGroup");
+        ClientDisplayConsoleMessage("volume master 50\n"    $ "    Sets the Value for the 'Master' AudioGroup to 50%");
         ClientDisplayConsoleMessage("------");
         return;
     }
@@ -257,12 +250,14 @@ exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
 
         // If AudioGroup was "all", display current Values of all AudioGroups
         if (AudioGroup ~= "all") {
+            ClientDisplayConsoleMessage("------");
             ClientDisplayConsoleMessage("Master\n    "    $ class'AOCPlayerController'.default.DefaultMaster  * 100  $ " %");
             ClientDisplayConsoleMessage("Music\n    "     $ class'AOCPlayerController'.default.DefaultMusic   * 100  $ " %");
             ClientDisplayConsoleMessage("Ambient\n    "   $ class'AOCPlayerController'.default.DefaultAmbient * 100  $ " %");
             ClientDisplayConsoleMessage("Character\n    " $ class'AOCPlayerController'.default.DefaultChar    * 100  $ " %");
             ClientDisplayConsoleMessage("UI\n    "        $ class'AOCPlayerController'.default.DefaultUI      * 1000 $ " %");
             ClientDisplayConsoleMessage("Chatter\n    "   $ class'AOCPlayerController'.default.DefaultChatter * 100  $ " %");
+            ClientDisplayConsoleMessage("------");
 
         // Otherwise, Check if the AudioGroup parameter matched a specific item in audioGroups
         } else {
@@ -438,42 +433,42 @@ exec function CauseEvent(optional name EventName) {
 
 exec function AdminGoTo(optional string MapAlias) {
 
-    local mapLink mapItem;
+    local MapAliasMapping mapping;
 
     if (!PlayerReplicationInfo.bAdmin) {
         ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
         return;
     }
 
-    // HELP: print the maps' urls and aliases and exit early
-    if (MapAlias ~= "help") {
+    // Help
+    if (MapAlias ~= "" || MapAlias ~= "help") {
         ClientDisplayConsoleMessage("List of maps and their aliases:");
         ClientDisplayConsoleMessage("------");
 
-        foreach maps(mapItem)
+        foreach MapAliasMappings(mapping)
         {
-            ClientDisplayConsoleMessage(mapItem.alias $ " : " $ mapItem.url);
+            ClientDisplayConsoleMessage(mapping.alias $ " : " $ mapping.url);
         }
-        
+
         ClientDisplayConsoleMessage("------");
 
-        return;  
+        return;
     }
 
     // Iterate through all maps, attempting to match an alias (case-insensitive)
     // Change map and exit early if a match is found
-    foreach maps(mapItem)
+    foreach MapAliasMappings(mapping)
     {
-        if (MapAlias ~= mapItem.alias) {
-            ServerChangeMap(mapItem.url);
+        if (MapAlias ~= mapping.alias) {
+            ServerChangeMap(mapping.url);
             return;
         }
     }
 
     // If nothing has matched, notify the user that they provided an invalid parameter
-    ClientDisplayConsoleMessage("'MapAlias' did not match any Map's alias.");
+    ClientDisplayConsoleMessage("'MapAlias' did not match any map's alias.");
     ClientDisplayConsoleMessage("Use 'AdminGoTo Help' for some help!");
-    
+
 }
 
 exec function AdminForceSpectate(String PlayerName) {
@@ -562,19 +557,19 @@ DefaultProperties
 {
     suicideDelay = 1.0f
 
-    // AdminGoTo function
-    maps(0)=(url="AOCFFA-Duelyard_p", alias="DY")
-    maps(1)=(url="AOCLTS-Moor_p", alias="MR")
-    maps(2)=(url="AOCTO-Battlegrounds_v3_P", alias="BG")
-    maps(3)=(url="AOCTO-Darkforest_p", alias="DF")
-    maps(4)=(url="AOCTO-Hillside_p", alias="HS")
-    maps(5)=(url="AOCTO-Stoneshill_p", alias="SH")
-    maps(6)=(url="AOCTO-Citadel_p", alias="CD")
-    maps(7)=(url="AOCTO-Coldfront_p", alias="CF")
-    maps(8)=(url="AOCTO-Outpost_p", alias="OP")
-    maps(9)=(url="AOCTO-Belmez-CM_P", alias="BZ")
-    maps(10)=(url="AOCTO-CastleAssault-CM_P", alias="CA")
-    maps(11)=(url="AOCTO-Cove-CM_P", alias="CV")
-    maps(12)=(url="AOCTO-DrunkenBazaar-CM_p", alias="DB")
-    maps(13)=(url="AOCTO-KingsGarden-CM_p", alias="KG")
+    // AdminGoTo
+    MapAliasMappings(0)=(url="AOCFFA-Duelyard_p", alias="DY")
+    MapAliasMappings(1)=(url="AOCLTS-Moor_p", alias="MR")
+    MapAliasMappings(2)=(url="AOCTO-Battlegrounds_v3_P", alias="BG")
+    MapAliasMappings(3)=(url="AOCTO-Darkforest_p", alias="DF")
+    MapAliasMappings(4)=(url="AOCTO-Hillside_p", alias="HS")
+    MapAliasMappings(5)=(url="AOCTO-Stoneshill_p", alias="SH")
+    MapAliasMappings(6)=(url="AOCTO-Citadel_p", alias="CD")
+    MapAliasMappings(7)=(url="AOCTO-Coldfront_p", alias="CF")
+    MapAliasMappings(8)=(url="AOCTO-Outpost_p", alias="OP")
+    MapAliasMappings(9)=(url="AOCTO-Belmez-CM_P", alias="BZ")
+    MapAliasMappings(10)=(url="AOCTO-CastleAssault-CM_P", alias="CA")
+    MapAliasMappings(11)=(url="AOCTO-Cove-CM_P", alias="CV")
+    MapAliasMappings(12)=(url="AOCTO-DrunkenBazaar-CM_p", alias="DB")
+    MapAliasMappings(13)=(url="AOCTO-KingsGarden-CM_p", alias="KG")
 }

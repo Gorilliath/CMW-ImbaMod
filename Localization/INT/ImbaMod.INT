@@ -1,0 +1,29 @@
+[ChatMessages]
+Welcome=Welcome to Comp Mod!
+
+[ImbaModWeapon_Warbow]
+WeaponName=Warbow
+
+[ImbaModWeapon_Longbow]
+WeaponName=Longbow
+
+[ImbaModWeapon_Shortbow]
+WeaponName=Shortbow
+
+[ImbaModWeapon_HeavyCrossbow]
+WeaponName=Heavy Crossbow
+
+[ImbaModWeapon_LightCrossbow]
+WeaponName=Light Crossbow
+
+[ImbaModWeapon_Crossbow]
+WeaponName=Crossbow
+
+[ImbaModWeapon_HeavyCrossbow]
+WeaponName=Heavy Crossbow
+
+[ImbaModWeapon_Sling]
+WeaponName=Sling
+
+[ImbaModWeapon_ProjWarbowArrow]
+WeaponName=Warbow Arrow

@@ -1,0 +1,575 @@
+// AdminGoTo
+struct MapAliasMapping
+{
+    var string url;
+    var string alias;
+};
+var array<MapAliasMapping> MapAliasMappings;
+
+
+reliable server function bool IsAdmin() {
+    return WorldInfo.Game.AccessControl.IsAdmin(self) || WorldInfo.NetMode == NM_Standalone;
+}
+
+reliable server function S_AdminBroadcastMessage(string Message, optional bool bShowName=true) {
+    local AOCPlayerController PC;
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC) {
+        if (bShowName)
+            PC.ReceiveChatMessage(AOCPRI(PlayerReplicationInfo).GetHumanReadableName()$":"@Message, EFAC_ALL, false, false, ,false);
+        else
+            PC.ReceiveChatMessage(Message, EFAC_ALL, false, false, ,false);
+    }
+}
+
+exec function AdminBroadcastMessage(String Message) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage(Message);
+}
+
+exec function AdminChangeTeam(String PlayerName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminChangeTeam "$PlayerName);
+    super.AdminChangeTeam(PlayerName);
+}
+
+exec function AdminChangeTeamDamageAmount(float Amount) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminChangeTeamDamageAmount "$Amount);
+    super.AdminChangeTeamDamageAmount(Amount);
+}
+
+exec function AdminCancelVote() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminCancelVote");
+    super.AdminCancelVote();
+}
+
+exec function AdminReadyAll() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("AdminReadyAll");
+    super.AdminReadyAll();
+}
+
+function bool SetPause(bool bPause, optional delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
+    local bool bResult;
+    if (bPause) {
+        bFire = 0;
+        // Pause gamepad rumbling too if needed
+        bResult = WorldInfo.Game.SetPause(self,CanUnpauseDelegate);
+        if (bResult)
+            PauseRumbleForAllPlayers();
+    } else if (IsAdmin()) {
+        WorldInfo.Game.ClearPause();
+        // If the unpause is complete, let rumble occur
+        if (WorldInfo.Pauser == None) {
+            // If we did a gameplay frame pause clear it out now
+            WorldInfo.bGameplayFramePause = false;
+
+            PauseRumbleForAllPlayers(false);
+        }
+    }
+    return bResult;
+}
+
+/*function bool SetPause(bool bPause, optional delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
+    local bool bResult;
+    bResult = false;
+    if (bPause)
+        bResult = ActualPause(CanUnpauseDelegate);
+    else
+        ClientDisplayConsoleMessage("Please use the command 'ImbaModUnpause' to unpause.");
+    return bResult;
+}
+
+exec function ImbaModPause() {
+    if (IsAdmin())
+        ActualPause();
+    else
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+}
+
+exec function ImbaModUnpause() {
+    if (IsAdmin() && bPaused)
+        StartUnpauseCountdown();
+    else if (!bPaused)
+        ClientDisplayConsoleMessage("You cannot unpause at this time.");
+    else
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+}
+
+reliable server function StartUnpauseCountdown() {
+    UnpauseCountdownTime = Default.UnpauseCountdownTime;
+    AdminBroadcastMessage("Unpausing in...");
+    CountdownTick();
+    SetTimer(1.0f, true, 'CountdownTick');
+}
+
+reliable server function CountdownTick() {
+    if (UnpauseCountdownTime == 0) {
+        ActualUnpause();
+        ClearTimer('CountdownTick');
+    } else {
+        AdminBroadcastMessage("    "@UnpauseCountdownTime@"...");
+        UnpauseCountdownTime--;
+    }
+}
+
+reliable server function bool ActualPause(delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
+    local bool bResult;
+    bResult = false;
+    if (IsAdmin() && !bPaused) {
+        bFire = 0;
+        // Pause gamepad rumbling too if needed
+        bResult = WorldInfo.Game.SetPause(self,CanUnpauseDelegate);
+        if (bResult) {
+            PauseRumbleForAllPlayers();
+            bPaused = true;
+        }
+    }
+    return bResult;
+}
+
+reliable server function ActualUnpause() {
+    if (IsAdmin() && bPaused) {
+        WorldInfo.Game.ClearPause();
+        // If the unpause is complete, let rumble occur
+        if (WorldInfo.Pauser == None) {
+            // If we did a gameplay frame pause clear it out now
+            WorldInfo.bGameplayFramePause = false;
+            PauseRumbleForAllPlayers(false);
+        }
+        bPaused = false;
+    }
+}*/
+
+exec function GetAdmins() {
+    S_GetAdmins();
+}
+
+reliable server function S_GetAdmins() {
+    local AOCPlayerController PC;
+    ReceiveChatMessage("All admins:", EFAC_ALL, false, false, ,false);
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC) {
+        if (AOCPRI(PC.PlayerReplicationInfo).bAdmin)
+            ReceiveChatMessage(AOCPRI(PC.PlayerReplicationInfo).GetHumanReadableName(), EFAC_ALL, false, false, ,false);
+    }
+}
+
+reliable client function NotifyTournamentWaiting(float Threshold) {
+    bShowedTournamentWaitingMessage = true;
+}
+
+reliable server function S_SendF10Message() {
+    ReceiveChatMessage("You will implode in" @ suicideDelay @ "second(s).", EFAC_ALL, false, false, ,false);
+}
+
+exec function FOV(float F) {
+    if((F >= 60.0 && F <= 165.0) || PlayerReplicationInfo.bOnlySpectator) {
+        DefaultFOV = F;
+        DesiredFOV = DefaultFOV;
+
+        if((F >= 60.0 && F <= 165.0) && PlayerCamera != None) {
+            PlayerCamera.SetFOV( F );
+            return;
+        }
+
+        if (IsLocalPlayerController()) {
+            MyFOV = F;
+            default.MyFOV = F;
+            StaticSaveConfig();
+        }
+    }
+}
+
+exec function CoinFlip() {
+    local string result;
+
+    // Flood protection
+    if ( AllowTextMessage("CoinFlip") ) {
+        result = ( Rand(100) <= 49 ) ? "Heads!" : "Tails!";
+        S_AdminBroadcastMessage("Flipped a coin and it landed on"@result);
+    }
+}
+
+exec function RollDice(optional int Dice = 2, optional int Sides = 6) {
+    local string message;
+    local int i;
+
+    // Flood protection
+    if ( !AllowTextMessage("RollDice") )
+        return;
+
+    // Constrain parameters to be within safe bounds
+    Dice = Clamp(Dice, 1, 10);
+    Sides = Clamp(Sides, 2, 1000);
+
+    // Resolve partial message (plurals)
+    message = (Dice == 1)
+        ? "Rolled a"@Sides$"-sided die and it landed on:"
+        : "Rolled"@Dice@Sides$"-sided dice and they landed on:";
+
+    // Roll each die and append the outcome to the partial message
+    for (i = 1; i <= Dice; i++) {
+        message @= Clamp(Rand(Sides + 1), 1, Sides);
+    };
+
+    S_AdminBroadcastMessage(message);
+}
+
+exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
+
+    // Help
+    if (AudioGroup == "" || AudioGroup ~= "help") {
+        ClientDisplayConsoleMessage("------");
+        ClientDisplayConsoleMessage("volume\n"              $ "    Displays this help message");
+        ClientDisplayConsoleMessage("volume help\n"         $ "    Displays this help message");
+        ClientDisplayConsoleMessage("volume all\n"          $ "    Displays all AudioGroups and their current Value (%)");
+        ClientDisplayConsoleMessage("volume master\n"       $ "    Displays the current Value (%) for the 'Master' AudioGroup");
+        ClientDisplayConsoleMessage("volume master 50\n"    $ "    Sets the Value for the 'Master' AudioGroup to 50%");
+        ClientDisplayConsoleMessage("------");
+        return;
+    }
+
+    // If the AudioGroup parameter was provided but no Value was provided, print current Values
+    if (AudioGroup != "" && Value == -1.0f) {
+
+        // If AudioGroup was "all", display current Values of all AudioGroups
+        if (AudioGroup ~= "all") {
+            ClientDisplayConsoleMessage("------");
+            ClientDisplayConsoleMessage("Master\n    "    $ class'AOCPlayerController'.default.DefaultMaster  * 100  $ " %");
+            ClientDisplayConsoleMessage("Music\n    "     $ class'AOCPlayerController'.default.DefaultMusic   * 100  $ " %");
+            ClientDisplayConsoleMessage("Ambient\n    "   $ class'AOCPlayerController'.default.DefaultAmbient * 100  $ " %");
+            ClientDisplayConsoleMessage("Character\n    " $ class'AOCPlayerController'.default.DefaultChar    * 100  $ " %");
+            ClientDisplayConsoleMessage("UI\n    "        $ class'AOCPlayerController'.default.DefaultUI      * 1000 $ " %");
+            ClientDisplayConsoleMessage("Chatter\n    "   $ class'AOCPlayerController'.default.DefaultChatter * 100  $ " %");
+            ClientDisplayConsoleMessage("------");
+
+        // Otherwise, Check if the AudioGroup parameter matched a specific item in audioGroups
+        } else {
+            if (AudioGroup ~= "master")
+                ClientDisplayConsoleMessage("Master : "    $ class'AOCPlayerController'.default.DefaultMaster  * 100  $ " %");
+            else if (AudioGroup ~= "music")
+                ClientDisplayConsoleMessage("Music : "     $ class'AOCPlayerController'.default.DefaultMusic   * 100  $ " %");
+            else if (AudioGroup ~= "ambient")
+                ClientDisplayConsoleMessage("Ambient : "   $ class'AOCPlayerController'.default.DefaultAmbient * 100  $ " %");
+            else if (AudioGroup ~= "character")
+                ClientDisplayConsoleMessage("Character : " $ class'AOCPlayerController'.default.DefaultChar    * 100  $ " %");
+            else if (AudioGroup ~= "ui")
+                ClientDisplayConsoleMessage("UI : "        $ class'AOCPlayerController'.default.DefaultUI      * 1000 $ " %");
+            else if (AudioGroup ~= "chatter")
+                ClientDisplayConsoleMessage("Chatter : "   $ class'AOCPlayerController'.default.DefaultChatter * 100  $ " %");
+            else
+                ClientDisplayConsoleMessage("'" $ AudioGroup $ "' is not a valid AudioGroup");
+        }
+
+    // If the AudioGroup and Value parameters were provided, set those values and update the config
+    } else {
+
+        // Convert human-readable Value range (0% - 100%) to actual config variable range
+        if (AudioGroup ~= "ui") {
+            // UI max is 0.1
+            Value /= 1000;
+            Value = FClamp(Value, 0.0f, 0.1f);
+        } else {
+            // Everything else is max 1.0
+            Value /= 100;
+            Value = FClamp(Value, 0.0f, 1.0f);
+        }
+
+        // Update config variables
+        if (AudioGroup ~= "master")
+            class'AOCPlayerController'.default.DefaultMaster = Value;
+        else if (AudioGroup ~= "music")
+            class'AOCPlayerController'.default.DefaultMusic = Value;
+        else if (AudioGroup ~= "ambient")
+            class'AOCPlayerController'.default.DefaultAmbient = Value;
+        else if (AudioGroup ~= "character")
+            class'AOCPlayerController'.default.DefaultChar = Value;
+        else if (AudioGroup ~= "ui")
+            class'AOCPlayerController'.default.DefaultUI = Value;
+        else if (AudioGroup ~= "chatter")
+            class'AOCPlayerController'.default.DefaultChatter = Value;
+        else {
+            ClientDisplayConsoleMessage("'" $ AudioGroup $ "' is not a valid AudioGroup");
+            return;
+        }
+
+        // Update config file
+        class'AOCPlayerController'.static.StaticSaveConfig();
+
+        // Initialise sound again
+        InitializeSound();
+
+    }
+
+}
+
+reliable client function ClientNotifyKilled(AOCPRI Killer, AOCPRI Killed, EAOCFaction KillerTeam, EAOCFaction DeadTeam, string DeathReason, EAOCClass ClassRef, bool bAchievement)
+{
+    local int FoundIndex;
+    local SPerPRIKillTracking NewEntry;
+
+    DeathReason = Repl(DeathReason, "&", "5");
+
+    AOCBaseHUD(myHUD).AddDeathInfo(Killer.GetPlayerNameForMarkup(), Killed.GetPlayerNameForMarkup(), KillerTeam, DeadTeam, DeathReason, Killer, Killed);
+
+    // Pass class ref to the achievements
+    if (bAchievement && StatWrapper != none && StatWrapper.Achievements != none)
+    {
+        StatWrapper.Achievements.IncreaseClassKillStat(ClassRef, PlayerReplicationInfo.UniqueId);
+        StatWrapper.Achievements.CheckOtherWeaponUnlocks();
+    }
+
+    if(Killer == PlayerReplicationInfo)
+    {
+        //I got a kill
+        //`LogAnalyticsGameStringStat(PLAYER_KILLED, Class'OnlineSubsystem'.static.UniqueNetIdToString(Killed.UniqueId));
+
+        FoundIndex = PerPRIKillTracking.Find('PRI', Killed);
+        if(FoundIndex == -1)
+        {
+            FoundIndex = PerPRIKillTracking.Length;
+            NewEntry.PRI = Killed;
+            PerPRIKillTracking.AddItem(NewEntry);
+        }
+
+        PerPRIKillTracking[FoundIndex].TimesIHaveKilled++;
+    }
+    
+    if(Killed == PlayerReplicationInfo)
+    {
+        //I was killed
+        //`LogAnalyticsGameStringStat(PLAYER_DIED, Class'OnlineSubsystem'.static.UniqueNetIdToString(Killer.UniqueId));
+
+        FoundIndex = PerPRIKillTracking.Find('PRI', Killer);
+        if(FoundIndex == -1)
+        {
+            FoundIndex = PerPRIKillTracking.Length;
+            NewEntry.PRI = Killer;
+            PerPRIKillTracking.AddItem(NewEntry);
+        }
+
+        PerPRIKillTracking[FoundIndex].TimesKilledBy++;
+    }
+
+    if(Killed == PlayerReplicationInfo)
+    {
+        ShowKilledByPopup(Killer, DeathReason, KillerTeam, DeadTeam);
+    }
+}
+
+exec function ShowMatchupStats(optional string PlayerName) {
+    local SPerPRIKillTracking log;
+    local string name;
+    local int matches;
+
+    // If PlayerName is 'all' or not provided, display all matchup stats
+    if (PlayerName ~= "" || PlayerName ~= "all") {
+
+        foreach PerPRIKillTracking(log)
+        {
+            name = log.PRI.GetHumanReadableName();
+
+            ClientDisplayConsoleMessage("You have killed"@name@log.TimesIHaveKilled@"time(s)");
+            ClientDisplayConsoleMessage("You have died to"@name@log.TimesKilledBy@"time(s)");
+            ClientDisplayConsoleMessage("---");
+        }
+
+    // Otherwise if an actual PlayerName was provided, search for stats regarding that PlayerName
+    } else {
+
+        foreach PerPRIKillTracking(log)
+        {
+            name = log.PRI.GetHumanReadableName();
+
+            // If the actual player's name contains the PlayerName parameter, display those matchup stats
+            if (-1 != InStr(name, PlayerName,,true)) {
+                matches ++;
+                ClientDisplayConsoleMessage("You have killed"@name@log.TimesIHaveKilled@"time(s)");
+                ClientDisplayConsoleMessage("You have died to"@name@log.TimesKilledBy@"time(s)");
+                ClientDisplayConsoleMessage("---");
+            }
+        }
+
+        // If no player's name was matched with the PlayerName search string, let them know
+        if (matches == 0)
+            ClientDisplayConsoleMessage("Could not find stats for PlayerName '"$PlayerName$"'");
+
+    }
+}
+
+exec function ce(optional name EventName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("CauseEvent "$EventName);
+    super.ce(EventName);
+}
+
+exec function CauseEvent(optional name EventName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminBroadcastMessage("CauseEvent "$EventName);
+    super.CauseEvent(EventName);
+}
+
+exec function AdminGoTo(optional string MapAlias) {
+
+    local MapAliasMapping mapping;
+
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+
+    // Help
+    if (MapAlias ~= "" || MapAlias ~= "help") {
+        ClientDisplayConsoleMessage("List of maps and their aliases:");
+        ClientDisplayConsoleMessage("------");
+
+        foreach MapAliasMappings(mapping)
+        {
+            ClientDisplayConsoleMessage(mapping.alias $ " : " $ mapping.url);
+        }
+
+        ClientDisplayConsoleMessage("------");
+
+        return;
+    }
+
+    // Iterate through all maps, attempting to match an alias (case-insensitive)
+    // Change map and exit early if a match is found
+    foreach MapAliasMappings(mapping)
+    {
+        if (MapAlias ~= mapping.alias) {
+            ServerChangeMap(mapping.url);
+            return;
+        }
+    }
+
+    // If nothing has matched, notify the user that they provided an invalid parameter
+    ClientDisplayConsoleMessage("'MapAlias' did not match any map's alias.");
+    ClientDisplayConsoleMessage("Use 'AdminGoTo Help' for some help!");
+
+}
+
+exec function AdminForceSpectate(String PlayerName) {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminForceSpectate(PlayerName);
+}
+
+reliable server function S_AdminForceSpectate(String PlayerName) {
+    local AOCPlayerController Target;
+    local String TargetName;
+
+    if (!IsAdmin()) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+
+    Target = AOCPlayerController(WorldInfo.Game.AccessControl.GetControllerFromString(PlayerName));
+
+    if (Target == none) {
+        ClientDisplayConsoleMessage("The specified player was not found.");
+        return;
+    }
+
+    TargetName = Target.PlayerReplicationInfo.GetHumanReadableName();
+
+    if (Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' ||
+        Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' ||
+        Target.PlayerReplicationInfo.bAdmin
+    ) {
+        ClientDisplayConsoleMessage("'" $ TargetName $ "' cannot be forced to spectate.");
+        return;
+    }
+
+    Target.JoinSpectatorTeam();
+
+    S_AdminBroadcastMessage("AdminForceSpectate" @ TargetName);
+}
+
+exec function AdminForceSpectateAll() {
+    if (!PlayerReplicationInfo.bAdmin) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+    S_AdminForceSpectateAll();
+}
+
+reliable server function S_AdminForceSpectateAll() {
+    local AOCPlayerController Target;
+
+    if (!IsAdmin()) {
+        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        return;
+    }
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', Target)
+    {
+        if (Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' ||
+            Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' ||
+            Target.PlayerReplicationInfo.bAdmin
+        ) {
+            ClientDisplayConsoleMessage("'" $ Target.PlayerReplicationInfo.GetHumanReadableName() $ "' cannot be forced to spectate.");
+            continue;
+        }
+
+        Target.JoinSpectatorTeam();
+    }
+
+    S_AdminBroadcastMessage("AdminForceSpectateAll");
+}
+
+exec function Reload() {
+    if(!ScriptBlockedInputs[EINBLOCK_Reload] && ImbaModWeapon_Crossbow(Pawn.Weapon) != none)
+        ImbaModWeapon_Crossbow(Pawn.Weapon).ActivateReload();
+}
+
+exec function PerformAim() {
+    if (class<ImbaModWeapon_Crossbow>(Pawn.Weapon.Class) != none)
+        StartFire(1);
+}
+
+
+DefaultProperties
+{
+    suicideDelay = 1.0f
+
+    // AdminGoTo
+    MapAliasMappings(0)=(url="AOCFFA-Duelyard_p", alias="DY")
+    MapAliasMappings(1)=(url="AOCLTS-Moor_p", alias="MR")
+    MapAliasMappings(2)=(url="AOCTO-Battlegrounds_v3_P", alias="BG")
+    MapAliasMappings(3)=(url="AOCTO-Darkforest_p", alias="DF")
+    MapAliasMappings(4)=(url="AOCTO-Hillside_p", alias="HS")
+    MapAliasMappings(5)=(url="AOCTO-Stoneshill_p", alias="SH")
+    MapAliasMappings(6)=(url="AOCTO-Citadel_p", alias="CD")
+    MapAliasMappings(7)=(url="AOCTO-Coldfront_p", alias="CF")
+    MapAliasMappings(8)=(url="AOCTO-Outpost_p", alias="OP")
+    MapAliasMappings(9)=(url="AOCTO-Belmez-CM_P", alias="BZ")
+    MapAliasMappings(10)=(url="AOCTO-CastleAssault-CM_P", alias="CA")
+    MapAliasMappings(11)=(url="AOCTO-Cove-CM_P", alias="CV")
+    MapAliasMappings(12)=(url="AOCTO-DrunkenBazaar-CM_p", alias="DB")
+    MapAliasMappings(13)=(url="AOCTO-KingsGarden-CM_p", alias="KG")
+}

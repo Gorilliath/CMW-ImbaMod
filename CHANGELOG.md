@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.1.0
+
+* Missing 2 consecutive attacks stops the current combo  
+
 ## 1.0.0
 
 * Heavy-kick flinches raised shields again  

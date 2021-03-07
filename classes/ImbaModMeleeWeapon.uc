@@ -11,6 +11,9 @@ var float fComboMinimumStamina;			// Minimum amount of stamina required to combo
 var bool bParryWasDuringRiposte;
 var bool bFeintCostWasRefunded;
 
+var int iMaximumConsecutiveMisses;      // Maximum number of consecutive misses which are permitted before the combo is forcibly ended
+var int iConsecutiveMissCount;
+
 
 simulated state ParryRelease
 {
@@ -151,6 +154,7 @@ simulated state Release
                     }
                 }
                 ComboHitCount++;
+                iConsecutiveMissCount = 0;
 
                 AOCowner.NotifyScoreHit();
             }
@@ -182,6 +186,7 @@ simulated state Release
                     !AOCWepAttachment.bHitDestructibleObject    // Hitting objective material but no pawns shouldn't cost stamina
                 ) {
                     MissCount++;
+                    iConsecutiveMissCount ++;
                     AOCOwner.RemoveDebuff(EDEBF_ATTACK);
 
                     StaminaLoss = GetStaminaLossForMiss();
@@ -220,6 +225,16 @@ simulated state Release
 
         // Check if we still have enough stamina to perform combo
         if (bIsInCombo && CurrentStamina - fComboMinimumStamina < 0)
+        {
+            GotoState('Recovery');
+        }
+
+        /* Check consecutive misses before allowing combo
+         * 
+         * This logic cannot be done in HandleCombo, where one might expect it to exist, because HandleCombo is called before EndState finishes
+         * (essentially evaluating consecutive misses before it is known whether the previous attack missed or not, and therefore the true miss count)
+         */
+        if (iConsecutiveMissCount >= iMaximumConsecutiveMisses)
         {
             GotoState('Recovery');
         }
@@ -344,6 +359,8 @@ simulated state Active
         // Reset riposte-parry variables
         bParryWasDuringRiposte = false;
         bFeintCostWasRefunded = false;
+
+        iConsecutiveMissCount = 0;
     }
 }
 
@@ -365,6 +382,8 @@ DefaultProperties
 
     bParryWasDuringRiposte = false;
     bFeintCostWasRefunded = false;
+
+    iMaximumConsecutiveMisses = 2;
 
     bCanParry = true;
     bCanCombo = true;

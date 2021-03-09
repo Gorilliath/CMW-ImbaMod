@@ -1,5 +1,6 @@
 var bool bIsInSmoke;
 var float fStaminaRegenCooldown;
+var float fLowStaminaThreshold;     // The stamina value at or below which a pawn will start breathing heavily
 
 
 function SetPawnInSmoke(float maxBuffUptime)
@@ -195,6 +196,12 @@ simulated function SetPawnOnFire(ParticleSystem FirePS, Controller Cont, optiona
             }
         }
     }
+}
+
+simulated event Tick(float DeltaTime) {
+    super.Tick(DeltaTime);
+
+    PlayLowStaminaLoop(Stamina <= fLowStaminaThreshold && Health > 0.0f);
 }
 
 simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> UsedWeapon) {
@@ -1040,6 +1047,7 @@ DefaultProperties
     bIsInSmoke=false
 
     fStaminaRegenCooldown=2.4
+    fLowStaminaThreshold=20.0
 
     HealthTimeElapse=0.0
     HealAmount=3.0

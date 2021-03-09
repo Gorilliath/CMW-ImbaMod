@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.1.1
+
+* Refactored implementation of low stamina heavy breathing to use a configurable variable instead of 20% of max stamina (still 20 though)
+
 ## 1.1.0
 
 * Missing 2 consecutive attacks stops the current combo  

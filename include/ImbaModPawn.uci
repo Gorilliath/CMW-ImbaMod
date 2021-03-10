@@ -1,6 +1,7 @@
 var bool bIsInSmoke;
 var float fStaminaRegenCooldown;
 var float fLowStaminaThreshold;     // The stamina value at or below which a pawn will start breathing heavily
+var float fJumpStaminaCost;
 
 
 function SetPawnInSmoke(float maxBuffUptime)
@@ -946,9 +947,13 @@ function bool DoJump( bool bUpdating )
         && (PawnState == ESTATE_IDLE || PawnState == ESTATE_RUN || PawnState == ESTATE_SPRINT))
     {
 
-        // Put Stamina regen on cooldown
-        if(Role == Role_Authority)
-            StartStaminaRegenCooldown();
+        // Stamina cost
+        if (Role == Role_Authority) {
+
+            ConsumeStamina(fJumpStaminaCost);
+            StartStaminaRegenCooldown();        // in case cost is <= 0
+
+        }
 
         if (bJumpCapable && !bIsCrouched && !bWantsToCrouch && (Physics == PHYS_Walking || Physics == PHYS_Ladder || Physics == PHYS_Spider))
         {
@@ -1048,6 +1053,7 @@ DefaultProperties
 
     fStaminaRegenCooldown=2.4
     fLowStaminaThreshold=20.0
+    fJumpStaminaCost=0.0
 
     HealthTimeElapse=0.0
     HealAmount=3.0

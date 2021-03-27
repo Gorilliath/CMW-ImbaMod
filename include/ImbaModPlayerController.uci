@@ -11,7 +11,20 @@ reliable server function bool IsAdmin() {
     return WorldInfo.Game.AccessControl.IsAdmin(self) || WorldInfo.NetMode == NM_Standalone;
 }
 
-reliable server function S_AdminBroadcastMessage(string Message, optional bool bShowName=true) {
+function NotifyNotAdmin() {
+    ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+}
+
+
+exec function AdminBroadcastMessage(String Message) {
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
+        return;
+    }
+    S_BroadcastServerMessage(Message);
+}
+
+reliable server function S_BroadcastServerMessage(string Message, optional bool bShowName=true) {
     local AOCPlayerController PC;
     foreach WorldInfo.AllControllers(class'AOCPlayerController', PC) {
         if (bShowName)
@@ -21,48 +34,53 @@ reliable server function S_AdminBroadcastMessage(string Message, optional bool b
     }
 }
 
-exec function AdminBroadcastMessage(String Message) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+reliable server function ServerAdminChangeTeam(String PlayerName)
+{
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
-    S_AdminBroadcastMessage(Message);
+
+    super.ServerAdminChangeTeam(PlayerName);
+
+    S_BroadcastServerMessage("AdminChangeTeam:"@PlayerName);
 }
 
-exec function AdminChangeTeam(String PlayerName) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+reliable server function ServerAdminChangeTeamDamageAmount(float Amount)
+{
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
-    S_AdminBroadcastMessage("AdminChangeTeam "$PlayerName);
-    super.AdminChangeTeam(PlayerName);
+
+    super.ServerAdminChangeTeamDamageAmount(Amount);
+
+    S_BroadcastServerMessage("AdminChangeTeamDamageAmount:"@Amount);
 }
 
-exec function AdminChangeTeamDamageAmount(float Amount) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+
+reliable server function ServerAdminCancelVote()
+{
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
-    S_AdminBroadcastMessage("AdminChangeTeamDamageAmount "$Amount);
-    super.AdminChangeTeamDamageAmount(Amount);
+
+    super.ServerAdminCancelVote();
+
+    S_BroadcastServerMessage("AdminCancelVote");
 }
 
-exec function AdminCancelVote() {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+reliable server function S_AdminReadyAll()
+{
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
-    S_AdminBroadcastMessage("AdminCancelVote");
-    super.AdminCancelVote();
-}
 
-exec function AdminReadyAll() {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
-    S_AdminBroadcastMessage("AdminReadyAll");
-    super.AdminReadyAll();
+    super.S_AdminReadyAll();
+
+    S_BroadcastServerMessage("AdminReadyAll");
 }
 
 function bool SetPause(bool bPause, optional delegate<CanUnpause> CanUnpauseDelegate=CanUnpause) {
@@ -202,7 +220,7 @@ exec function CoinFlip() {
     // Flood protection
     if ( AllowTextMessage("CoinFlip") ) {
         result = ( Rand(100) <= 49 ) ? "Heads!" : "Tails!";
-        S_AdminBroadcastMessage("Flipped a coin and it landed on"@result);
+        S_BroadcastServerMessage("Flipped a coin and it landed on"@result);
     }
 }
 
@@ -228,7 +246,7 @@ exec function RollDice(optional int Dice = 2, optional int Sides = 6) {
         message @= Clamp(Rand(Sides + 1), 1, Sides);
     };
 
-    S_AdminBroadcastMessage(message);
+    S_BroadcastServerMessage(message);
 }
 
 exec function volume(optional string AudioGroup, optional float Value = -1.0f) {
@@ -414,29 +432,37 @@ exec function ShowMatchupStats(optional string PlayerName) {
 }
 
 exec function ce(optional name EventName) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
-    S_AdminBroadcastMessage("CauseEvent "$EventName);
+
+    S_BroadcastServerMessage("CauseEvent:"@EventName);
+
     super.ce(EventName);
 }
 
 exec function CauseEvent(optional name EventName) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
-    S_AdminBroadcastMessage("CauseEvent "$EventName);
+
+    S_BroadcastServerMessage("CauseEvent:"@EventName);
+
     super.CauseEvent(EventName);
 }
 
 exec function AdminGoTo(optional string MapAlias) {
+    S_AdminGoTo(MapAlias);
+}
+
+reliable server function S_AdminGoTo(optional string MapAlias) {
 
     local MapAliasMapping mapping;
 
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
         return;
     }
 
@@ -472,10 +498,6 @@ exec function AdminGoTo(optional string MapAlias) {
 }
 
 exec function AdminForceSpectate(String PlayerName) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
     S_AdminForceSpectate(PlayerName);
 }
 
@@ -484,7 +506,7 @@ reliable server function S_AdminForceSpectate(String PlayerName) {
     local String TargetName;
 
     if (!IsAdmin()) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        NotifyNotAdmin();
         return;
     }
 
@@ -507,14 +529,10 @@ reliable server function S_AdminForceSpectate(String PlayerName) {
 
     Target.JoinSpectatorTeam();
 
-    S_AdminBroadcastMessage("AdminForceSpectate" @ TargetName);
+    S_BroadcastServerMessage("AdminForceSpectate:"@TargetName);
 }
 
 exec function AdminForceSpectateAll() {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
     S_AdminForceSpectateAll();
 }
 
@@ -522,7 +540,7 @@ reliable server function S_AdminForceSpectateAll() {
     local AOCPlayerController Target;
 
     if (!IsAdmin()) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        NotifyNotAdmin();
         return;
     }
 
@@ -539,7 +557,7 @@ reliable server function S_AdminForceSpectateAll() {
         Target.JoinSpectatorTeam();
     }
 
-    S_AdminBroadcastMessage("AdminForceSpectateAll");
+    S_BroadcastServerMessage("AdminForceSpectateAll");
 }
 
 exec function Reload() {

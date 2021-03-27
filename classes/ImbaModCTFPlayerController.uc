@@ -6,11 +6,6 @@ class ImbaModCTFPlayerController extends AOCCTFPlayerController
 
 
 exec function AdminResetFlag(string Team) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
-
     S_AdminResetFlag(Team);
 }
 
@@ -19,7 +14,7 @@ reliable server function S_AdminResetFlag(string Team) {
 
     // Verify admin permissions
     if (!IsAdmin()) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        NotifyNotAdmin();
         return;
     }
 
@@ -39,7 +34,7 @@ reliable server function S_AdminResetFlag(string Team) {
     if (Team ~= "agatha" || Team ~= "all" || Team ~= "both") {
 
         // Log action to players
-        S_AdminBroadcastMessage("AdminResetFlag: AGATHA");
+        S_BroadcastServerMessage("AdminResetFlag: AGATHA");
 
         // Reset Agatha flag
         Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_MASON); // enum is inverted intentionally; game is bad
@@ -55,7 +50,7 @@ reliable server function S_AdminResetFlag(string Team) {
     if (Team ~= "mason" || Team ~= "all" || Team ~= "both") {
 
         // Log action to players
-        S_AdminBroadcastMessage("AdminResetFlag: MASON");
+        S_BroadcastServerMessage("AdminResetFlag: MASON");
 
         // Reset Mason flag
         Flag = AOCCTF(Worldinfo.Game).GetActiveFlag(EFAC_AGATHA);
@@ -69,11 +64,6 @@ reliable server function S_AdminResetFlag(string Team) {
 }
 
 exec function AdminIncreaseScore(string Team, optional string PlayerName) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
-
     S_AdminIncreaseScore(Team, PlayerName);
 }
 
@@ -84,7 +74,7 @@ reliable server function S_AdminIncreaseScore(string Team, optional string Playe
 
     // Verify admin permissions
     if (!IsAdmin()) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        NotifyNotAdmin();
         return;
     }
 
@@ -113,18 +103,13 @@ reliable server function S_AdminIncreaseScore(string Team, optional string Playe
         : AOCPawn(Pawn);                                    // Otherwise use this function caller's pawn
 
     // Log action to players
-    S_AdminBroadcastMessage("AdminIncreaseScore:" @ Caps(Team));
+    S_BroadcastServerMessage("AdminIncreaseScore:" @ Caps(Team));
 
     // Award score and player points
     AOCCTF(WorldInfo.Game).SuccessfulCapture(Faction, PlayerPawnToCredit);
 }
 
 exec function AdminDecreaseScore(string Team, optional string PlayerName) {
-    if (!PlayerReplicationInfo.bAdmin) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
-        return;
-    }
-
     S_AdminDecreaseScore(Team, PlayerName);
 }
 
@@ -135,7 +120,7 @@ reliable server function S_AdminDecreaseScore(string Team, optional string Playe
 
     // Verify admin permissions
     if (!IsAdmin()) {
-        ClientDisplayConsoleMessage("You are not logged in as an administrator on this server.");
+        NotifyNotAdmin();
         return;
     }
 
@@ -164,7 +149,7 @@ reliable server function S_AdminDecreaseScore(string Team, optional string Playe
         : AOCPawn(Pawn);                                            // Otherwise use this function caller's pawn
 
     // Log action to players
-    S_AdminBroadcastMessage("AdminDecreaseScore:" @ Caps(Team));
+    S_BroadcastServerMessage("AdminDecreaseScore:" @ Caps(Team));
 
     // Remove team score, permitting negatives
     if (Faction == EFAC_AGATHA) {

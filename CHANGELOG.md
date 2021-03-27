@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.1.3
+
+* Cleaned up admin verification (PlayerController exec/server functions)
+
 ## 1.1.2
 
 * Refactored stamina cost for jumping to use a configurable variable (still 0)

@@ -560,6 +560,23 @@ reliable server function S_AdminForceSpectateAll() {
     S_BroadcastServerMessage("AdminForceSpectateAll");
 }
 
+exec function AdminSetServerPassword(optional string Password) {
+    S_AdminSetServerPassword(Password);
+}
+
+reliable server function S_AdminSetServerPassword(optional string Password) {
+    if (!IsAdmin()) {
+        NotifyNotAdmin();
+        return;
+    }
+
+    WorldInfo.Game.AccessControl.SetGamePassword(Password);
+    WorldInfo.Game.UpdateGameSettings();
+    WorldInfo.Game.AccessControl.SaveConfig();
+
+    S_BroadcastServerMessage("AdminSetServerPassword");
+}
+
 exec function Reload() {
     if(!ScriptBlockedInputs[EINBLOCK_Reload] && ImbaModWeapon_Crossbow(Pawn.Weapon) != none)
         ImbaModWeapon_Crossbow(Pawn.Weapon).ActivateReload();

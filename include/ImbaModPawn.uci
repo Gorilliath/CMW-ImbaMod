@@ -210,10 +210,6 @@ simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> Used
     if (UsedWeapon.default.bNeverFlinch)
         return false;
 
-    // Don't flinch javelin
-    if (AOCWeapon_JavelinThrow(Info.HitActor.Weapon) != none)
-        return false;
-
     // Smokepots and oil pots shouldn't flinch when they hit people
     if (AOCWeapon_SmokePot(Info.Instigator.Weapon) != none || AOCWeapon_OilPot(Info.Instigator.Weapon) != none)
         return false;

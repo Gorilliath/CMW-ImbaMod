@@ -668,7 +668,11 @@ simulated function bool CheckProjectileParry(HitInfo Info) {
     local vector OtherPawnFaceDirection;
     local float fAngle;
 
-    if (Info.DamageType.default.bIsProjectile && class<AOCDmgType_BallistaBolt>(Info.DamageType) == none) {
+    if (
+        Info.DamageType.default.bIsProjectile
+        && class<AOCDmgType_BallistaBolt>(Info.DamageType) == none
+        && !Info.HitActor.StateVariables.bIsActiveShielding             // Only use directional system for regular parry (prevents shields from blocking head-on projectiles which didn't hit their hitbox)
+    ) {
         DirVector = Normal(Location - Info.HitActor.Location);
         OtherPawnFaceDirection = Normal(Info.HitActor.GetForwardDirection());
         fAngle = Acos(DirVector dot OtherPawnFaceDirection);

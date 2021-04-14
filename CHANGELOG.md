@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.1.4
+
+* Fixed shields from blocking head-on projectiles which didn't hit their hitbox
+
 ## 1.1.3
 
 * Cleaned up admin verification (PlayerController exec/server functions)

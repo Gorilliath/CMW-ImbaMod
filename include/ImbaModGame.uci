@@ -41,6 +41,12 @@ event InitGame(string Options, out string ErrorMessage)
     super.InitGame(Options, ErrorMessage);
 
     RankedAPI = new class'RankedAPI';
+
+    if (bTournamentMode && bRankedMode) {
+        ConfigureTournamentMode(false);
+        ConfigureRankedMode(false);
+        WorldInfo.ServerTravel("?restart", false);
+    }
 }
 
 function RenameRankedPlayer(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
@@ -103,6 +109,15 @@ reliable server function ConfigureTournamentMode(bool bEnable)
     class'AOCGame'.static.StaticSaveConfig();
 }
 
+reliable server function ConfigureRankedMode(bool bEnable)
+{
+    bRankedMode = bEnable;
+    SaveConfig();
+
+    class'`{GAMEMODE}'.default.bRankedMode = bEnable;
+    class'`{GAMEMODE}'.static.StaticSaveConfig();
+}
+
 exec function TournamentMode(bool bEnable)
 {
     if (bTournamentMode == bEnable)
@@ -110,7 +125,24 @@ exec function TournamentMode(bool bEnable)
 
     S_BroadcastServerMessage("Admin TournamentMode");
 
+    if (bEnable)
+        ConfigureRankedMode(false);
+
     ConfigureTournamentMode(bEnable);
+    WorldInfo.ServerTravel("?restart", false);
+}
+
+exec function RankedMode(bool bEnable)
+{
+    if (bRankedMode == bEnable)
+        return;
+
+    S_BroadcastServerMessage("Admin RankedMode");
+
+    if (bEnable)
+        ConfigureTournamentMode(false);
+
+    ConfigureRankedMode(bEnable);
     WorldInfo.ServerTravel("?restart", false);
 }
 

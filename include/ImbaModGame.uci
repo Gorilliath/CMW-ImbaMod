@@ -1,7 +1,10 @@
 // Ranked Mode
 var globalconfig bool bRankedMode;
 var globalconfig int iRankedTeamSize;
+var float fRankedModeMatchMakeInterval;
+var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;
+var JsonObject jRankedModeMatchResponseData;
 var RankedAPI RankedAPI;
 
 //SetGameType returns which game mode should be used for which map prefix
@@ -172,6 +175,21 @@ function bool ShouldCountDown()
     else
     {
         return (bEachTeamHasAtleastOnePlayer || !bWaitForTeams);
+    }
+}
+
+
+Auto State AOCPreRound
+{
+    function BeginState(Name PreviousStateName)
+    {
+        super.BeginState(PreviousStateName);
+
+        if (bRankedMode && !bRankedModeMatchMade && !bRankedModeReadyToStartMatch)
+        {
+            ClearTimer('RequestMatchMake');
+            SetTimer(fRankedModeMatchMakeInterval, true, 'RequestMatchMake');
+        }
     }
 }
 
@@ -399,6 +417,86 @@ function RenameRankedPlayer(HttpRequestInterface OriginalRequest, HttpResponseIn
     }
 }
 
+function RequestMatchMake()
+{
+    local int PlayerCount;
+
+    PlayerCount = GetActualPlayersCount();
+
+    // Cases to not bother POSTing remote service and to not bother sending notifications
+    if (!bRankedMode ||
+        PlayerCount == 0 ||
+        bRankedModeMatchMade ||
+        bRankedModeReadyToStartMatch
+    )
+        return;
+
+    // Case to not bother POSTing remote service and to notify players why
+    if (PlayerCount < iRankedTeamSize * 2)
+    {
+        RankedAPI.BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "players to start a match.");
+        RankedAPI.BroadcastMessageToAll("Wait for more players to join or reduce the target team size.");
+        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
+        RankedAPI.BroadcastMessageToAll("");
+        return;
+    }
+
+    RankedAPI.CalculateMatchMaking(GetActualPlayersSteamIDs(), iRankedTeamSize, RequestMatchMakeOnComplete);
+}
+
+function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
+{
+    local JsonObject data;
+    local array<string> AgathaPlayerIDs, MasonPlayerIDs;
+
+    // Didn't receive a proper response from the remote service
+    if (!bDidSucceed)
+    {
+        RankedAPI.BroadcastMessageToAll("Remote service failed to respond.");
+        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
+        RankedAPI.BroadcastMessageToAll("");
+        return;
+    }
+
+    data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString());
+
+    // Received a proper response from the remote service but a match couldn't be made
+    if (data.GetObject("response").GetBoolValue("success") == false)
+    {
+        RankedAPI.BroadcastMessageToAll("Rejected by remote service:");
+        RankedAPI.BroadcastMessageToAll("'" @ data.GetObject("response").GetStringValue("error") @ "'");
+        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
+        RankedAPI.BroadcastMessageToAll("");
+        return;
+    }
+
+    // Success :)
+    RankedAPI.BroadcastMessageToAll("Match successfuly made!");
+    RankedAPI.BroadcastMessageToAll("");
+
+    // Ensure we stop polling for a match
+    bRankedModeMatchMade = true;
+    ClearTimer('RequestMatchMake');
+
+    // Save response payload
+    jRankedModeMatchResponseData = data;
+
+    // Extract teams from response
+    RankedAPI.GetTeamPlayerIDs(jRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
+
+    // Force teams
+    ForceTeams(AgathaPlayerIDs, MasonPlayerIDs);
+
+    // TODO: Lock teams
+
+    // Broadcast the match info to everyone in the server
+    RankedAPI.BroadcastMatchInfo(jRankedModeMatchResponseData);
+    RankedAPI.BroadcastMessageToAll("");
+
+    // Start the match
+    bRankedModeReadyToStartMatch = true;
+}
+
 
 DefaultProperties
 {
@@ -425,4 +523,6 @@ DefaultProperties
 
     MinimumRespawnTime = 10.0f
     bDisableTeamDamagePenalty = true
+
+    fRankedModeMatchMakeInterval = 30.0
 }

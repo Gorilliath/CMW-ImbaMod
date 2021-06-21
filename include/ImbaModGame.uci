@@ -227,7 +227,7 @@ reliable server function ConfigureRankedMode(bool bEnable)
 
 exec function TournamentMode(bool bEnable)
 {
-    if (bTournamentMode == bEnable)
+    if (default.bTournamentMode == bEnable)
         return;
 
     S_BroadcastServerMessage("Admin TournamentMode");
@@ -241,7 +241,7 @@ exec function TournamentMode(bool bEnable)
 
 exec function RankedMode(bool bEnable)
 {
-    if (bRankedMode == bEnable)
+    if (default.bRankedMode == bEnable)
         return;
 
     S_BroadcastServerMessage("Admin RankedMode");

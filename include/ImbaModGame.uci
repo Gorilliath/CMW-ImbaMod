@@ -114,6 +114,34 @@ function Logout(Controller Exiting)
         RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
 }
 
+function int GetActualPlayersCount()
+{
+    local AOCPlayerController PC;
+    local int PlayerCount;
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
+            PlayerCount += 1;
+    }
+
+    return PlayerCount;
+}
+
+function Array<String> GetActualPlayersSteamIDs()
+{
+    local AOCPlayerController PC;
+    local Array<String> PlayerSteamIDs;
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
+            PlayerSteamIDs.AddItem(OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId));
+    }
+
+    return PlayerSteamIDs;
+}
+
 function bool ShouldCountDown()
 {
     local int AgathaSize, MasonSize;

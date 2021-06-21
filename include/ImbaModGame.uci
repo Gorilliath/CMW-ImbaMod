@@ -89,8 +89,8 @@ function Logout(Controller Exiting)
 {
     super.Logout(Exiting);
 
-    if (bRankedMode)
-        RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
+    // Done regardless of bRankedMode to address some edge-cases where players were not disconnected from remote service
+    RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
 }
 
 function bool ShouldCountDown()

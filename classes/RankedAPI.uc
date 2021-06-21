@@ -69,14 +69,12 @@ function GetTeamPlayerIDs(JsonObject MatchResponseData, out array<string> Agatha
     TeamOnePlayers = MatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team1")
-        .ObjectArray[0];
+        .GetObject("Team1");
 
     TeamTwoPlayers = MatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team2")
-        .ObjectArray[0];
+        .GetObject("Team2");
 
     foreach TeamOnePlayers.ObjectArray(PlayerInfo)
     {
@@ -98,14 +96,12 @@ function BroadcastMatchInfo(JsonObject MatchResponseData)
     TeamOnePlayers = MatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team1")
-        .ObjectArray[0];
+        .GetObject("Team1");
 
     TeamTwoPlayers = MatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team2")
-        .ObjectArray[0];
+        .GetObject("Team2");
 
     BroadcastMessageToAll("Agatha:");
     foreach TeamOnePlayers.ObjectArray(PlayerInfo)
@@ -119,6 +115,7 @@ function BroadcastMatchInfo(JsonObject MatchResponseData)
         BroadcastMessageToAll("    [" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
     }
 }
+
 
 DefaultProperties
 {

@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.2.0
+
+* Admin status is now preserved through map transitions
+
 ## 1.1.4
 
 * Fixed shields from blocking head-on projectiles which didn't hit their hitbox

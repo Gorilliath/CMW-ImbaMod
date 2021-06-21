@@ -1,0 +1,6 @@
+function CopyProperties(PlayerReplicationInfo PRI)
+{
+    super.CopyProperties(PRI);
+
+    AOCPRI(PRI).bAdmin = bAdmin;
+}

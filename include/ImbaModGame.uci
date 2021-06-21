@@ -193,7 +193,6 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
 
 function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTeam, optional bool bForce = false)
 {
-    local EAOCFaction CurrentTeam;
     local string ControllerSteamID, RequirementSteamID;
     local array<string> TargetTeamSteamIDs;
 
@@ -203,7 +202,6 @@ function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTe
         return super.RequestJoinTeam(inController, inTeam, bForce);
 
 
-    CurrentTeam = AOCPRI(inController.PlayerReplicationInfo).GetCurrentTeam();
     ControllerSteamID = OnlineSubsystemSteamworks(inController.OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
 
     // Resolve which team's locked-in steamIDs to check
@@ -226,13 +224,15 @@ function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTe
             // Accept
             if (!bForce)
                 inController.Response_JoinTeam(inTeam, true);
+
+            AOCPRI(inController.PlayerReplicationInfo).SetNextTeam(inTeam);
             return true;
         }
     }
 
     // Reject
     if (!bForce)
-            inController.Response_JoinTeam(inTeam, false);
+        inController.Response_JoinTeam(inTeam, false);
     return false;
 }
 

@@ -212,6 +212,90 @@ function Array<String> GetActualPlayersSteamIDs()
     return PlayerSteamIDs;
 }
 
+function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlayersSteamIDs)
+{
+    local AOCPlayerController PC;
+    local bool Handled;
+    local EAOCFaction CurrentTeam;
+    local string ControllerSteam64ID, RequirementSteam64ID;
+
+
+    if (
+        (AgathaPlayersSteamIDs.length == 0 && MasonPlayersSteamIDs.length == 0)
+        || AOCFFAGRI(GameReplicationInfo) != none
+        || AOCDuelGRI(GameReplicationInfo) != none
+    )
+        return;
+
+
+    // For all players on the server
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        Handled = false;
+
+        // Get their current team and steam64ID
+        CurrentTeam = AOCPRI(PC.PlayerReplicationInfo).GetCurrentTeam();
+        ControllerSteam64ID = OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId);
+
+        // Check if they should be on Agatha
+        foreach AgathaPlayersSteamIDs(RequirementSteam64ID)
+        {
+            // They should be on this team!
+            if (ControllerSteam64ID == RequirementSteam64ID)
+            {
+                Handled = true;
+
+                // If they're already on the correct team just exit
+                if (CurrentTeam == EFAC_AGATHA)
+                    break;
+
+                // If they're spectating then make them join the game
+                if (CurrentTeam == EFAC_NONE)
+                {
+                    PC.GenericSwitchToObs(false);
+                    PC.SetReady(true);
+                }
+
+                // Force them to the correct team
+                PC.SetNewClass(AOCGRI(GameReplicationInfo).FamilyInfos[2]); // Agatha Vanguard
+
+                break;
+            }
+        }
+
+        if (Handled)
+            continue;
+
+        // Check if they should be on Mason
+        foreach MasonPlayersSteamIDs(RequirementSteam64ID)
+        {
+            if (ControllerSteam64ID == RequirementSteam64ID)
+            {
+                Handled = true;
+
+                if (CurrentTeam == EFAC_MASON)
+                    break;
+
+                if (CurrentTeam == EFAC_NONE)
+                {
+                    PC.GenericSwitchToObs(false);
+                    PC.SetReady(true);
+                }
+
+                PC.SetNewClass(AOCGRI(GameReplicationInfo).FamilyInfos[7]); // Mason Vanguard
+
+                break;
+            }
+        }
+
+        if (Handled)
+            continue;
+
+        // Those who shouldn't be on Agatha or Mason should be Spectators
+        PC.JoinSpectatorTeam();
+    }
+}
+
 
 // Deprecated
 function AdminTournamentMode(bool bEnable){}

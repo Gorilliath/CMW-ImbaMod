@@ -236,6 +236,51 @@ function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTe
     return false;
 }
 
+function RequestJoinClass(AOCPlayerController inController, EAOCFaction inTeam, byte inClass, optional bool bForce = false, optional bool bSetClass = false)
+{
+    local string ControllerSteamID, RequirementSteamID;
+    local array<string> TargetTeamSteamIDs;
+
+
+    // If not using locked teams via steamIDs, use vanilla
+    if (!bLockedTeams)
+        super.RequestJoinClass(inController, inTeam, inClass, bForce, bSetClass);
+
+
+    ControllerSteamID = OnlineSubsystemSteamworks(inController.OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
+
+    // Resolve which team's locked-in steamIDs to check
+    if (inTeam == EFAC_AGATHA)
+        TargetTeamSteamIDs = LockedAgathaPlayerSteamIDs;
+    else if (inTeam == EFAC_MASON)
+        TargetTeamSteamIDs = LockedMasonPlayerSteamIDs;
+    else
+    {
+        // Reject
+        if (!bForce)
+            inController.Response_JoinClass(inClass, false);
+        return;
+    }
+
+    foreach TargetTeamSteamIDs(RequirementSteamID)
+    {
+        if (ControllerSteamID == RequirementSteamID)
+        {
+            // Accept
+            if (!bForce)
+            {
+                inController.Response_JoinClass(inClass, true);
+                AOCPRI(inController.PlayerReplicationInfo).SetNextClass(EAOCClass(inClass));
+                return;
+            }
+        }
+    }
+
+    // Reject
+    if (!bForce)
+        inController.Response_JoinClass(inClass, false);
+}
+
 
 Auto State AOCPreRound
 {

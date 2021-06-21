@@ -244,7 +244,9 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
     local AOCPlayerController PC;
     local bool Handled;
     local EAOCFaction CurrentTeam;
+    local AOCFamilyInfo CurrentClass, NewClass;
     local string ControllerSteam64ID, RequirementSteam64ID;
+    local int i, NewClassIndex;
 
 
     if ((AgathaPlayersSteamIDs.length == 0 && MasonPlayersSteamIDs.length == 0) ||
@@ -260,8 +262,9 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
     {
         Handled = false;
 
-        // Get their current team and steam64ID
+        // Get their current team, class and steam64ID
         CurrentTeam = AOCPRI(PC.PlayerReplicationInfo).GetCurrentTeam();
+        CurrentClass = PC.CurrentFamilyInfo;
         ControllerSteam64ID = OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId);
 
         // Check if they should be on Agatha
@@ -283,8 +286,29 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
                     PC.SetReady(true);
                 }
 
+                // If they have previously selected a class, get the equivalent from the opposing team
+                if (CurrentClass != none)
+                {
+
+                    // Get the index of CurrentClass and resolve the index for the equivalent class in the opposing team
+                    for (i = 0; i < ArrayCount(AOCGRI(GameReplicationInfo).FamilyInfos); ++i)
+                    {
+                        if (AOCGRI(GameReplicationInfo).FamilyInfos[i] == CurrentClass)
+                        {
+                            NewClassIndex = i - 5;  // Mason to Agatha
+                            break;
+                        }
+                    }
+
+                    NewClass = AOCGRI(GameReplicationInfo).FamilyInfos[NewClassIndex];
+
+                }
+                // Otherwise set them to Agatha Vanguard
+                else
+                    NewClass = AOCGRI(GameReplicationInfo).FamilyInfos[2];
+
                 // Force them to the correct team
-                PC.SetNewClass(AOCGRI(GameReplicationInfo).FamilyInfos[2]); // Agatha Vanguard
+                PC.SetNewClass(NewClass);
 
                 break;
             }
@@ -309,7 +333,26 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
                     PC.SetReady(true);
                 }
 
-                PC.SetNewClass(AOCGRI(GameReplicationInfo).FamilyInfos[7]); // Mason Vanguard
+                if (CurrentClass != none)
+                {
+
+                    for (i = 0; i < ArrayCount(AOCGRI(GameReplicationInfo).FamilyInfos); ++i)
+                    {
+                        if (AOCGRI(GameReplicationInfo).FamilyInfos[i] == CurrentClass)
+                        {
+                            NewClassIndex = i + 5;  // Agatha to Mason
+                            break;
+                        }
+                    }
+
+                    NewClass = AOCGRI(GameReplicationInfo).FamilyInfos[NewClassIndex];
+
+                }
+                // Otherwise set them to Mason Vanguard
+                else
+                    NewClass = AOCGRI(GameReplicationInfo).FamilyInfos[7];
+
+                PC.SetNewClass(NewClass);
 
                 break;
             }

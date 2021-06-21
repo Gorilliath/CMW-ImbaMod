@@ -4,7 +4,7 @@ var globalconfig int iRankedTeamSize;
 var float fRankedModeMatchMakeInterval;
 var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;
-var JsonObject jRankedModeMatchResponseData;
+var string sRankedModeMatchResponseData;
 var RankedAPI RankedAPI;
 
 //SetGameType returns which game mode should be used for which map prefix
@@ -458,13 +458,14 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
         return;
     }
 
-    data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString());
+    data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
+                                   .GetObject("response");
 
     // Received a proper response from the remote service but a match couldn't be made
-    if (data.GetObject("response").GetBoolValue("success") == false)
+    if (data.GetBoolValue("success") == false)
     {
         RankedAPI.BroadcastMessageToAll("Rejected by remote service:");
-        RankedAPI.BroadcastMessageToAll("'" @ data.GetObject("response").GetStringValue("error") @ "'");
+        RankedAPI.BroadcastMessageToAll("'" @ data.GetStringValue("error") @ "'");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
         RankedAPI.BroadcastMessageToAll("");
         return;
@@ -479,10 +480,10 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     ClearTimer('RequestMatchMake');
 
     // Save response payload
-    jRankedModeMatchResponseData = data;
+    sRankedModeMatchResponseData = Response.GetContentAsString();
 
     // Extract teams from response
-    RankedAPI.GetTeamPlayerIDs(jRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
+    RankedAPI.GetTeamPlayerIDs(sRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
 
     // Force teams
     ForceTeams(AgathaPlayerIDs, MasonPlayerIDs);
@@ -490,7 +491,7 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     // TODO: Lock teams
 
     // Broadcast the match info to everyone in the server
-    RankedAPI.BroadcastMatchInfo(jRankedModeMatchResponseData);
+    RankedAPI.BroadcastMatchInfo(sRankedModeMatchResponseData);
     RankedAPI.BroadcastMessageToAll("");
 
     // Start the match

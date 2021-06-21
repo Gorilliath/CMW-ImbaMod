@@ -57,21 +57,24 @@ function BroadcastMessageToAll(string Message)
     }
 }
 
-function GetTeamPlayerIDs(JsonObject MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
+function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
 {
-    local JsonObject TeamOnePlayers,
+    local JsonObject jMatchResponseData,
+                     TeamOnePlayers,
                      TeamTwoPlayers,
                      PlayerInfo;
+
+    jMatchResponseData = class'JsonObject'.static.DecodeJson(MatchResponseData);
 
     AgathaPlayerIDs.Remove(0, 100);
     MasonPlayerIDs.Remove(0, 100);
 
-    TeamOnePlayers = MatchResponseData
+    TeamOnePlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
         .GetObject("Team1");
 
-    TeamTwoPlayers = MatchResponseData
+    TeamTwoPlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
         .GetObject("Team2");
@@ -87,18 +90,21 @@ function GetTeamPlayerIDs(JsonObject MatchResponseData, out array<string> Agatha
     }
 }
 
-function BroadcastMatchInfo(JsonObject MatchResponseData)
+function BroadcastMatchInfo(string MatchResponseData)
 {
-    local JsonObject TeamOnePlayers,
+    local JsonObject jMatchResponseData,
+                     TeamOnePlayers,
                      TeamTwoPlayers,
                      PlayerInfo;
 
-    TeamOnePlayers = MatchResponseData
+    jMatchResponseData = class'JsonObject'.static.DecodeJson(MatchResponseData);
+
+    TeamOnePlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
         .GetObject("Team1");
 
-    TeamTwoPlayers = MatchResponseData
+    TeamTwoPlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
         .GetObject("Team2");

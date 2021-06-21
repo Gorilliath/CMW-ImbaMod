@@ -720,6 +720,10 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     RankedAPI.BroadcastMatchInfo(sRankedModeMatchResponseData);
     RankedAPI.BroadcastMessageToAll("");
 
+    // Change team names to average elo of each team
+    AOCGRI(GameReplicationInfo).AgathaNameOverride = "[" $ data.GetObject("items").GetIntValue("Team1sum") / data.GetObject("items").GetObject("Team1").ObjectArray.Length $ "]";
+    AOCGRI(GameReplicationInfo).MasonNameOverride =  "[" $ data.GetObject("items").GetIntValue("Team2sum") / data.GetObject("items").GetObject("Team2").ObjectArray.Length $ "]";
+
     // Start the match
     bRankedModeReadyToStartMatch = true;
 }

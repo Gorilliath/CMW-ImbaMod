@@ -45,7 +45,7 @@ event InitGame(string Options, out string ErrorMessage)
 
     RankedAPI = new class'RankedAPI';
 
-    if (bTournamentMode && bRankedMode)
+    if ((bTournamentMode && bRankedMode) || (default.bTournamentMode && default.bRankedMode))
     {
         ConfigureTournamentMode(false);
         ConfigureRankedMode(false);

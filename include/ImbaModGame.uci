@@ -25,7 +25,7 @@ static event class<GameInfo> SetGameType(string MapName, string Options, string 
     {
         if (default.SDKPrefixes[i].Prefix ~= ThisMapPrefix)
         {
-            NewGameType = class<GameInfo>(DynamicLoadObject(default.SDKPrefixes[i].GameType,class'Class'));
+            NewGameType = class<GameInfo>(DynamicLoadObject(default.SDKPrefixes[i].GameType, class'Class'));
             if ( NewGameType != None )
             {
                 return NewGameType;
@@ -89,6 +89,37 @@ function Logout(Controller Exiting)
 
     if (bRankedMode)
         RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
+}
+
+// Deprecated
+function AdminTournamentMode(bool bEnable){}
+
+reliable server function ConfigureTournamentMode(bool bEnable)
+{
+    bTournamentMode = bEnable;
+    SaveConfig();
+
+    class'AOCGame'.default.bTournamentMode = bEnable;
+    class'AOCGame'.static.StaticSaveConfig();
+}
+
+exec function TournamentMode(bool bEnable)
+{
+    if (bTournamentMode == bEnable)
+        return;
+
+    S_BroadcastServerMessage("Admin TournamentMode");
+
+    ConfigureTournamentMode(bEnable);
+    WorldInfo.ServerTravel("?restart", false);
+}
+
+reliable server function S_BroadcastServerMessage(string Message) {
+    local AOCPlayerController PC;
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        PC.ReceiveChatMessage(Message, EFAC_ALL, false, false, , false);
+    }
 }
 
 

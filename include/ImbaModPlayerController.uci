@@ -192,6 +192,15 @@ reliable client function NotifyTournamentWaiting(float Threshold) {
     bShowedTournamentWaitingMessage = true;
 }
 
+exec function AdminTournamentMode(optional bool bEnable = true)
+{
+    ClientDisplayConsoleMessage("Deprecated: use 'Admin TournamentMode' instead");
+    ClientDisplayConsoleMessage("Disable: Admin TournamentMode 0");
+    ClientDisplayConsoleMessage("Enable: Admin TournamentMode 1");
+}
+
+reliable server function S_AdminTournamentMode(bool bEnable) {}
+
 reliable server function S_SendF10Message() {
     ReceiveChatMessage("You will implode in" @ suicideDelay @ "second(s).", EFAC_ALL, false, false, ,false);
 }

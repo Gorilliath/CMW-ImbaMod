@@ -439,7 +439,15 @@ function RequestMatchMake()
     )
         return;
 
-    // Case to not bother POSTing remote service and to notify players why
+    // Cases to not bother POSTing remote service and to notify players why
+    // Unsupported gamemodes
+    if (AOCFFAGRI(GameReplicationInfo) != none || AOCDuelGRI(GameReplicationInfo) != none)
+    {
+        RankedAPI.BroadcastMessageToAll("Unsupported gamemode.");
+        RankedAPI.BroadcastMessageToAll("Disable ranked mode for this gamemode!");
+        return;
+    }
+    // Insufficient players
     if (PlayerCount < iRankedTeamSize * 2)
     {
         RankedAPI.BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "players to start a match.");

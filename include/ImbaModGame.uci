@@ -634,6 +634,13 @@ function RequestMatchMake()
         RankedAPI.BroadcastMessageToAll("Disable ranked mode for this gamemode!");
         return;
     }
+    // Team Objective
+    if (AOCTOGRI(GameReplicationInfo) != none)
+    {
+        RankedAPI.BroadcastMessageToAll("Team Objective has been disabled until the usual format of playing two halves is supported.");
+        RankedAPI.BroadcastMessageToAll("Disable ranked mode for now!");
+        return;
+    }
     // Insufficient players
     if (PlayerCount < iRankedTeamSize * 2)
     {

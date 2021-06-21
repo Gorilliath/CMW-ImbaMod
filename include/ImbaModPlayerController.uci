@@ -175,6 +175,11 @@ reliable server function ActualUnpause() {
     }
 }*/
 
+function LocalRequestJoinClass(byte inClass)
+{
+    Request_JoinClass(inClass);
+}
+
 exec function GetAdmins() {
     S_GetAdmins();
 }

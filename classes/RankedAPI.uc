@@ -110,13 +110,13 @@ function BroadcastMatchInfo(JsonObject MatchResponseData)
     BroadcastMessageToAll("Agatha:");
     foreach TeamOnePlayers.ObjectArray(PlayerInfo)
     {
-        BroadcastMessageToAll("[" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
+        BroadcastMessageToAll("    [" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
     }
 
     BroadcastMessageToAll("Mason:");
     foreach TeamTwoPlayers.ObjectArray(PlayerInfo)
     {
-        BroadcastMessageToAll("[" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
+        BroadcastMessageToAll("    [" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
     }
 }
 

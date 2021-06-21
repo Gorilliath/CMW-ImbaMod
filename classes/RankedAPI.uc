@@ -13,8 +13,12 @@ function DoNothing(HttpRequestInterface OriginalRequest, HttpResponseInterface R
 
 function OnUserConnect(string steamID64, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
+    local GUID RequestID;
+
+    RequestID = CreateGuid();
+
     class'HttpFactory'.static.CreateRequest()
-        .SetURL(baseURL $ "OnUserConnect?steamid64=" $ steamID64 $ "&key=" $ key)
+        .SetURL(baseURL $ "OnUserConnect?steamid64=" $ steamID64 $ "&key=" $ key $ "&workaround=" $ GetStringFromGuid(RequestID))
         .SetVerb("GET")
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();
@@ -22,8 +26,12 @@ function OnUserConnect(string steamID64, optional delegate<OnProcessComplete> On
 
 function OnUserDisconnect(string steamID64, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
+    local GUID RequestID;
+
+    RequestID = CreateGuid();
+
     class'HttpFactory'.static.CreateRequest()
-        .SetURL(baseURL $ "OnUserDisconnect?steamid64=" $ steamID64 $ "&key=" $ key)
+        .SetURL(baseURL $ "OnUserDisconnect?steamid64=" $ steamID64 $ "&key=" $ key $ "&workaround=" $ GetStringFromGuid(RequestID))
         .SetVerb("GET")
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();

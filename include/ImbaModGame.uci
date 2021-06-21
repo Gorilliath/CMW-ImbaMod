@@ -52,6 +52,8 @@ event InitGame(string Options, out string ErrorMessage)
 
     RankedAPI = new class'RankedAPI';
 
+    UnlockTeams();
+
     if ((bTournamentMode && bRankedMode) || (default.bTournamentMode && default.bRankedMode))
     {
         ConfigureTournamentMode(false);
@@ -639,10 +641,8 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     // Extract teams from response
     RankedAPI.GetTeamPlayerIDs(sRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
 
-    // Force teams
-    ForceTeams(AgathaPlayerIDs, MasonPlayerIDs);
-
-    // TODO: Lock teams
+    // Lock and force teams
+    LockTeams(AgathaPlayerIDs, MasonPlayerIDs);
 
     // Broadcast the match info to everyone in the server
     RankedAPI.BroadcastMatchInfo(sRankedModeMatchResponseData);

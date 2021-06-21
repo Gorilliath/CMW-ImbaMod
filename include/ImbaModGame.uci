@@ -1,5 +1,8 @@
-var RankedAPI RankedAPI;
+// Ranked Mode
 var globalconfig bool bRankedMode;
+var bool bRankedModeReadyToStartMatch;
+var RankedAPI RankedAPI;
+
 
 //SetGameType returns which game mode should be used for which map prefix
 //You can do whatever you want with this. You can even use Options
@@ -109,6 +112,96 @@ function Logout(Controller Exiting)
 
     if (bRankedMode)
         RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
+}
+
+function bool ShouldCountDown()
+{
+    local int AgathaSize, MasonSize;
+    local int AgathaMod, MasonMod;
+    local int AgathiansReady, MasonsReady;
+    local int CorrectedAgathaSize, CorrectedMasonSize;
+    local bool bCanSpawn;
+    local bool bEachTeamHasAtleastOnePlayer;
+
+    local Controller C;
+    local AOCPlayerController PC;
+
+    AgathaMod = 0;
+    MasonMod = 0;
+    foreach WorldInfo.AllControllers(class'Controller', C)
+    {
+        PC = AOCPlayerController(C);
+        bCanSpawn = (PC != none && PC.CurrentFamilyInfo != none && PC.bReady) || AOCAIController(C) != none;
+
+        if(CMWTO2GRI(GameReplicationInfo) != none && AOCAIController(C) != none)
+        {
+            //bots cannot trigger countdown in TO2 (is breaking horde-type maps)
+            continue;
+        }
+        
+        if(!bCanSpawn)
+        {
+            continue;
+        }
+
+        if (AOCPRI(C.PlayerReplicationInfo).IsOnTeam(EAOCFaction(Teams[0].TeamIndex)))
+        {
+            AgathaSize += 1;
+
+            if(PC.IsVoluntarySpectator())
+            {
+                AgathaMod += 1;
+            }
+            else if(PC.bTournamentReady)
+            {
+                AgathiansReady += 1;
+            }
+        }
+        else if (AOCPRI(C.PlayerReplicationInfo).IsOnTeam(EAOCFaction(Teams[1].TeamIndex)))
+        {
+            MasonSize += 1;
+
+            if(PC.IsVoluntarySpectator())
+            {
+                MasonMod += 1;
+            }
+            else if(PC.bTournamentReady)
+            {
+                MasonsReady += 1;
+            }
+        }
+    }
+
+    CorrectedAgathaSize = AgathaSize - AgathaMod;
+    CorrectedMasonSize = MasonSize - MasonMod;
+
+    bEachTeamHasAtleastOnePlayer = (CorrectedAgathaSize > 0 && CorrectedMasonSize > 0);
+
+    if (bTournamentMode)
+    {
+        return
+        (
+            bEachTeamHasAtleastOnePlayer &&
+            (
+                // each team has more than the minimum tolerable amount of 'ready' players
+                (
+                    (AgathiansReady / float(CorrectedAgathaSize)) >= TournamentTeamReadyThreshold &&
+                    (MasonsReady / float(CorrectedMasonSize)) >= TournamentTeamReadyThreshold
+                )
+
+                // or an admin forced the match to start
+                || bAdminForcedTournamentReady
+            )
+        );
+    }
+    else if (bRankedMode)
+    {
+        return (bEachTeamHasAtleastOnePlayer && bRankedModeReadyToStartMatch);
+    }
+    else
+    {
+        return (bEachTeamHasAtleastOnePlayer || !bWaitForTeams);
+    }
 }
 
 // Deprecated

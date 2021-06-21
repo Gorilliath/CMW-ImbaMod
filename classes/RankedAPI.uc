@@ -89,6 +89,37 @@ function GetTeamPlayerIDs(JsonObject MatchResponseData, out array<string> Agatha
     }
 }
 
+function BroadcastMatchInfo(JsonObject MatchResponseData)
+{
+    local JsonObject TeamOnePlayers,
+                     TeamTwoPlayers,
+                     PlayerInfo;
+
+    TeamOnePlayers = MatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team1")
+        .ObjectArray[0];
+
+    TeamTwoPlayers = MatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team2")
+        .ObjectArray[0];
+
+    BroadcastMessageToAll("Agatha:");
+    foreach TeamOnePlayers.ObjectArray(PlayerInfo)
+    {
+        BroadcastMessageToAll("[" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
+    }
+
+    BroadcastMessageToAll("Mason:");
+    foreach TeamTwoPlayers.ObjectArray(PlayerInfo)
+    {
+        BroadcastMessageToAll("[" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
+    }
+}
+
 DefaultProperties
 {
     baseURL = "https://rufuspitt.com/api/";

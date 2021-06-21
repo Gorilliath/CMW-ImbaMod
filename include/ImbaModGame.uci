@@ -630,20 +630,25 @@ function RequestMatchMake()
         CDWDuelGRI(GameReplicationInfo) != none
     )
     {
+        RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Unsupported gamemode.");
         RankedAPI.BroadcastMessageToAll("Disable ranked mode for this gamemode!");
+        RankedAPI.BroadcastMessageToAll("");
         return;
     }
     // Team Objective
     if (AOCTOGRI(GameReplicationInfo) != none)
     {
+        RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Team Objective has been disabled until the usual format of playing two halves is supported.");
         RankedAPI.BroadcastMessageToAll("Disable ranked mode for now!");
+        RankedAPI.BroadcastMessageToAll("");
         return;
     }
     // Insufficient players
     if (PlayerCount < iRankedTeamSize * 2)
     {
+        RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "players to start a match.");
         RankedAPI.BroadcastMessageToAll("Wait for more players to join or reduce the target team size.");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
@@ -662,6 +667,7 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     // Didn't receive a proper response from the remote service
     if (!bDidSucceed)
     {
+        RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Remote service failed to respond.");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
         RankedAPI.BroadcastMessageToAll("");
@@ -674,6 +680,7 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     // Received a proper response from the remote service but a match couldn't be made
     if (data.GetBoolValue("success") == false)
     {
+        RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Rejected by remote service:");
         RankedAPI.BroadcastMessageToAll("'" @ data.GetStringValue("error") @ "'");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
@@ -683,7 +690,6 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
 
     // Success :)
     RankedAPI.BroadcastMessageToAll("Match successfully made!");
-    RankedAPI.BroadcastMessageToAll("");
 
     // Ensure we stop polling for a match
     bRankedModeMatchMade = true;
@@ -699,6 +705,7 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     LockTeams(AgathaPlayerIDs, MasonPlayerIDs);
 
     // Broadcast the match info to everyone in the server
+    RankedAPI.BroadcastMessageToAll("");
     RankedAPI.BroadcastMatchInfo(sRankedModeMatchResponseData);
     RankedAPI.BroadcastMessageToAll("");
 

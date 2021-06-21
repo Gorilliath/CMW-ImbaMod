@@ -1,4 +1,5 @@
 var RankedAPI RankedAPI;
+var globalconfig bool bRankedMode;
 
 //SetGameType returns which game mode should be used for which map prefix
 //You can do whatever you want with this. You can even use Options
@@ -78,14 +79,16 @@ function GenericPlayerInitialization(Controller C)
 {
     super.GenericPlayerInitialization(C);
 
-    RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(PlayerController(C).OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId), RenameRankedPlayer);
+    if (bRankedMode)
+        RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(PlayerController(C).OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId), RenameRankedPlayer);
 }
 
 function Logout(Controller Exiting)
 {
     super.Logout(Exiting);
 
-    RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
+    if (bRankedMode)
+        RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
 }
 
 

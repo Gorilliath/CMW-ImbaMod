@@ -188,7 +188,7 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
     super.EndGame(Winner, Reason);
 
     if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
-        RankedAPI.CalculateNewElos(sRankedModeMatchResponseData, GetWinningTeam());
+        RankedAPI.CalculateNewElos(sRankedModeMatchResponseData, GetWinningTeam(), CalculateNewElosOnComplete);
 }
 
 function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTeam, optional bool bForce = false)
@@ -682,7 +682,7 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     }
 
     // Success :)
-    RankedAPI.BroadcastMessageToAll("Match successfuly made!");
+    RankedAPI.BroadcastMessageToAll("Match successfully made!");
     RankedAPI.BroadcastMessageToAll("");
 
     // Ensure we stop polling for a match
@@ -704,6 +704,14 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
 
     // Start the match
     bRankedModeReadyToStartMatch = true;
+}
+
+function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
+{
+    if (bDidSucceed)
+        RankedAPI.BroadcastMessageToAll("Match result successfully sent to the remote service.");
+    else
+        RankedAPI.BroadcastMessageToAll("Failed to send match result to the remote service.");
 }
 
 

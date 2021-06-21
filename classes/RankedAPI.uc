@@ -50,7 +50,8 @@ function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional d
 function BroadcastMessageToAll(string Message)
 {
     local AOCPlayerController PC;
-    foreach class'Worldinfo'.static.GetWorldInfo().AllControllers(class'AOCPlayerController', PC) {
+    foreach class'Worldinfo'.static.GetWorldInfo().AllControllers(class'AOCPlayerController', PC)
+    {
         PC.ReceiveChatMessage(Message, EFAC_ALL, false, true, chatColourHex, false);
     }
 }
@@ -60,5 +61,5 @@ DefaultProperties
 {
     baseURL = "https://rufuspitt.com/api/";
     key = "";
-    chatColourHex = "#3498db";
+    chatColourHex = "#00BFFF";
 }

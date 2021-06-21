@@ -1,6 +1,6 @@
 // Ranked Mode
 var globalconfig bool bRankedMode;
-var globalconfig int RankedTeamSize;
+var globalconfig int iRankedTeamSize;
 var bool bRankedModeReadyToStartMatch;
 var RankedAPI RankedAPI;
 
@@ -287,10 +287,10 @@ reliable server function S_RankedTeamSize(int Size)
     if (Size <= 0 || Size > (MaxPlayersAllowed / 2))
         return;
 
-    RankedTeamSize = Size;
+    iRankedTeamSize = Size;
     SaveConfig();
 
-    class'`{GAMEMODE}'.default.RankedTeamSize = Size;
+    class'`{GAMEMODE}'.default.iRankedTeamSize = Size;
     class'`{GAMEMODE}'.static.StaticSaveConfig();
 
     RankedAPI.BroadcastMessageToAll("Admin RankedTeamSize" @ Size);

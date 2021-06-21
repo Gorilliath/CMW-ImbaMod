@@ -7,6 +7,9 @@ var bool bRankedModeReadyToStartMatch;
 var string sRankedModeMatchResponseData;
 var RankedAPI RankedAPI;
 
+var bool bLockedTeams;
+var array<string> LockedAgathaPlayerSteamIDs, LockedMasonPlayerSteamIDs;
+
 //SetGameType returns which game mode should be used for which map prefix
 //You can do whatever you want with this. You can even use Options
 // (options => the ?blah=blah things added after the map name when launching a server or in the map list)
@@ -184,6 +187,51 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
 
     if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
         RankedAPI.CalculateNewElos(sRankedModeMatchResponseData, GetWinningTeam());
+}
+
+function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTeam, optional bool bForce = false)
+{
+    local EAOCFaction CurrentTeam;
+    local string ControllerSteamID, RequirementSteamID;
+    local array<string> TargetTeamSteamIDs;
+
+
+    // If not using locked teams via steamIDs, use vanilla autobalance if applicable
+    if (!bLockedTeams)
+        return super.RequestJoinTeam(inController, inTeam, bForce);
+
+
+    CurrentTeam = AOCPRI(inController.PlayerReplicationInfo).GetCurrentTeam();
+    ControllerSteamID = OnlineSubsystemSteamworks(inController.OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
+
+    // Resolve which team's locked-in steamIDs to check
+    if (inTeam == EFAC_AGATHA)
+        TargetTeamSteamIDs = LockedAgathaPlayerSteamIDs;
+    else if (inTeam == EFAC_MASON)
+        TargetTeamSteamIDs = LockedMasonPlayerSteamIDs;
+    else
+    {
+        // Reject
+        if (!bForce)
+            inController.Response_JoinTeam(inTeam, false);
+        return false;
+    }
+
+    foreach TargetTeamSteamIDs(RequirementSteamID)
+    {
+        if (ControllerSteamID == RequirementSteamID)
+        {
+            // Accept
+            if (!bForce)
+                inController.Response_JoinTeam(inTeam, true);
+            return true;
+        }
+    }
+
+    // Reject
+    if (!bForce)
+            inController.Response_JoinTeam(inTeam, false);
+    return false;
 }
 
 
@@ -364,6 +412,44 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
         // Those who shouldn't be on Agatha or Mason should be Spectators
         PC.JoinSpectatorTeam();
     }
+}
+
+function LockTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlayersSteamIDs)
+{
+    local string SteamID;
+
+    if ((AgathaPlayersSteamIDs.length == 0 && MasonPlayersSteamIDs.length == 0) ||
+        AOCFFAGRI(GameReplicationInfo) != none ||
+        AOCDuelGRI(GameReplicationInfo) != none ||
+        CDWDuelGRI(GameReplicationInfo) != none
+    )
+        return;
+
+    // Clear any previous requirements just in case
+    LockedAgathaPlayerSteamIDs.Remove(0, LockedAgathaPlayerSteamIDs.length);
+    LockedMasonPlayerSteamIDs.Remove(0, LockedMasonPlayerSteamIDs.length);
+
+    bLockedTeams = true;
+
+    // Add each new requirement (I tried doing it a more normal way but it didn't compile...)
+    foreach AgathaPlayersSteamIDs(SteamID)
+    {
+        LockedAgathaPlayerSteamIDs.AddItem(SteamID);
+    }
+    SteamID = "";
+    foreach MasonPlayersSteamIDs(SteamID)
+    {
+        LockedMasonPlayerSteamIDs.AddItem(SteamID);
+    }
+
+    ForceTeams(AgathaPlayersSteamIDs, MasonPlayersSteamIDs);
+}
+
+function UnlockTeams()
+{
+    bLockedTeams = false;
+    LockedAgathaPlayerSteamIDs.Remove(0, LockedAgathaPlayerSteamIDs.length);
+    LockedMasonPlayerSteamIDs.Remove(0, LockedMasonPlayerSteamIDs.length);
 }
 
 function RenamePlayer(string steam64ID, string name)

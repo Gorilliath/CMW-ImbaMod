@@ -594,13 +594,22 @@ function OnUserConnectOnComplete(HttpRequestInterface OriginalRequest, HttpRespo
     local int elo;
     local string name;
 
+    // Request failed spectacularly
     if (Response == none || !bDidSucceed)
         return;
 
+    // Request succeeded; Get the payload
     data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
-                                   .GetObject("response")
-                                   .GetObject("items")
-                                   .ObjectArray[0];
+                                   .GetObject("response");
+
+    // Response payload probably isn't what we're expecting
+    if (data == none || data.GetBoolValue("success") == false)
+        return;
+
+    // Complete success :)
+    data = data
+        .GetObject("items")
+        .ObjectArray[0];
 
     id = data.GetStringValue("_id");
     elo = data.GetIntValue("elo");
@@ -664,8 +673,8 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     local JsonObject data;
     local array<string> AgathaPlayerIDs, MasonPlayerIDs;
 
-    // Didn't receive a proper response from the remote service
-    if (!bDidSucceed)
+    // Request failed spectacularly
+    if (Response == none || !bDidSucceed)
     {
         RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Remote service failed to respond.");
@@ -674,21 +683,23 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
         return;
     }
 
+    // Request succeeded; Get the payload
     data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
                                    .GetObject("response");
 
-    // Received a proper response from the remote service but a match couldn't be made
-    if (data.GetBoolValue("success") == false)
+    // Response payload probably isn't what we're expecting
+    if (data == none || data.GetBoolValue("success") == false)
     {
         RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Rejected by remote service:");
-        RankedAPI.BroadcastMessageToAll("'" @ data.GetStringValue("error") @ "'");
+        RankedAPI.BroadcastMessageToAll("Rejected by remote service.");
+        if (data != none)
+            RankedAPI.BroadcastMessageToAll("'" @ data.GetStringValue("error") @ "'");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
         RankedAPI.BroadcastMessageToAll("");
         return;
     }
 
-    // Success :)
+    // Complete success :)
     RankedAPI.BroadcastMessageToAll("Match successfully made!");
 
     // Ensure we stop polling for a match

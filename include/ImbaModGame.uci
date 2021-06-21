@@ -1,5 +1,6 @@
 // Ranked Mode
 var globalconfig bool bRankedMode;
+var globalconfig int RankedTeamSize;
 var bool bRankedModeReadyToStartMatch;
 var RankedAPI RankedAPI;
 
@@ -279,6 +280,25 @@ exec function RankedMode(bool bEnable)
 
     ConfigureRankedMode(bEnable);
     WorldInfo.ServerTravel("?restart", false);
+}
+
+reliable server function S_RankedTeamSize(int Size)
+{
+    if (Size <= 0 || Size > (MaxPlayersAllowed / 2))
+        return;
+
+    RankedTeamSize = Size;
+    SaveConfig();
+
+    class'`{GAMEMODE}'.default.RankedTeamSize = Size;
+    class'`{GAMEMODE}'.static.StaticSaveConfig();
+
+    RankedAPI.BroadcastMessageToAll("Admin RankedTeamSize" @ Size);
+}
+
+exec function RankedTeamSize(int Size)
+{
+    S_RankedTeamSize(Size);
 }
 
 reliable server function S_BroadcastServerMessage(string Message) {

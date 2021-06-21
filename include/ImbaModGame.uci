@@ -178,6 +178,14 @@ function bool ShouldCountDown()
     }
 }
 
+function EndGame(PlayerReplicationInfo Winner, string Reason)
+{
+    super.EndGame(Winner, Reason);
+
+    if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
+        RankedAPI.CalculateNewElos(sRankedModeMatchResponseData, GetWinningTeam());
+}
+
 
 Auto State AOCPreRound
 {

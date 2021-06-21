@@ -4,12 +4,12 @@ var globalconfig int iRankedTeamSize;
 var bool bRankedModeReadyToStartMatch;
 var RankedAPI RankedAPI;
 
-
 //SetGameType returns which game mode should be used for which map prefix
 //You can do whatever you want with this. You can even use Options
 // (options => the ?blah=blah things added after the map name when launching a server or in the map list)
 //to add even more variety. See the ParseOption function in Src\Engine\Classes\GameInfo.uc
 var config array<GameTypePrefix> SDKPrefixes;
+
 
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
 {
@@ -67,37 +67,6 @@ event InitGame(string Options, out string ErrorMessage)
     }
 }
 
-function RenameRankedPlayer(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
-{
-    local JsonObject data;
-    local string id;
-    local int elo;
-    local string name;
-    local AOCPlayerController controller;
-
-    if (Response == none || !bDidSucceed)
-        return;
-
-    data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
-                                   .GetObject("response")
-                                   .GetObject("items")
-                                   .ObjectArray[0];
-
-    id = data.GetStringValue("_id");
-    elo = data.GetIntValue("elo");
-    name = data.GetStringValue("name");
-
-    // Find the relevant controller
-    foreach WorldInfo.AllControllers(class'AOCPlayerController', controller)
-    {
-        // If the IDs match then rename and exit early
-        if (OnlineSubsystemSteamworks(controller.OnlineSub).UniqueNetIdToInt64(controller.PlayerReplicationInfo.UniqueId) == id)
-        {
-            WorldInfo.Game.ChangeName(controller, "[" $ elo $ "]" @ name, true);
-            break;
-        }
-    }
-}
 
 function GenericPlayerInitialization(Controller C)
 {
@@ -113,34 +82,6 @@ function Logout(Controller Exiting)
 
     if (bRankedMode)
         RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
-}
-
-function int GetActualPlayersCount()
-{
-    local AOCPlayerController PC;
-    local int PlayerCount;
-
-    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
-    {
-        if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
-            PlayerCount += 1;
-    }
-
-    return PlayerCount;
-}
-
-function Array<String> GetActualPlayersSteamIDs()
-{
-    local AOCPlayerController PC;
-    local Array<String> PlayerSteamIDs;
-
-    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
-    {
-        if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
-            PlayerSteamIDs.AddItem(OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId));
-    }
-
-    return PlayerSteamIDs;
 }
 
 function bool ShouldCountDown()
@@ -233,26 +174,47 @@ function bool ShouldCountDown()
     }
 }
 
+
+reliable server function S_BroadcastServerMessage(string Message)
+{
+    local AOCPlayerController PC;
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        PC.ReceiveChatMessage(Message, EFAC_ALL, false, false, , false);
+    }
+}
+
+function int GetActualPlayersCount()
+{
+    local AOCPlayerController PC;
+    local int PlayerCount;
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
+            PlayerCount += 1;
+    }
+
+    return PlayerCount;
+}
+
+function Array<String> GetActualPlayersSteamIDs()
+{
+    local AOCPlayerController PC;
+    local Array<String> PlayerSteamIDs;
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
+            PlayerSteamIDs.AddItem(OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId));
+    }
+
+    return PlayerSteamIDs;
+}
+
+
 // Deprecated
 function AdminTournamentMode(bool bEnable){}
-
-reliable server function ConfigureTournamentMode(bool bEnable)
-{
-    bTournamentMode = bEnable;
-    SaveConfig();
-
-    class'AOCGame'.default.bTournamentMode = bEnable;
-    class'AOCGame'.static.StaticSaveConfig();
-}
-
-reliable server function ConfigureRankedMode(bool bEnable)
-{
-    bRankedMode = bEnable;
-    SaveConfig();
-
-    class'`{GAMEMODE}'.default.bRankedMode = bEnable;
-    class'`{GAMEMODE}'.static.StaticSaveConfig();
-}
 
 exec function TournamentMode(bool bEnable)
 {
@@ -268,6 +230,16 @@ exec function TournamentMode(bool bEnable)
     WorldInfo.ServerTravel("?restart", false);
 }
 
+reliable server function ConfigureTournamentMode(bool bEnable)
+{
+    bTournamentMode = bEnable;
+    SaveConfig();
+
+    class'AOCGame'.default.bTournamentMode = bEnable;
+    class'AOCGame'.static.StaticSaveConfig();
+}
+
+// Ranked Mode
 exec function RankedMode(bool bEnable)
 {
     if (default.bRankedMode == bEnable)
@@ -280,6 +252,20 @@ exec function RankedMode(bool bEnable)
 
     ConfigureRankedMode(bEnable);
     WorldInfo.ServerTravel("?restart", false);
+}
+
+reliable server function ConfigureRankedMode(bool bEnable)
+{
+    bRankedMode = bEnable;
+    SaveConfig();
+
+    class'`{GAMEMODE}'.default.bRankedMode = bEnable;
+    class'`{GAMEMODE}'.static.StaticSaveConfig();
+}
+
+exec function RankedTeamSize(int Size)
+{
+    S_RankedTeamSize(Size);
 }
 
 reliable server function S_RankedTeamSize(int Size)
@@ -296,16 +282,35 @@ reliable server function S_RankedTeamSize(int Size)
     RankedAPI.BroadcastMessageToAll("Admin RankedTeamSize" @ Size);
 }
 
-exec function RankedTeamSize(int Size)
+function RenameRankedPlayer(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
-    S_RankedTeamSize(Size);
-}
+    local JsonObject data;
+    local string id;
+    local int elo;
+    local string name;
+    local AOCPlayerController controller;
 
-reliable server function S_BroadcastServerMessage(string Message) {
-    local AOCPlayerController PC;
-    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    if (Response == none || !bDidSucceed)
+        return;
+
+    data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
+                                   .GetObject("response")
+                                   .GetObject("items")
+                                   .ObjectArray[0];
+
+    id = data.GetStringValue("_id");
+    elo = data.GetIntValue("elo");
+    name = data.GetStringValue("name");
+
+    // Find the relevant controller
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', controller)
     {
-        PC.ReceiveChatMessage(Message, EFAC_ALL, false, false, , false);
+        // If the IDs match then rename and exit early
+        if (OnlineSubsystemSteamworks(controller.OnlineSub).UniqueNetIdToInt64(controller.PlayerReplicationInfo.UniqueId) == id)
+        {
+            WorldInfo.Game.ChangeName(controller, "[" $ elo $ "]" @ name, true);
+            break;
+        }
     }
 }
 

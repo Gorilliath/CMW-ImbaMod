@@ -47,6 +47,7 @@ function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional d
         .ProcessRequest();
 }
 
+
 function BroadcastMessageToAll(string Message)
 {
     local AOCPlayerController PC;
@@ -56,6 +57,37 @@ function BroadcastMessageToAll(string Message)
     }
 }
 
+function GetTeamPlayerIDs(JsonObject MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
+{
+    local JsonObject TeamOnePlayers,
+                     TeamTwoPlayers,
+                     PlayerInfo;
+
+    AgathaPlayerIDs.Remove(0, 100);
+    MasonPlayerIDs.Remove(0, 100);
+
+    TeamOnePlayers = MatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team1")
+        .ObjectArray[0];
+
+    TeamTwoPlayers = MatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team2")
+        .ObjectArray[0];
+
+    foreach TeamOnePlayers.ObjectArray(PlayerInfo)
+    {
+        AgathaPlayerIDs.AddItem(PlayerInfo.GetStringValue("_id"));
+    }
+
+    foreach TeamTwoPlayers.ObjectArray(PlayerInfo)
+    {
+        MasonPlayerIDs.AddItem(PlayerInfo.GetStringValue("_id"));
+    }
+}
 
 DefaultProperties
 {

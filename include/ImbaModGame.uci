@@ -42,10 +42,24 @@ event InitGame(string Options, out string ErrorMessage)
 
     RankedAPI = new class'RankedAPI';
 
-    if (bTournamentMode && bRankedMode) {
+    if (bTournamentMode && bRankedMode)
+    {
         ConfigureTournamentMode(false);
         ConfigureRankedMode(false);
         WorldInfo.ServerTravel("?restart", false);
+    }
+
+    if (bRankedMode)
+    {
+        // Autobalance
+        bAutoBalance = false;
+        bDeathBasedAutoBalance = false;
+        AOCGRI(GameReplicationInfo).bBalanceTeams = false;
+
+        bUseMaxPingLimit = false;
+        bDisableTeamDamagePenalty = true;
+        bAdminCanPause = true;
+        bAnyUserCanGetSteamID = true;
     }
 }
 

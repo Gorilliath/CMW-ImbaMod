@@ -359,6 +359,7 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
 
                 // Force them to the correct team
                 PC.SetNewClass(NewClass);
+                PC.SetReady(true);
 
                 break;
             }
@@ -403,6 +404,7 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
                     NewClass = AOCGRI(GameReplicationInfo).FamilyInfos[7];
 
                 PC.SetNewClass(NewClass);
+                PC.SetReady(true);
 
                 break;
             }

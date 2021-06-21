@@ -247,10 +247,10 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
     local string ControllerSteam64ID, RequirementSteam64ID;
 
 
-    if (
-        (AgathaPlayersSteamIDs.length == 0 && MasonPlayersSteamIDs.length == 0)
-        || AOCFFAGRI(GameReplicationInfo) != none
-        || AOCDuelGRI(GameReplicationInfo) != none
+    if ((AgathaPlayersSteamIDs.length == 0 && MasonPlayersSteamIDs.length == 0) ||
+        AOCFFAGRI(GameReplicationInfo) != none ||
+        AOCDuelGRI(GameReplicationInfo) != none ||
+        CDWDuelGRI(GameReplicationInfo) != none
     )
         return;
 
@@ -447,7 +447,10 @@ function RequestMatchMake()
 
     // Cases to not bother POSTing remote service and to notify players why
     // Unsupported gamemodes
-    if (AOCFFAGRI(GameReplicationInfo) != none || AOCDuelGRI(GameReplicationInfo) != none)
+    if (AOCFFAGRI(GameReplicationInfo) != none ||
+        AOCDuelGRI(GameReplicationInfo) != none ||
+        CDWDuelGRI(GameReplicationInfo) != none
+    )
     {
         RankedAPI.BroadcastMessageToAll("Unsupported gamemode.");
         RankedAPI.BroadcastMessageToAll("Disable ranked mode for this gamemode!");

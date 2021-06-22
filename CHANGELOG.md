@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.2.1
+
+* Fixed issue where name changes blocked the reassociation of inactive PRIs when player reconnected
+
 ## 1.2.0
 
 * Admin status is now preserved through map transitions

@@ -334,6 +334,19 @@ function Array<String> GetActualPlayersSteamIDs()
     return PlayerSteamIDs;
 }
 
+function AOCPlayerController GetControllerViaSteamID64 (string SteamID64)
+{
+    local AOCPlayerController PC;
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        if (OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId) == SteamID64)
+        {
+            return PC;
+        }
+    }
+}
+
 function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlayersSteamIDs)
 {
     local AOCPlayerController PC;
@@ -501,19 +514,15 @@ function UnlockTeams()
     LockedMasonPlayerSteamIDs.Remove(0, LockedMasonPlayerSteamIDs.length);
 }
 
-function RenamePlayer(string SteamID64, string name)
+function RenamePlayerViaSteamID64(string SteamID64, string name)
 {
     local AOCPlayerController PC;
 
-    // Find the relevant controller by SteamID64
-    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    PC = GetControllerViaSteamID64(SteamID64);
+
+    if (PC != none)
     {
-        // If the IDs match then rename and exit early
-        if (OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId) == SteamID64)
-        {
-            ChangeName(PC, name, true);
-            break;
-        }
+        ChangeName(PC, name, true);
     }
 }
 
@@ -615,7 +624,7 @@ function OnUserConnectOnComplete(HttpRequestInterface OriginalRequest, HttpRespo
     elo = data.GetIntValue("elo");
     name = data.GetStringValue("name");
 
-    RenamePlayer(id, "[" $ elo $ "]" @ name);
+    RenamePlayerViaSteamID64(id, "[" $ elo $ "]" @ name);
 }
 
 function RequestMatchMake()

@@ -340,7 +340,7 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
     local bool Handled;
     local EAOCFaction CurrentTeam;
     local AOCFamilyInfo CurrentClass, NewClass;
-    local string ControllerSteam64ID, RequirementSteam64ID;
+    local string ControllerSteamID64, RequirementSteamID64;
     local int i, NewClassIndex;
 
 
@@ -357,16 +357,16 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
     {
         Handled = false;
 
-        // Get their current team, class and steam64ID
+        // Get their current team, class and SteamID64
         CurrentTeam = AOCPRI(PC.PlayerReplicationInfo).GetCurrentTeam();
         CurrentClass = PC.CurrentFamilyInfo;
-        ControllerSteam64ID = OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId);
+        ControllerSteamID64 = OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId);
 
         // Check if they should be on Agatha
-        foreach AgathaPlayersSteamIDs(RequirementSteam64ID)
+        foreach AgathaPlayersSteamIDs(RequirementSteamID64)
         {
             // They should be on this team!
-            if (ControllerSteam64ID == RequirementSteam64ID)
+            if (ControllerSteamID64 == RequirementSteamID64)
             {
                 Handled = true;
 
@@ -414,9 +414,9 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
             continue;
 
         // Check if they should be on Mason
-        foreach MasonPlayersSteamIDs(RequirementSteam64ID)
+        foreach MasonPlayersSteamIDs(RequirementSteamID64)
         {
-            if (ControllerSteam64ID == RequirementSteam64ID)
+            if (ControllerSteamID64 == RequirementSteamID64)
             {
                 Handled = true;
 
@@ -501,15 +501,15 @@ function UnlockTeams()
     LockedMasonPlayerSteamIDs.Remove(0, LockedMasonPlayerSteamIDs.length);
 }
 
-function RenamePlayer(string steam64ID, string name)
+function RenamePlayer(string SteamID64, string name)
 {
     local AOCPlayerController PC;
 
-    // Find the relevant controller by steam64ID
+    // Find the relevant controller by SteamID64
     foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
     {
         // If the IDs match then rename and exit early
-        if (OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId) == steam64ID)
+        if (OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId) == SteamID64)
         {
             ChangeName(PC, name, true);
             break;

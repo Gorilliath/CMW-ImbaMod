@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 1.2.2
+
+* Fixed issue where player stats in LTS were not reset after starting the first round
+
 ## 1.2.1
 
 * Fixed issue where name changes blocked the reassociation of inactive PRIs when player reconnected

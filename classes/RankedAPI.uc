@@ -111,12 +111,14 @@ function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlay
     TeamOnePlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team1");
+        .GetObject("Team1")
+        .GetObject("players");
 
     TeamTwoPlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team2");
+        .GetObject("Team2")
+        .GetObject("players");
 
     foreach TeamOnePlayers.ObjectArray(PlayerInfo)
     {
@@ -141,12 +143,14 @@ function BroadcastMatchInfo(string MatchResponseData)
     TeamOnePlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team1");
+        .GetObject("Team1")
+        .GetObject("players");
 
     TeamTwoPlayers = jMatchResponseData
         .GetObject("response")
         .GetObject("items")
-        .GetObject("Team2");
+        .GetObject("Team2")
+        .GetObject("players");
 
     BroadcastMessageToAll("Agatha:");
     foreach TeamOnePlayers.ObjectArray(PlayerInfo)

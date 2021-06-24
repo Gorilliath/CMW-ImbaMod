@@ -670,7 +670,7 @@ function RequestMatchMake()
 
 function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
-    local JsonObject data;
+    local JsonObject data, team;
     local array<string> AgathaPlayerIDs, MasonPlayerIDs;
 
     // Request failed spectacularly
@@ -721,8 +721,10 @@ function RequestMatchMakeOnComplete(HttpRequestInterface OriginalRequest, HttpRe
     RankedAPI.BroadcastMessageToAll("");
 
     // Change team names to average elo of each team
-    AOCGRI(GameReplicationInfo).AgathaNameOverride = "[" $ data.GetObject("items").GetIntValue("Team1sum") / data.GetObject("items").GetObject("Team1").ObjectArray.Length $ "]";
-    AOCGRI(GameReplicationInfo).MasonNameOverride =  "[" $ data.GetObject("items").GetIntValue("Team2sum") / data.GetObject("items").GetObject("Team2").ObjectArray.Length $ "]";
+    team = data.GetObject("items").GetObject("Team1");
+    AOCGRI(GameReplicationInfo).AgathaNameOverride = "[" $ team.GetIntValue("eloSum") / team.GetObject("players").ObjectArray.Length $ "]";
+    team = data.GetObject("items").GetObject("Team2");
+    AOCGRI(GameReplicationInfo).MasonNameOverride =  "[" $ team.GetIntValue("eloSum") / team.GetObject("players").ObjectArray.Length $ "]";
 
     // Start the match
     bRankedModeReadyToStartMatch = true;

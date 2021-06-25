@@ -55,33 +55,13 @@ function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional d
         .ProcessRequest();
 }
 
-function CalculateNewElos(string MatchResponseData, EAOCFaction WinningTeam, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+function CalculateNewElos(string sCompletedMatchRequestData, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
-    local int winner;
-    local JsonObject jMatchResponseData,
-                     tmp,
-                     payload;
-
-    if (WinningTeam == EFAC_AGATHA)
-        winner = 1;
-    else if (WinningTeam == EFAC_MASON)
-        winner = 2;
-    else
-        winner = 0;
-
-    jMatchResponseData = class'JsonObject'.static.DecodeJson(MatchResponseData);
-
-    tmp = jMatchResponseData.GetObject("response");
-    tmp.SetIntValue("winner", winner);
-
-    payload = jMatchResponseData;
-    payload.SetObject("response", tmp);
-
     class'HttpFactory'.static.CreateRequest()
         .SetURL(baseURL $ "CalculateNewElos?key=" $ key)
         .SetVerb("POST")
         .SetHeader("Content-Type", "application/json")
-        .SetContentAsString(class'JsonObject'.static.EncodeJson(payload))
+        .SetContentAsString(sCompletedMatchRequestData)
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();
 }

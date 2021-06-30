@@ -1,6 +1,45 @@
+var string OriginalName;
+
+
 function CopyProperties(PlayerReplicationInfo PRI)
 {
     super.CopyProperties(PRI);
 
     AOCPRI(PRI).bAdmin = bAdmin;
+
+    /*
+        Preserve the original name which the player joined with.
+
+        Why this is not done in a single line using either:
+
+            - A dynamic cast for the current gamemode: `{GAMEMODE}PRI(PRI)...
+                This fails because the current gamemode is not always the one we are transitioning to.
+
+            - A common parent: ImbaModPRI(PRI)...
+                This is preferably avoided since one must exclude the AOC leaf classes from each new classes heritage.
+
+        Isn't that epic?
+     */
+    ImbaModAOCDuelPRI(PRI).OriginalName = OriginalName;
+    ImbaModCDWDuelPRI(PRI).OriginalName = OriginalName;
+    ImbaModCTFPRI(PRI).OriginalName = OriginalName;
+    ImbaModFFAPRI(PRI).OriginalName = OriginalName;
+    ImbaModKOTHPRI(PRI).OriginalName = OriginalName;
+    ImbaModLTSPRI(PRI).OriginalName = OriginalName;
+    ImbaModTDPRI(PRI).OriginalName = OriginalName;
+    ImbaModTOPRI(PRI).OriginalName = OriginalName;
+    ImbaModTUTPRI(PRI).OriginalName = OriginalName;
+}
+
+
+function SaveOriginalName()
+{
+    if (OriginalName == "")
+        OriginalName = PlayerName;
+}
+
+function RestoreOriginalName()
+{
+    if (OriginalName != "" && OriginalName != PlayerName)
+        SetPlayerName(OriginalName);
 }

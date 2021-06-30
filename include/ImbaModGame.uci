@@ -76,13 +76,29 @@ event InitGame(string Options, out string ErrorMessage)
     }
 }
 
+event PostLogin(PlayerController NewPlayer)
+{
+    super.PostLogin(NewPlayer);
+
+    // Save original name if it hasn't already been saved
+    `{GAMEMODE}PRI(NewPlayer.PlayerReplicationInfo).SaveOriginalName();
+}
+
 
 function GenericPlayerInitialization(Controller C)
 {
     super.GenericPlayerInitialization(C);
 
     if (bRankedMode)
+    {
+        // Connect player to remote service and rename them to display their elo
         RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(PlayerController(C).OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId), OnUserConnectOnComplete);
+    }
+    else
+    {
+        // Try to restore the player's original name
+        `{GAMEMODE}PRI(C.PlayerReplicationInfo).RestoreOriginalName();
+    }
 }
 
 function Logout(Controller Exiting)

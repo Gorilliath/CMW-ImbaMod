@@ -92,7 +92,10 @@ function GenericPlayerInitialization(Controller C)
     if (bRankedMode)
     {
         // Connect player to remote service and rename them to display their elo
-        RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(PlayerController(C).OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId), OnUserConnectOnComplete);
+        RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(PlayerController(C).OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId),
+                                PlayerController(C).GetPlayerNetworkAddress(),
+                                PlayerController(C).GetServerNetworkAddress(),
+                                OnUserConnectOnComplete);
     }
     else
     {

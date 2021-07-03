@@ -11,7 +11,10 @@ delegate OnProcessComplete(HttpRequestInterface OriginalRequest, HttpResponseInt
 
 function DoNothing(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed){}
 
-function OnUserConnect(string steamID64, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+function OnUserConnect(string steamID64,
+                       optional string playerIP,
+                       optional string serverIP,
+                       optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local GUID GUID;
 
@@ -23,6 +26,8 @@ function OnUserConnect(string steamID64, optional delegate<OnProcessComplete> On
                         $ "&steamid64=" $ steamID64
                         $ "&GUID=" $ GetStringFromGuid(GUID))
         .SetVerb("GET")
+        .SetHeader("playerIP", playerIP)
+        .SetHeader("serverIP", serverIP)
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();
 }

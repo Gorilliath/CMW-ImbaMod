@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 2.0.1
+
+* Removed redundant server IP logging in Ranked Mode
+
 ## 2.0.0
 
 * Added Ranked Mode (see [README](README.md))  

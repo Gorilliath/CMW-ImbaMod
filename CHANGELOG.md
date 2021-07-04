@@ -1,5 +1,12 @@
 # ImbaMod
 
+## 2.0.0
+
+* Added Ranked Mode (see [README](README.md)) 
+* Improved Tournament Mode configuration and consequently changed its usage  
+  `AdminTournamentMode 1` becomes `Admin TournamentMode 1`  
+* Added general functions to lock and force teams
+
 ## 1.2.0
 
 * Admin status is now preserved through map transitions

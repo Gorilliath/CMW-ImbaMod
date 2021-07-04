@@ -84,6 +84,9 @@ event PostLogin(PlayerController NewPlayer)
 
     // Save original name if it hasn't already been saved
     `{GAMEMODE}PRI(NewPlayer.PlayerReplicationInfo).SaveOriginalName();
+
+    // Check if they are a whitelisted admin and log them in if they are
+    ImbaModAccessControl(AccessControl).LoginAdminIfWhitelisted(NewPlayer);
 }
 
 
@@ -1001,6 +1004,8 @@ DefaultProperties
     HUDType=class'`{GAMEMODE}HUD'
 
     PlayerReplicationInfoClass=class'`{GAMEMODE}PRI'
+
+    AccessControlClass=class'ImbaModAccessControl'
 
     //This is the name that shows in the server browser for this mod:
     ModDisplayString="ImbaMod"

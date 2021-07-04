@@ -10,6 +10,8 @@ var RankedAPI RankedAPI;
 var bool bLockedTeams;
 var array<string> LockedAgathaPlayerSteamIDs, LockedMasonPlayerSteamIDs;
 
+var globalconfig bool bRestartMapAfterEndGame;
+
 //SetGameType returns which game mode should be used for which map prefix
 //You can do whatever you want with this. You can even use Options
 // (options => the ?blah=blah things added after the map name when launching a server or in the map list)
@@ -207,6 +209,14 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
 
     if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
         RankedModeEndGame();
+}
+
+function string GetNextMap()
+{
+    if (bRestartMapAfterEndGame)
+        return "?restart";
+    else
+        return super.GetNextMap();
 }
 
 function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTeam, optional bool bForce = false)
@@ -542,6 +552,25 @@ function RenamePlayerViaSteamID64(string SteamID64, string name)
     {
         ChangeName(PC, name, true);
     }
+}
+
+exec function RestartMapAfterEndGame(bool bEnable)
+{
+    if (default.bRestartMapAfterEndGame == bEnable)
+        return;
+
+    S_BroadcastServerMessage("Admin RestartMapAfterEndGame" @ bEnable);
+
+    ConfigureRestartMapAfterEndGame(bEnable);
+}
+
+reliable server function ConfigureRestartMapAfterEndGame(bool bEnable)
+{
+    bRestartMapAfterEndGame = bEnable;
+    SaveConfig();
+
+    class'`{GAMEMODE}'.default.bRestartMapAfterEndGame = bEnable;
+    class'`{GAMEMODE}'.static.StaticSaveConfig();
 }
 
 

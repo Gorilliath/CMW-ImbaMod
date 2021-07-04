@@ -1,5 +1,10 @@
 # ImbaMod
 
+## 2.1.0
+
+* Server can be configured per game-mode to stay on the current map after endgame  
+  `Admin RestartMapAfterEndGame 1`
+
 ## 2.0.1
 
 * Removed redundant server IP logging in Ranked Mode

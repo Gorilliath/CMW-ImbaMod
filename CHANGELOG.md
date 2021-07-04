@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 2.2.0
+
+* Added admin whitelist (uses SteamID64)
+
 ## 2.1.0
 
 * Server can be configured per game-mode to stay on the current map after endgame  

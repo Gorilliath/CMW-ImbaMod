@@ -536,6 +536,11 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
             AOCPlayerController(Controller).NotifyCupidProgress();
     }
 
+    // Handle overkill damage for more reliable damage stats
+    // ActualActualDamage :^)
+    if (ActualDamage > Info.HitActor.Health)
+        ActualDamage = Info.HitActor.Health;
+
     // Fill out the rest of the values
     Info.HitActor.ReplicatedHitInfo = Info;
     Info.HitDamage = ActualDamage;

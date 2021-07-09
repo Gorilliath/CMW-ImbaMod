@@ -211,7 +211,7 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
     super.EndGame(Winner, Reason);
 
     if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
-        RankedModeEndGame();
+        SetTimer(3.0f, false, 'RankedModeEndGame');
 }
 
 function string GetNextMap()

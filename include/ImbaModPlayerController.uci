@@ -405,6 +405,33 @@ reliable client function ClientNotifyKilled(AOCPRI Killer, AOCPRI Killed, EAOCFa
     }
 }
 
+exec function ShowStats()
+{
+    local `{GAMEMODE}PRI PRI;
+
+    PRI = `{GAMEMODE}PRI(PlayerReplicationInfo);
+
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+    ClientDisplayConsoleMessage("Score:"   @ PRI.Score);
+    ClientDisplayConsoleMessage("Kills:"   @ PRI.NumKills);
+    ClientDisplayConsoleMessage("Deaths:"  @ PRI.Deaths);
+    ClientDisplayConsoleMessage("Assists:" @ PRI.NumAssists);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Damage dealt to enemies:"   @ PRI.EnemyDamageDealt);
+    ClientDisplayConsoleMessage("Damage dealt to teammates:" @ PRI.TeamDamageDealt);
+    ClientDisplayConsoleMessage("Damage received from all:"  @ PRI.DamageTaken);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Attacks:" @ PRI.NumAttacks);
+    ClientDisplayConsoleMessage("Hits:"    @ PRI.NumHits);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Objective points:" @ PRI.ObjPoints);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Decapitations:" @ PRI.NumDecaps);
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+}
+
 exec function ShowMatchupStats(optional string PlayerName) {
     local SPerPRIKillTracking log;
     local string name;

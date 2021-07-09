@@ -302,6 +302,22 @@ function StartSprintRecovery() {
     SetTimer(0.5f, false, 'EndSprintRecovery');*/
 }
 
+reliable server function AttackDeadPawn(HitInfo Info, int ID)
+{
+    HitDeadPawnRep.lID = ID;
+    HitDeadPawnRep.lHitInfo = Info;
+
+    //AOCPRI(PlayerReplicationInfo).NumHits += 1;
+
+    if (AOCMeleeWeapon(Info.Instigator.Weapon) != none)
+    {
+        AOCMeleeWeapon(Info.Instigator.Weapon).bHitPawn = true;
+    }
+
+    if (WorldInfo.NetMode == NM_STANDALONE || Worldinfo.NetMode == NM_ListenServer)
+        HandleDeadPawnGetHit();
+}
+
 reliable server function AttackOtherPawn(HitInfo Info, string DamageString, optional bool bCheckParryOnly = false, optional bool bBoxParrySuccess, optional bool bHitShield = false, optional SwingTypeImpactSound LastHit = ESWINGSOUND_Slash, optional bool bQuickKick = false) {
     local bool bParry;
     local float ActualDamage;

@@ -426,6 +426,9 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("Attacks:" @ PRI.NumAttacks);
     ClientDisplayConsoleMessage("Hits:"    @ PRI.NumHits);
     ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Parries:" @ PRI.Parries);
+    ClientDisplayConsoleMessage("Blocks:" @ PRI.Blocks);
+    ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Objective points:" @ PRI.ObjPoints);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Decapitations:" @ PRI.NumDecaps);

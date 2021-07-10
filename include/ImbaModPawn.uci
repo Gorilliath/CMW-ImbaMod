@@ -765,8 +765,11 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
             if(AOCPlayerController(Controller) != none)
                 AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
 
-            if(AOCPlayerController(Info.HitActor.Controller) != none)
+            if (AOCPlayerController(Info.HitActor.Controller) != none)
+            {
                 AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+                `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).Blocks += 1;
+            }
 
             if(bOutOfStamina)
                 return true;
@@ -812,8 +815,11 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
         if(AOCPlayerController(Controller) != none)
             AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
 
-        if(AOCPlayerController(Info.HitActor.Controller) != none)
+        if (AOCPlayerController(Info.HitActor.Controller) != none)
+        {
             AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+            `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).Parries += 1;
+        }
 
         if(bOutOfStamina)
             return true;

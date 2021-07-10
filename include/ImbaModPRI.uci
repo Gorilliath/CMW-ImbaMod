@@ -1,11 +1,28 @@
 var string OriginalName;
+var int TeamDamageTaken;
 
+
+replication
+{
+    if (bNetDirty && bNetOwner)
+        TeamDamageTaken;
+}
+
+
+function PreSeamlessTravelReset()
+{
+    super.PreSeamlessTravelReset();
+
+    TeamDamageTaken = 0;
+}
 
 function CopyProperties(PlayerReplicationInfo PRI)
 {
     super.CopyProperties(PRI);
 
     AOCPRI(PRI).bAdmin = bAdmin;
+
+    `{GAMEMODE}PRI(PRI).TeamDamageTaken = TeamDamageTaken;
 
     /*
         Preserve the original name which the player joined with.

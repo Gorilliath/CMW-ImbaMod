@@ -585,7 +585,12 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 
     // Replicate this information
     if (Info.HitActor.PlayerReplicationInfo != none) {
-        AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
+        // Non-team damage
+        if (!bSameTeam)
+            AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
+        // Team damage
+        else
+            `{GAMEMODE}PRI(Info.HitActor.PlayerReplicationInfo).TeamDamageTaken += ActualDamage;
         AOCPRI(Info.HitActor.PlayerReplicationInfo).bForceNetUpdate = TRUE;
     }
 

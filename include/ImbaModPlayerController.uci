@@ -418,9 +418,10 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("Deaths:"  @ PRI.Deaths);
     ClientDisplayConsoleMessage("Assists:" @ PRI.NumAssists);
     ClientDisplayConsoleMessage("");
-    ClientDisplayConsoleMessage("Damage dealt to enemies:"   @ PRI.EnemyDamageDealt);
-    ClientDisplayConsoleMessage("Damage dealt to teammates:" @ PRI.TeamDamageDealt);
-    ClientDisplayConsoleMessage("Damage received from all:"  @ PRI.DamageTaken);
+    ClientDisplayConsoleMessage("Damage dealt to enemies:"        @ PRI.EnemyDamageDealt);
+    ClientDisplayConsoleMessage("Damage dealt to teammates:"      @ PRI.TeamDamageDealt);
+    ClientDisplayConsoleMessage("Damage received from enemies:"   @ PRI.DamageTaken);
+    ClientDisplayConsoleMessage("Damage received from teammates:" @ PRI.TeamDamageTaken);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Attacks:" @ PRI.NumAttacks);
     ClientDisplayConsoleMessage("Hits:"    @ PRI.NumHits);

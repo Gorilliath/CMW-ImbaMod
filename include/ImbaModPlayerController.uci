@@ -425,13 +425,14 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Attacks:" @ PRI.NumAttacks);
     ClientDisplayConsoleMessage("Hits:"    @ PRI.NumHits);
+    ClientDisplayConsoleMessage("    of which were kicks:" @ PRI.Kicks);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Parries:" @ PRI.Parries);
-    ClientDisplayConsoleMessage("Blocks:" @ PRI.Blocks);
+    ClientDisplayConsoleMessage("Blocks:"  @ PRI.Blocks);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Objective points:" @ PRI.ObjPoints);
     ClientDisplayConsoleMessage("");
-    ClientDisplayConsoleMessage("Decapitations:" @ PRI.NumDecaps);
+    ClientDisplayConsoleMessage("Decapitations:"    @ PRI.NumDecaps);
     ClientDisplayConsoleMessage("--------------------------------------------------");
     ClientDisplayConsoleMessage("--------------------------------------------------");
 }

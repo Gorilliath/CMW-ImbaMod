@@ -418,11 +418,16 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("Deaths:"  @ PRI.Deaths);
     ClientDisplayConsoleMessage("Assists:" @ PRI.NumAssists);
     ClientDisplayConsoleMessage("");
-    ClientDisplayConsoleMessage("Damage:");
+    ClientDisplayConsoleMessage("Health Damage:");
     ClientDisplayConsoleMessage("    to enemies:"     @ PRI.EnemyDamageDealt);
     ClientDisplayConsoleMessage("    to teammates:"   @ PRI.TeamDamageDealt);
     ClientDisplayConsoleMessage("    from enemies:"   @ PRI.DamageTaken);
     ClientDisplayConsoleMessage("    from teammates:" @ PRI.TeamDamageTaken);
+    ClientDisplayConsoleMessage("Stamina Damage:");
+    ClientDisplayConsoleMessage("    to enemies:"     @ PRI.EnemyStaminaDamageDealt);
+    ClientDisplayConsoleMessage("    to teammates:"   @ PRI.TeamStaminaDamageDealt);
+    ClientDisplayConsoleMessage("    from enemies:"   @ PRI.EnemyStaminaDamageTaken);
+    ClientDisplayConsoleMessage("    from teammates:" @ PRI.TeamStaminaDamageTaken);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Feints:" @ PRI.Feints);
     ClientDisplayConsoleMessage("");
@@ -434,7 +439,7 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("Parries:" @ PRI.Parries);
     ClientDisplayConsoleMessage("Blocks:"  @ PRI.Blocks);
     ClientDisplayConsoleMessage("");
-    ClientDisplayConsoleMessage("Objective points:" @ PRI.ObjPoints);
+    ClientDisplayConsoleMessage("Objective Points:" @ PRI.ObjPoints);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Decapitations:"    @ PRI.NumDecaps);
     ClientDisplayConsoleMessage("--------------------------------------------------");

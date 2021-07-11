@@ -722,9 +722,14 @@ simulated function bool CheckProjectileParry(HitInfo Info) {
     return false;
 }
 
-simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, bool bCheckParryOnly, int ParryLR) {
+simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, bool bCheckParryOnly, int ParryLR)
+{
     local int StaminaDamage;
     local bool bOutOfStamina;
+    local bool bSameTeam;
+
+
+    bSameTeam = IsOnSameTeam(self, Info.HitActor);
 
     // Don't (non-shield) parry oil pots or smoke pots
     if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || ImbaModWeapon_SmokePot(Info.Instigator.Weapon) != none))
@@ -772,13 +777,29 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
             // Replicate and log the parry
             AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
 
-            if(AOCPlayerController(Controller) != none)
+            if (AOCPlayerController(Controller) != none)
+            {
                 AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
+
+                // Stamina damage dealt
+                if (!bSameTeam)
+                    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).EnemyStaminaDamageDealt += StaminaDamage;  // to enemy
+                else
+                    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).TeamStaminaDamageDealt += StaminaDamage;   // to team
+            }
 
             if (AOCPlayerController(Info.HitActor.Controller) != none)
             {
                 AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+
+                // Blocks
                 `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).Blocks += 1;
+
+                // Stamina damage received
+                if (!bSameTeam)
+                    `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).EnemyStaminaDamageTaken += StaminaDamage;  // from enemy
+                else
+                    `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).TeamStaminaDamageTaken += StaminaDamage;   // from team
             }
 
             if(bOutOfStamina)
@@ -822,13 +843,30 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
 
         // Replicate and log the parry
         AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
-        if(AOCPlayerController(Controller) != none)
+
+        if (AOCPlayerController(Controller) != none)
+        {
             AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
+
+            // Stamina damage dealt
+            if (!bSameTeam)
+                `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).EnemyStaminaDamageDealt += StaminaDamage;  // to enemy
+            else
+                `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).TeamStaminaDamageDealt += StaminaDamage;   // to team
+        }
 
         if (AOCPlayerController(Info.HitActor.Controller) != none)
         {
             AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+
+            // Parries
             `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).Parries += 1;
+
+            // Stamina damage received
+            if (!bSameTeam)
+                `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).EnemyStaminaDamageTaken += StaminaDamage;  // from enemy
+            else
+                `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).TeamStaminaDamageTaken += StaminaDamage;   // from team
         }
 
         if(bOutOfStamina)

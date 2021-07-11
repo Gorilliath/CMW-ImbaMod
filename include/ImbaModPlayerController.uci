@@ -424,6 +424,8 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("    from enemies:"   @ PRI.DamageTaken);
     ClientDisplayConsoleMessage("    from teammates:" @ PRI.TeamDamageTaken);
     ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Feints:" @ PRI.Feints);
+    ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Attacks:"          @ PRI.NumAttacks);
     ClientDisplayConsoleMessage("Hits:"             @ PRI.NumHits);
     ClientDisplayConsoleMessage("    light shoves:" @ PRI.LightKicks);
@@ -616,6 +618,17 @@ exec function Reload() {
 exec function PerformAim() {
     if (class<ImbaModWeapon_Crossbow>(Pawn.Weapon.Class) != none)
         StartFire(1);
+}
+
+reliable server function ServerPerformFeint()
+{
+    if (Pawn.Weapon.IsInState('Active') || Pawn.Weapon.IsInState('Feint'))
+        return;
+
+    AOCPawn(Pawn).OnActionInitiated(EACT_Feint);
+    AOCWeapon(Pawn.Weapon).DoFeintAttack();
+
+    `{GAMEMODE}PRI(PlayerReplicationInfo).Feints += 1;
 }
 
 

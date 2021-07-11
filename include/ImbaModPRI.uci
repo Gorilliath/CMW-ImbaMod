@@ -4,17 +4,20 @@ var int TeamDamageTaken,
         TeamStaminaDamageDealt,
         EnemyStaminaDamageTaken,
         TeamStaminaDamageTaken,
+        HealthRegenerated,
         Feints,
         LightKicks,
         HeavyKicks,
         Parries,
         Blocks;
+var float StaminaRegenerated;
 
 
 replication
 {
     if (bNetDirty && bNetOwner)
         TeamDamageTaken, EnemyStaminaDamageDealt, TeamStaminaDamageDealt, EnemyStaminaDamageTaken, TeamStaminaDamageTaken,
+        HealthRegenerated, StaminaRegenerated,
         Feints, LightKicks, HeavyKicks, Parries, Blocks;
 }
 
@@ -28,6 +31,8 @@ function PreSeamlessTravelReset()
     TeamStaminaDamageDealt = 0;
     EnemyStaminaDamageTaken = 0;
     TeamStaminaDamageTaken = 0;
+    HealthRegenerated = 0;
+    StaminaRegenerated = 0;
     Feints = 0;
     LightKicks = 0;
     HeavyKicks = 0;
@@ -46,6 +51,8 @@ function CopyProperties(PlayerReplicationInfo PRI)
     `{GAMEMODE}PRI(PRI).TeamStaminaDamageDealt = TeamStaminaDamageDealt;
     `{GAMEMODE}PRI(PRI).EnemyStaminaDamageTaken = EnemyStaminaDamageTaken;
     `{GAMEMODE}PRI(PRI).TeamStaminaDamageTaken = TeamStaminaDamageTaken;
+    `{GAMEMODE}PRI(PRI).HealthRegenerated = HealthRegenerated;
+    `{GAMEMODE}PRI(PRI).StaminaRegenerated = StaminaRegenerated;
     `{GAMEMODE}PRI(PRI).Feints = Feints;
     `{GAMEMODE}PRI(PRI).LightKicks = LightKicks;
     `{GAMEMODE}PRI(PRI).HeavyKicks = HeavyKicks;

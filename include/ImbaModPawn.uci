@@ -256,6 +256,8 @@ simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> Used
 }
 
 function RegenHealth() {
+    local int ActualHealthRegenerated;
+
     // No need to run this on the server
     if(Role != ROLE_Authority)
         return;
@@ -279,13 +281,18 @@ function RegenHealth() {
     }
 
     // Don't regen beyond the maximum health
-    if (Health != HealthMax)
+    if (Health < HealthMax)
+    {
+        ActualHealthRegenerated = (Health + HealAmount > HealthMax) ? (Health + HealAmount - HealthMax) : HealAmount;
+
         HealDamage(HealAmount, Controller, none);
+    }
 
     // Replicate this to other players
     if (PlayerReplicationInfo != none) {
         if (AOCPRI(PlayerReplicationInfo).CurrentHealth != Health)  {
             AOCPRI(PlayerReplicationInfo).CurrentHealth = Health;
+            `{GAMEMODE}PRI(PlayerReplicationInfo).HealthRegenerated += ActualHealthRegenerated;
             AOCPRI(PlayerReplicationInfo).bForceNetUpdate = true;
         }
     }
@@ -994,6 +1001,36 @@ simulated function StartStaminaRegenCooldown()
     
     bRegenStamina = false;
     SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
+}
+
+simulated function ResumeStaminaRegen()
+{
+    bRegenStamina = true;
+    if (Stamina <= 0)
+    {
+        Stamina = 1; // set to 1 to avoid shutting off the regen again in the Tick
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).StaminaRegenerated += 1;
+        AOCPRI(Controller.PlayerReplicationInfo).bForceNetUpdate = true;
+    }
+}
+
+simulated function RegenStamina()
+{
+    local float ActualStaminaRegenerated;
+
+    if (Weapon == none || !bRegenStamina || StateVariables.bIsSprinting)
+        return;
+
+    if (Stamina < MaxStamina && (Weapon.IsInState('Active') || Weapon.IsInState('BattleCry')) && PawnState != ESTATE_DODGE)
+    {
+        Stamina += 1.24f;
+        ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+
+        ActualStaminaRegenerated = (Stamina > MaxStamina) ? 1.24f - (Stamina - MaxStamina) : 1.24f;
+
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).StaminaRegenerated += ActualStaminaRegenerated;
+        AOCPRI(Controller.PlayerReplicationInfo).bForceNetUpdate = true;
+    }
 }
 
 simulated function bool ConsumeStamina( float Amount )

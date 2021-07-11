@@ -429,6 +429,9 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("    from enemies:"   @ PRI.EnemyStaminaDamageTaken);
     ClientDisplayConsoleMessage("    from teammates:" @ PRI.TeamStaminaDamageTaken);
     ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Health Regenerated:"  @ PRI.HealthRegenerated);
+    ClientDisplayConsoleMessage("Stamina Regenerated:" @ PRI.StaminaRegenerated);
+    ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Feints:" @ PRI.Feints);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Attacks:"          @ PRI.NumAttacks);

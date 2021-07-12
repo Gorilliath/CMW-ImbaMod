@@ -6,6 +6,8 @@ var int TeamDamageTaken,
         TeamStaminaDamageTaken,
         HealthRegenerated,
         Feints,
+        MeleeHits,
+        ProjectileHits,
         LightShoveHits,
         HeavyShoveHits,
         Parries,
@@ -18,7 +20,7 @@ replication
     if (bNetDirty && bNetOwner)
         TeamDamageTaken, EnemyStaminaDamageDealt, TeamStaminaDamageDealt, EnemyStaminaDamageTaken, TeamStaminaDamageTaken,
         HealthRegenerated, StaminaRegenerated,
-        Feints, LightShoveHits, HeavyShoveHits, Parries, Blocks;
+        Feints, MeleeHits, ProjectileHits, LightShoveHits, HeavyShoveHits, Parries, Blocks;
 }
 
 
@@ -34,6 +36,8 @@ function PreSeamlessTravelReset()
     HealthRegenerated = 0;
     StaminaRegenerated = 0;
     Feints = 0;
+    MeleeHits = 0;
+    ProjectileHits = 0;
     LightShoveHits = 0;
     HeavyShoveHits = 0;
     Parries = 0;
@@ -54,6 +58,8 @@ function CopyProperties(PlayerReplicationInfo PRI)
     `{GAMEMODE}PRI(PRI).HealthRegenerated = HealthRegenerated;
     `{GAMEMODE}PRI(PRI).StaminaRegenerated = StaminaRegenerated;
     `{GAMEMODE}PRI(PRI).Feints = Feints;
+    `{GAMEMODE}PRI(PRI).MeleeHits = MeleeHits;
+    `{GAMEMODE}PRI(PRI).ProjectileHits = ProjectileHits;
     `{GAMEMODE}PRI(PRI).LightShoveHits = LightShoveHits;
     `{GAMEMODE}PRI(PRI).HeavyShoveHits = HeavyShoveHits;
     `{GAMEMODE}PRI(PRI).Parries = Parries;

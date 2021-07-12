@@ -576,8 +576,23 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
     // Track statistics for each weapon
     if (PRI != none) {
 
+        // Melee hits
+        if (!Info.DamageType.default.bIsProjectile &&
+            (Info.AttackType == Attack_Slash ||
+            Info.AttackType == Attack_Overhead ||
+            Info.AttackType == Attack_Stab ||
+            Info.AttackType == Attack_AltSlash ||
+            Info.AttackType == Attack_AltOverhead)
+        ) {
+            `{GAMEMODE}PRI(PRI).MeleeHits += 1;
+        }
+        // Projectiles
+        else if (Info.DamageType.default.bIsProjectile)
+        {
+            `{GAMEMODE}PRI(PRI).ProjectileHits += 1;
+        }
         // Kicks
-        if (Info.AttackType == Attack_Shove)
+        else if (Info.AttackType == Attack_Shove)
         {
             if (bQuickKick)
                 `{GAMEMODE}PRI(PRI).LightShoveHits += 1;

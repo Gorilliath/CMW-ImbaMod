@@ -580,9 +580,9 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
         if (Info.AttackType == Attack_Shove)
         {
             if (bQuickKick)
-                `{GAMEMODE}PRI(PRI).LightKicks += 1;
+                `{GAMEMODE}PRI(PRI).LightShoveHits += 1;
             else
-                `{GAMEMODE}PRI(PRI).HeavyKicks += 1;
+                `{GAMEMODE}PRI(PRI).HeavyShoveHits += 1;
         }
 
         // Register non-team damage

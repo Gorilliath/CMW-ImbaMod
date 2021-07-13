@@ -447,6 +447,10 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("Parries:" @ PRI.Parries);
     ClientDisplayConsoleMessage("Blocks:"  @ PRI.Blocks);
     ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Crouches:" @ PRI.Crouches);
+    ClientDisplayConsoleMessage("Jumps:"    @ PRI.Jumps);
+    ClientDisplayConsoleMessage("Dodges:"   @ PRI.Dodges);
+    ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Objective Points:" @ PRI.ObjPoints);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Decapitations:"    @ PRI.NumDecaps);

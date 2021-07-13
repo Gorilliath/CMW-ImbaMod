@@ -454,6 +454,7 @@ exec function ShowStats()
     ClientDisplayConsoleMessage("Objective Points:" @ PRI.ObjPoints);
     ClientDisplayConsoleMessage("");
     ClientDisplayConsoleMessage("Decapitations:"    @ PRI.NumDecaps);
+    ClientDisplayConsoleMessage("Chatter:"    @ PRI.Chatter);
     ClientDisplayConsoleMessage("--------------------------------------------------");
     ClientDisplayConsoleMessage("--------------------------------------------------");
 }

@@ -1217,6 +1217,21 @@ function ToggleSprint(bool bSprint, optional bool bForce)
     StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;
 }
 
+reliable server function s_PlayVO(SoundCue voSound)
+{
+    if (voSound == PawnCharacter.default.MobileBattleCry)
+    {
+        OnActionSucceeded(EACT_Battlecry);
+    }
+
+    VOSoundComp.SoundCue = voSound;
+    replicatedSoundToStop.soundToStop = VOSoundComp.SoundCue.Name;
+    replicatedSoundToStop.soundOwnerNetTag = PlayerReplicationInfo.PlayerID;
+    PlaySound(voSound, false, false, true);
+
+    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).Chatter += 1;
+}
+
 
 DefaultProperties
 {

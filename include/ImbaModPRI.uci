@@ -14,7 +14,8 @@ var int TeamDamageTaken,
         Blocks,
         Crouches,
         Jumps,
-        Dodges;
+        Dodges,
+        Chatter;
 var float StaminaRegenerated;
 
 
@@ -25,7 +26,8 @@ replication
         HealthRegenerated, StaminaRegenerated,
         Feints, MeleeHits, ProjectileHits, LightShoveHits, HeavyShoveHits,
         Parries, Blocks,
-        Crouches, Jumps, Dodges;
+        Crouches, Jumps, Dodges,
+        Chatter;
 }
 
 
@@ -50,6 +52,7 @@ function PreSeamlessTravelReset()
     Crouches = 0;
     Jumps = 0;
     Dodges = 0;
+    Chatter = 0;
 }
 
 function CopyProperties(PlayerReplicationInfo PRI)
@@ -75,6 +78,7 @@ function CopyProperties(PlayerReplicationInfo PRI)
     `{GAMEMODE}PRI(PRI).Crouches = Crouches;
     `{GAMEMODE}PRI(PRI).Jumps = Jumps;
     `{GAMEMODE}PRI(PRI).Dodges = Dodges;
+    `{GAMEMODE}PRI(PRI).Chatter = Chatter;
 
     /*
         Preserve the original name which the player joined with.

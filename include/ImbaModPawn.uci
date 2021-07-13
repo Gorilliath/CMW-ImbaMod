@@ -1052,26 +1052,50 @@ simulated function RegenStamina()
 
 simulated function bool ConsumeStamina( float Amount )
 {
+    local float ActualAmount;
+
+
     if (bInfiniteStamina)
         return true;
-    
+
+    if (Amount > 0.0f)
+    {
+        ActualAmount = Amount > Stamina ? Stamina : Amount;
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).AllStaminaConsumed += ActualAmount;
+    }
+
     Stamina -= Amount;
-        
-    if (Amount > 0.f)
+
+    if (Amount > 0.0f)
         StartStaminaRegenCooldown();
 
-    ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
-
-    if (Stamina < 0.0f) {
+    if (Stamina < 0.0f)
+    {
         Stamina = 0.0f;
         ReplicatedStamina = 0;
         return false;
     }
-    else if (Stamina > MaxStamina) {
+    else if (Stamina > MaxStamina)
+    {
         Stamina = MaxStamina;
     }
 
+    ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+
     return true;
+}
+
+event TakeDamage(int Damage, Controller InstigatedBy, vector HitLocation, vector Momentum, class<DamageType> DamageType, optional TraceHitInfo myHitInfo, optional Actor DamageCauser)
+{
+    local int ActualDamage;
+
+    if (Damage > 0)
+    {
+        ActualDamage = Damage > Health ? Health : Damage;
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).AllDamageTaken += ActualDamage;
+    }
+
+    super.TakeDamage(Damage, InstigatedBy, HitLocation, Momentum, DamageType, myHitInfo, DamageCauser);
 }
 
 reliable server function ServerPerformCrouch(bool bCrouch)

@@ -1,5 +1,6 @@
 var string OriginalName;
-var int TeamDamageTaken,
+var int AllDamageTaken,
+        TeamDamageTaken,
         EnemyStaminaDamageDealt,
         TeamStaminaDamageDealt,
         EnemyStaminaDamageTaken,
@@ -16,13 +17,14 @@ var int TeamDamageTaken,
         Jumps,
         Dodges,
         Chatter;
-var float StaminaRegenerated;
+var float AllStaminaConsumed,
+          StaminaRegenerated;
 
 
 replication
 {
     if (bNetDirty && bNetOwner)
-        TeamDamageTaken, EnemyStaminaDamageDealt, TeamStaminaDamageDealt, EnemyStaminaDamageTaken, TeamStaminaDamageTaken,
+        AllDamageTaken, AllStaminaConsumed, TeamDamageTaken, EnemyStaminaDamageDealt, TeamStaminaDamageDealt, EnemyStaminaDamageTaken, TeamStaminaDamageTaken,
         HealthRegenerated, StaminaRegenerated,
         Feints, MeleeHits, ProjectileHits, LightShoveHits, HeavyShoveHits,
         Parries, Blocks,
@@ -35,6 +37,8 @@ function PreSeamlessTravelReset()
 {
     super.PreSeamlessTravelReset();
 
+    AllDamageTaken = 0;
+    AllStaminaConsumed = 0;
     TeamDamageTaken = 0;
     EnemyStaminaDamageDealt = 0;
     TeamStaminaDamageDealt = 0;
@@ -61,6 +65,8 @@ function CopyProperties(PlayerReplicationInfo PRI)
 
     AOCPRI(PRI).bAdmin = bAdmin;
 
+    `{GAMEMODE}PRI(PRI).AllDamageTaken = AllDamageTaken;
+    `{GAMEMODE}PRI(PRI).AllStaminaConsumed = AllStaminaConsumed;
     `{GAMEMODE}PRI(PRI).TeamDamageTaken = TeamDamageTaken;
     `{GAMEMODE}PRI(PRI).EnemyStaminaDamageDealt = EnemyStaminaDamageDealt;
     `{GAMEMODE}PRI(PRI).TeamStaminaDamageDealt = TeamStaminaDamageDealt;

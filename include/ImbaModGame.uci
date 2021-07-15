@@ -828,13 +828,9 @@ function RankedModeEndGame()
                 teamTwoScore,
                 teamTwoProgress;
     local AOCPlayerController PC;
-    local AOCPRI PRI;
+    local `{GAMEMODE}PRI PRI;
     local int winner,
-              i,
-              playerScore,
-              playerKills,
-              playerDeaths,
-              playerAssists;
+              i;
 
 
     jMatchResponseData = class'JsonObject'.static.DecodeJson(sRankedModeMatchResponseData);
@@ -880,31 +876,58 @@ function RankedModeEndGame()
     // Extend the player objects with their respective KPIs
     for (i = 0; i < jTeamOnePlayers.ObjectArray.Length; i++)
     {
-        playerScore = 0;
-        playerKills = 0;
-        playerDeaths = 0;
-        playerAssists = 0;
-
         jPlayer = jTeamOnePlayers.ObjectArray[i];
+
         PC = GetControllerViaSteamID64(jPlayer.GetStringValue("_id"));
+        if (PC == none)
+            continue;
 
-        // Get their game KPIs
-        if (PC != none)
-        {
-            PRI = AOCPRI(PC.PlayerReplicationInfo);
-
-            playerScore = PRI.Score;
-            playerKills = PRI.NumKills;
-            playerDeaths = PRI.Deaths;
-            playerAssists = PRI.NumAssists;
-        }
+        PRI = `{GAMEMODE}PRI(PC.PlayerReplicationInfo);
+        if (PRI == none)
+            continue;
 
         // Create KPI object
         jPlayerKPI = new class'JsonObject';
-        jPlayerKPI.SetIntValue("score", playerScore);
-        jPlayerKPI.SetIntValue("kills", playerKills);
-        jPlayerKPI.SetIntValue("deaths", playerDeaths);
-        jPlayerKPI.SetIntValue("assists", playerAssists);
+        jPlayerKPI.SetIntValue("score",   PRI.Score);
+        jPlayerKPI.SetIntValue("kills",   PRI.NumKills);
+        jPlayerKPI.SetIntValue("deaths",  PRI.Deaths);
+        jPlayerKPI.SetIntValue("assists", PRI.NumAssists);
+
+        jPlayerKPI.SetIntValue("healthRegenerated",             PRI.HealthRegenerated);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromAll",   PRI.AllDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromEnemy", PRI.DamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromTeam",  PRI.TeamDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageDealtToEnemy",      PRI.EnemyDamageDealt);
+        jPlayerKPI.SetIntValue("healthDamageDealtToTeam",       PRI.TeamDamageDealt);
+
+        jPlayerKPI.SetFloatValue("staminaRegenerated",           PRI.StaminaRegenerated);
+        jPlayerKPI.SetFloatValue("staminaDamageReceivedFromAll", PRI.AllStaminaConsumed);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromEnemy", PRI.EnemyStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromTeam",  PRI.TeamStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToEnemy",      PRI.EnemyStaminaDamageDealt);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToTeam",       PRI.TeamStaminaDamageDealt);
+
+        jPlayerKPI.SetIntValue("feints", PRI.Feints);
+
+        jPlayerKPI.SetIntValue("attacks",           PRI.NumAttacks);
+        jPlayerKPI.SetIntValue("successfulAttacks", PRI.NumHits);
+
+        jPlayerKPI.SetIntValue("meleeHits",      PRI.MeleeHits);
+        jPlayerKPI.SetIntValue("projectileHits", PRI.ProjectileHits);
+        jPlayerKPI.SetIntValue("lightShoveHits", PRI.LightShoveHits);
+        jPlayerKPI.SetIntValue("heavyShoveHits", PRI.HeavyShoveHits);
+
+        jPlayerKPI.SetIntValue("parries", PRI.Parries);
+        jPlayerKPI.SetIntValue("blocks",  PRI.Blocks);
+
+        jPlayerKPI.SetIntValue("crouches", PRI.Crouches);
+        jPlayerKPI.SetIntValue("jumps",    PRI.Jumps);
+        jPlayerKPI.SetIntValue("dodges",   PRI.Dodges);
+
+        jPlayerKPI.SetIntValue("objectivePoints", PRI.ObjPoints);
+
+        jPlayerKPI.SetIntValue("decapitations", PRI.NumDecaps);
+        jPlayerKPI.SetIntValue("chatter",       PRI.Chatter);
 
         // Extend original object
         jTeamOnePlayers.ObjectArray[i].SetObject("kpi", jPlayerKPI);
@@ -912,29 +935,57 @@ function RankedModeEndGame()
 
     for (i = 0; i < jTeamTwoPlayers.ObjectArray.Length; i++)
     {
-        playerScore = 0;
-        playerKills = 0;
-        playerDeaths = 0;
-        playerAssists = 0;
-
         jPlayer = jTeamTwoPlayers.ObjectArray[i];
+
         PC = GetControllerViaSteamID64(jPlayer.GetStringValue("_id"));
+        if (PC == none)
+            continue;
 
-        if (PC != none)
-        {
-            PRI = AOCPRI(PC.PlayerReplicationInfo);
-
-            playerScore = PRI.Score;
-            playerKills = PRI.NumKills;
-            playerDeaths = PRI.Deaths;
-            playerAssists = PRI.NumAssists;
-        }
+        PRI = `{GAMEMODE}PRI(PC.PlayerReplicationInfo);
+        if (PRI == none)
+            continue;
 
         jPlayerKPI = new class'JsonObject';
-        jPlayerKPI.SetIntValue("score", playerScore);
-        jPlayerKPI.SetIntValue("kills", playerKills);
-        jPlayerKPI.SetIntValue("deaths", playerDeaths);
-        jPlayerKPI.SetIntValue("assists", playerAssists);
+        jPlayerKPI.SetIntValue("score",   PRI.Score);
+        jPlayerKPI.SetIntValue("kills",   PRI.NumKills);
+        jPlayerKPI.SetIntValue("deaths",  PRI.Deaths);
+        jPlayerKPI.SetIntValue("assists", PRI.NumAssists);
+
+        jPlayerKPI.SetIntValue("healthRegenerated",             PRI.HealthRegenerated);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromAll",   PRI.AllDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromEnemy", PRI.DamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromTeam",  PRI.TeamDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageDealtToEnemy",      PRI.EnemyDamageDealt);
+        jPlayerKPI.SetIntValue("healthDamageDealtToTeam",       PRI.TeamDamageDealt);
+
+        jPlayerKPI.SetFloatValue("staminaRegenerated",           PRI.StaminaRegenerated);
+        jPlayerKPI.SetFloatValue("staminaDamageReceivedFromAll", PRI.AllStaminaConsumed);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromEnemy", PRI.EnemyStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromTeam",  PRI.TeamStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToEnemy",      PRI.EnemyStaminaDamageDealt);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToTeam",       PRI.TeamStaminaDamageDealt);
+
+        jPlayerKPI.SetIntValue("feints", PRI.Feints);
+
+        jPlayerKPI.SetIntValue("attacks",           PRI.NumAttacks);
+        jPlayerKPI.SetIntValue("successfulAttacks", PRI.NumHits);
+
+        jPlayerKPI.SetIntValue("meleeHits",      PRI.MeleeHits);
+        jPlayerKPI.SetIntValue("projectileHits", PRI.ProjectileHits);
+        jPlayerKPI.SetIntValue("lightShoveHits", PRI.LightShoveHits);
+        jPlayerKPI.SetIntValue("heavyShoveHits", PRI.HeavyShoveHits);
+
+        jPlayerKPI.SetIntValue("parries", PRI.Parries);
+        jPlayerKPI.SetIntValue("blocks",  PRI.Blocks);
+
+        jPlayerKPI.SetIntValue("crouches", PRI.Crouches);
+        jPlayerKPI.SetIntValue("jumps",    PRI.Jumps);
+        jPlayerKPI.SetIntValue("dodges",   PRI.Dodges);
+
+        jPlayerKPI.SetIntValue("objectivePoints", PRI.ObjPoints);
+
+        jPlayerKPI.SetIntValue("decapitations", PRI.NumDecaps);
+        jPlayerKPI.SetIntValue("chatter",       PRI.Chatter);
 
         jTeamTwoPlayers.ObjectArray[i].SetObject("kpi", jPlayerKPI);
     }

@@ -414,6 +414,13 @@ function UpdateVoteTally()
         EFAC_ALL);
 }
 
+function CancelVote()
+{
+    ClearTimer('EndCustomVote');
+
+    super.CancelVote();
+}
+
 
 Auto State AOCPreRound
 {

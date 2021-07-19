@@ -1,3 +1,14 @@
+//SetGameType returns which game mode should be used for which map prefix
+//You can do whatever you want with this. You can even use Options
+// (options => the ?blah=blah things added after the map name when launching a server or in the map list)
+//to add even more variety. See the ParseOption function in Src\Engine\Classes\GameInfo.uc
+var config array<GameTypePrefix> SDKPrefixes;
+
+var bool bLockedTeams;
+var array<string> LockedAgathaPlayerSteamIDs, LockedMasonPlayerSteamIDs;
+
+var globalconfig bool bRestartMapAfterEndGame;
+
 // Ranked Mode
 var globalconfig bool bRankedMode;
 var globalconfig int iRankedTeamSize;
@@ -6,17 +17,6 @@ var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;
 var string sRankedModeMatchResponseData;
 var RankedAPI RankedAPI;
-
-var bool bLockedTeams;
-var array<string> LockedAgathaPlayerSteamIDs, LockedMasonPlayerSteamIDs;
-
-var globalconfig bool bRestartMapAfterEndGame;
-
-//SetGameType returns which game mode should be used for which map prefix
-//You can do whatever you want with this. You can even use Options
-// (options => the ?blah=blah things added after the map name when launching a server or in the map list)
-//to add even more variety. See the ParseOption function in Src\Engine\Classes\GameInfo.uc
-var config array<GameTypePrefix> SDKPrefixes;
 
 
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)

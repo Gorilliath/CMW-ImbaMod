@@ -1,11 +1,90 @@
 var string OriginalName;
+var int AllDamageTaken,
+        TeamDamageTaken,
+        EnemyStaminaDamageDealt,
+        TeamStaminaDamageDealt,
+        EnemyStaminaDamageTaken,
+        TeamStaminaDamageTaken,
+        HealthRegenerated,
+        Feints,
+        MeleeHits,
+        ProjectileHits,
+        LightShoveHits,
+        HeavyShoveHits,
+        Parries,
+        Blocks,
+        Crouches,
+        Jumps,
+        Dodges,
+        Chatter;
+var float AllStaminaConsumed,
+          StaminaRegenerated;
 
+
+replication
+{
+    if (bNetDirty && bNetOwner)
+        AllDamageTaken, AllStaminaConsumed, TeamDamageTaken, EnemyStaminaDamageDealt, TeamStaminaDamageDealt, EnemyStaminaDamageTaken, TeamStaminaDamageTaken,
+        HealthRegenerated, StaminaRegenerated,
+        Feints, MeleeHits, ProjectileHits, LightShoveHits, HeavyShoveHits,
+        Parries, Blocks,
+        Crouches, Jumps, Dodges,
+        Chatter;
+}
+
+
+function PreSeamlessTravelReset()
+{
+    super.PreSeamlessTravelReset();
+
+    AllDamageTaken = 0;
+    AllStaminaConsumed = 0;
+    TeamDamageTaken = 0;
+    EnemyStaminaDamageDealt = 0;
+    TeamStaminaDamageDealt = 0;
+    EnemyStaminaDamageTaken = 0;
+    TeamStaminaDamageTaken = 0;
+    HealthRegenerated = 0;
+    StaminaRegenerated = 0;
+    Feints = 0;
+    MeleeHits = 0;
+    ProjectileHits = 0;
+    LightShoveHits = 0;
+    HeavyShoveHits = 0;
+    Parries = 0;
+    Blocks = 0;
+    Crouches = 0;
+    Jumps = 0;
+    Dodges = 0;
+    Chatter = 0;
+}
 
 function CopyProperties(PlayerReplicationInfo PRI)
 {
     super.CopyProperties(PRI);
 
     AOCPRI(PRI).bAdmin = bAdmin;
+
+    `{GAMEMODE}PRI(PRI).AllDamageTaken = AllDamageTaken;
+    `{GAMEMODE}PRI(PRI).AllStaminaConsumed = AllStaminaConsumed;
+    `{GAMEMODE}PRI(PRI).TeamDamageTaken = TeamDamageTaken;
+    `{GAMEMODE}PRI(PRI).EnemyStaminaDamageDealt = EnemyStaminaDamageDealt;
+    `{GAMEMODE}PRI(PRI).TeamStaminaDamageDealt = TeamStaminaDamageDealt;
+    `{GAMEMODE}PRI(PRI).EnemyStaminaDamageTaken = EnemyStaminaDamageTaken;
+    `{GAMEMODE}PRI(PRI).TeamStaminaDamageTaken = TeamStaminaDamageTaken;
+    `{GAMEMODE}PRI(PRI).HealthRegenerated = HealthRegenerated;
+    `{GAMEMODE}PRI(PRI).StaminaRegenerated = StaminaRegenerated;
+    `{GAMEMODE}PRI(PRI).Feints = Feints;
+    `{GAMEMODE}PRI(PRI).MeleeHits = MeleeHits;
+    `{GAMEMODE}PRI(PRI).ProjectileHits = ProjectileHits;
+    `{GAMEMODE}PRI(PRI).LightShoveHits = LightShoveHits;
+    `{GAMEMODE}PRI(PRI).HeavyShoveHits = HeavyShoveHits;
+    `{GAMEMODE}PRI(PRI).Parries = Parries;
+    `{GAMEMODE}PRI(PRI).Blocks = Blocks;
+    `{GAMEMODE}PRI(PRI).Crouches = Crouches;
+    `{GAMEMODE}PRI(PRI).Jumps = Jumps;
+    `{GAMEMODE}PRI(PRI).Dodges = Dodges;
+    `{GAMEMODE}PRI(PRI).Chatter = Chatter;
 
     /*
         Preserve the original name which the player joined with.

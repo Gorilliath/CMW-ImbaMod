@@ -1,5 +1,35 @@
 # ImbaMod
 
+## 2.3.0
+
+* Fixed vanilla stats  
+  - Damage  
+  - Successful attacks  
+* Added new stats  
+  - Health regenerated  
+  - Health damage received from all sources  
+  - Health damage received from teammates  
+  - Stamina regenerated  
+  - Stamina consumption from all sources  
+  - Stamina consumed from parrying/blocking enemies  
+  - Stamina consumed from parrying/blocking teammates  
+  - Stamina damage dealt to enemies  
+  - Stamina damage dealt to teammates  
+  - Feints  
+  - Melee hits  
+  - Projectile hits  
+  - Light shove hits  
+  - Heavy shove hits  
+  - Parries  
+  - Blocks  
+  - Crouches  
+  - Jumps  
+  - Dodges  
+  - Chatter  
+* Added client command `ShowStats` to print stats to console  
+* All stats are now sent to RankedMode remote service  
+* RankedMode endgame request to send match data slightly delayed to allow all stats to be updated
+
 ## 2.2.0
 
 * Added admin whitelist (uses SteamID64)

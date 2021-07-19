@@ -405,6 +405,66 @@ reliable client function ClientNotifyKilled(AOCPRI Killer, AOCPRI Killed, EAOCFa
     }
 }
 
+exec function ShowStats()
+{
+    local `{GAMEMODE}PRI PRI;
+
+    PRI = `{GAMEMODE}PRI(PlayerReplicationInfo);
+
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+    ClientDisplayConsoleMessage("Score:"   @ PRI.Score);
+    ClientDisplayConsoleMessage("Kills:"   @ PRI.NumKills);
+    ClientDisplayConsoleMessage("Deaths:"  @ PRI.Deaths);
+    ClientDisplayConsoleMessage("Assists:" @ PRI.NumAssists);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Health:");
+    ClientDisplayConsoleMessage("    Regenerated:"        @ PRI.HealthRegenerated);
+    ClientDisplayConsoleMessage("    Damage Received:");
+    ClientDisplayConsoleMessage("        from all:"       @ PRI.AllDamageTaken);
+    ClientDisplayConsoleMessage("        from enemies:"   @ PRI.DamageTaken);
+    ClientDisplayConsoleMessage("        from teammates:" @ PRI.TeamDamageTaken);
+    ClientDisplayConsoleMessage("    Damage Dealt:");
+    ClientDisplayConsoleMessage("        to enemies:"     @ PRI.EnemyDamageDealt);
+    ClientDisplayConsoleMessage("        to teammates:"   @ PRI.TeamDamageDealt);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Stamina:");
+    ClientDisplayConsoleMessage("    Regenerated:"        @ PRI.StaminaRegenerated);
+    ClientDisplayConsoleMessage("    Damage Received:");
+    ClientDisplayConsoleMessage("        from all:"       @ PRI.AllStaminaConsumed);
+    ClientDisplayConsoleMessage("        from enemies:"   @ PRI.EnemyStaminaDamageTaken);
+    ClientDisplayConsoleMessage("        from teammates:" @ PRI.TeamStaminaDamageTaken);
+    ClientDisplayConsoleMessage("    Damage Dealt:");
+    ClientDisplayConsoleMessage("        to enemies:"     @ PRI.EnemyStaminaDamageDealt);
+    ClientDisplayConsoleMessage("        to teammates:"   @ PRI.TeamStaminaDamageDealt);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Feints:" @ PRI.Feints);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Attacks:");
+    ClientDisplayConsoleMessage("    Total:"      @ PRI.NumAttacks);
+    ClientDisplayConsoleMessage("    Successful:" @ PRI.NumHits);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Hits:");
+    ClientDisplayConsoleMessage("    Melee:"       @ PRI.MeleeHits);
+    ClientDisplayConsoleMessage("    Projectile:"  @ PRI.ProjectileHits);
+    ClientDisplayConsoleMessage("    Light Shove:" @ PRI.LightShoveHits);
+    ClientDisplayConsoleMessage("    Heavy Shove:" @ PRI.HeavyShoveHits);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Parries:" @ PRI.Parries);
+    ClientDisplayConsoleMessage("Blocks:"  @ PRI.Blocks);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Crouches:" @ PRI.Crouches);
+    ClientDisplayConsoleMessage("Jumps:"    @ PRI.Jumps);
+    ClientDisplayConsoleMessage("Dodges:"   @ PRI.Dodges);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Objective Points:" @ PRI.ObjPoints);
+    ClientDisplayConsoleMessage("");
+    ClientDisplayConsoleMessage("Decapitations:"    @ PRI.NumDecaps);
+    ClientDisplayConsoleMessage("Chatter:"    @ PRI.Chatter);
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+    ClientDisplayConsoleMessage("--------------------------------------------------");
+}
+
 exec function ShowMatchupStats(optional string PlayerName) {
     local SPerPRIKillTracking log;
     local string name;
@@ -582,6 +642,17 @@ exec function Reload() {
 exec function PerformAim() {
     if (class<ImbaModWeapon_Crossbow>(Pawn.Weapon.Class) != none)
         StartFire(1);
+}
+
+reliable server function ServerPerformFeint()
+{
+    if (Pawn.Weapon.IsInState('Active') || Pawn.Weapon.IsInState('Feint'))
+        return;
+
+    AOCPawn(Pawn).OnActionInitiated(EACT_Feint);
+    AOCWeapon(Pawn.Weapon).DoFeintAttack();
+
+    `{GAMEMODE}PRI(PlayerReplicationInfo).Feints += 1;
 }
 
 

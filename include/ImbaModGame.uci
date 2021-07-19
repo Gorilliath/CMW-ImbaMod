@@ -108,6 +108,51 @@ function GenericPlayerInitialization(Controller C)
     }
 }
 
+function bool FindInactivePRI(PlayerController PC)
+{
+    local bool bIsConsole;
+    local string NewNetworkAddress;
+    local int i;
+    local PlayerReplicationInfo OldPRI, CurrentPRI;
+
+
+    if (PC.PlayerReplicationInfo.bOnlySpectator)
+    {
+        return false;
+    }
+
+    bIsConsole = WorldInfo.IsConsoleBuild();
+    NewNetworkAddress = PC.PlayerReplicationInfo.SavedNetworkAddress;
+
+    for (i = 0; i < InactivePRIArray.Length; i++)
+    {
+        CurrentPRI = InactivePRIArray[i];
+
+        if ((CurrentPRI == None) || CurrentPRI.bDeleteMe)
+        {
+            InactivePRIArray.Remove(i, 1);
+            i--;
+        }
+        else if ((bIsConsole && CurrentPRI.UniqueId == PC.PlayerReplicationInfo.UniqueId) ||
+                 (!bIsConsole && CurrentPRI.SavedNetworkAddress ~= NewNetworkAddress))
+        {
+            // found it!
+            OldPRI = PC.PlayerReplicationInfo;
+            PC.PlayerReplicationInfo = CurrentPRI;
+            PC.PlayerReplicationInfo.SetOwner(PC);
+            PC.PlayerReplicationInfo.RemoteRole = ROLE_SimulatedProxy;
+            PC.PlayerReplicationInfo.Lifespan = 0;
+            OverridePRI(PC, OldPRI);
+            WorldInfo.GRI.AddPRI(PC.PlayerReplicationInfo);
+            InactivePRIArray.Remove(i, 1);
+            OldPRI.bIsInactive = true;
+            OldPRI.Destroy();
+            return true;
+        }
+    }
+    return false;
+}
+
 function Logout(Controller Exiting)
 {
     super.Logout(Exiting);
@@ -206,12 +251,29 @@ function bool ShouldCountDown()
     }
 }
 
+function StartRound()
+{
+    local AOCPlayerController PC;
+
+     // Reset everyone's stats before starting the game for the first time
+    if (bBeforeFirstRound)
+    {
+        foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+        {
+            AOCPRI(PC.PlayerReplicationInfo).PreSeamlessTravelReset();
+            AOCPRI(PC.PlayerReplicationInfo).bNetDirty = true;
+        }
+    }
+
+    super.StartRound();
+}
+
 function EndGame(PlayerReplicationInfo Winner, string Reason)
 {
     super.EndGame(Winner, Reason);
 
     if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
-        RankedModeEndGame();
+        SetTimer(3.0f, false, 'RankedModeEndGame');
 }
 
 function string GetNextMap()
@@ -311,6 +373,9 @@ function RequestJoinClass(AOCPlayerController inController, EAOCFaction inTeam, 
     if (!bForce)
         inController.Response_JoinClass(inClass, false);
 }
+
+// Deprecated
+function AdminTournamentMode(bool bEnable){}
 
 
 Auto State AOCPreRound
@@ -576,10 +641,6 @@ reliable server function ConfigureRestartMapAfterEndGame(bool bEnable)
     class'`{GAMEMODE}'.static.StaticSaveConfig();
 }
 
-
-// Deprecated
-function AdminTournamentMode(bool bEnable){}
-
 exec function TournamentMode(bool bEnable)
 {
     if (default.bTournamentMode == bEnable)
@@ -811,13 +872,9 @@ function RankedModeEndGame()
                 teamTwoScore,
                 teamTwoProgress;
     local AOCPlayerController PC;
-    local AOCPRI PRI;
+    local `{GAMEMODE}PRI PRI;
     local int winner,
-              i,
-              playerScore,
-              playerKills,
-              playerDeaths,
-              playerAssists;
+              i;
 
 
     jMatchResponseData = class'JsonObject'.static.DecodeJson(sRankedModeMatchResponseData);
@@ -863,31 +920,58 @@ function RankedModeEndGame()
     // Extend the player objects with their respective KPIs
     for (i = 0; i < jTeamOnePlayers.ObjectArray.Length; i++)
     {
-        playerScore = 0;
-        playerKills = 0;
-        playerDeaths = 0;
-        playerAssists = 0;
-
         jPlayer = jTeamOnePlayers.ObjectArray[i];
+
         PC = GetControllerViaSteamID64(jPlayer.GetStringValue("_id"));
+        if (PC == none)
+            continue;
 
-        // Get their game KPIs
-        if (PC != none)
-        {
-            PRI = AOCPRI(PC.PlayerReplicationInfo);
-
-            playerScore = PRI.Score;
-            playerKills = PRI.NumKills;
-            playerDeaths = PRI.Deaths;
-            playerAssists = PRI.NumAssists;
-        }
+        PRI = `{GAMEMODE}PRI(PC.PlayerReplicationInfo);
+        if (PRI == none)
+            continue;
 
         // Create KPI object
         jPlayerKPI = new class'JsonObject';
-        jPlayerKPI.SetIntValue("score", playerScore);
-        jPlayerKPI.SetIntValue("kills", playerKills);
-        jPlayerKPI.SetIntValue("deaths", playerDeaths);
-        jPlayerKPI.SetIntValue("assists", playerAssists);
+        jPlayerKPI.SetIntValue("score",   PRI.Score);
+        jPlayerKPI.SetIntValue("kills",   PRI.NumKills);
+        jPlayerKPI.SetIntValue("deaths",  PRI.Deaths);
+        jPlayerKPI.SetIntValue("assists", PRI.NumAssists);
+
+        jPlayerKPI.SetIntValue("healthRegenerated",             PRI.HealthRegenerated);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromAll",   PRI.AllDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromEnemy", PRI.DamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromTeam",  PRI.TeamDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageDealtToEnemy",      PRI.EnemyDamageDealt);
+        jPlayerKPI.SetIntValue("healthDamageDealtToTeam",       PRI.TeamDamageDealt);
+
+        jPlayerKPI.SetFloatValue("staminaRegenerated",           PRI.StaminaRegenerated);
+        jPlayerKPI.SetFloatValue("staminaDamageReceivedFromAll", PRI.AllStaminaConsumed);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromEnemy", PRI.EnemyStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromTeam",  PRI.TeamStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToEnemy",      PRI.EnemyStaminaDamageDealt);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToTeam",       PRI.TeamStaminaDamageDealt);
+
+        jPlayerKPI.SetIntValue("feints", PRI.Feints);
+
+        jPlayerKPI.SetIntValue("attacks",           PRI.NumAttacks);
+        jPlayerKPI.SetIntValue("successfulAttacks", PRI.NumHits);
+
+        jPlayerKPI.SetIntValue("meleeHits",      PRI.MeleeHits);
+        jPlayerKPI.SetIntValue("projectileHits", PRI.ProjectileHits);
+        jPlayerKPI.SetIntValue("lightShoveHits", PRI.LightShoveHits);
+        jPlayerKPI.SetIntValue("heavyShoveHits", PRI.HeavyShoveHits);
+
+        jPlayerKPI.SetIntValue("parries", PRI.Parries);
+        jPlayerKPI.SetIntValue("blocks",  PRI.Blocks);
+
+        jPlayerKPI.SetIntValue("crouches", PRI.Crouches);
+        jPlayerKPI.SetIntValue("jumps",    PRI.Jumps);
+        jPlayerKPI.SetIntValue("dodges",   PRI.Dodges);
+
+        jPlayerKPI.SetIntValue("objectivePoints", PRI.ObjPoints);
+
+        jPlayerKPI.SetIntValue("decapitations", PRI.NumDecaps);
+        jPlayerKPI.SetIntValue("chatter",       PRI.Chatter);
 
         // Extend original object
         jTeamOnePlayers.ObjectArray[i].SetObject("kpi", jPlayerKPI);
@@ -895,29 +979,57 @@ function RankedModeEndGame()
 
     for (i = 0; i < jTeamTwoPlayers.ObjectArray.Length; i++)
     {
-        playerScore = 0;
-        playerKills = 0;
-        playerDeaths = 0;
-        playerAssists = 0;
-
         jPlayer = jTeamTwoPlayers.ObjectArray[i];
+
         PC = GetControllerViaSteamID64(jPlayer.GetStringValue("_id"));
+        if (PC == none)
+            continue;
 
-        if (PC != none)
-        {
-            PRI = AOCPRI(PC.PlayerReplicationInfo);
-
-            playerScore = PRI.Score;
-            playerKills = PRI.NumKills;
-            playerDeaths = PRI.Deaths;
-            playerAssists = PRI.NumAssists;
-        }
+        PRI = `{GAMEMODE}PRI(PC.PlayerReplicationInfo);
+        if (PRI == none)
+            continue;
 
         jPlayerKPI = new class'JsonObject';
-        jPlayerKPI.SetIntValue("score", playerScore);
-        jPlayerKPI.SetIntValue("kills", playerKills);
-        jPlayerKPI.SetIntValue("deaths", playerDeaths);
-        jPlayerKPI.SetIntValue("assists", playerAssists);
+        jPlayerKPI.SetIntValue("score",   PRI.Score);
+        jPlayerKPI.SetIntValue("kills",   PRI.NumKills);
+        jPlayerKPI.SetIntValue("deaths",  PRI.Deaths);
+        jPlayerKPI.SetIntValue("assists", PRI.NumAssists);
+
+        jPlayerKPI.SetIntValue("healthRegenerated",             PRI.HealthRegenerated);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromAll",   PRI.AllDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromEnemy", PRI.DamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageReceivedFromTeam",  PRI.TeamDamageTaken);
+        jPlayerKPI.SetIntValue("healthDamageDealtToEnemy",      PRI.EnemyDamageDealt);
+        jPlayerKPI.SetIntValue("healthDamageDealtToTeam",       PRI.TeamDamageDealt);
+
+        jPlayerKPI.SetFloatValue("staminaRegenerated",           PRI.StaminaRegenerated);
+        jPlayerKPI.SetFloatValue("staminaDamageReceivedFromAll", PRI.AllStaminaConsumed);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromEnemy", PRI.EnemyStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageReceivedFromTeam",  PRI.TeamStaminaDamageTaken);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToEnemy",      PRI.EnemyStaminaDamageDealt);
+        jPlayerKPI.SetIntValue("staminaDamageDealtToTeam",       PRI.TeamStaminaDamageDealt);
+
+        jPlayerKPI.SetIntValue("feints", PRI.Feints);
+
+        jPlayerKPI.SetIntValue("attacks",           PRI.NumAttacks);
+        jPlayerKPI.SetIntValue("successfulAttacks", PRI.NumHits);
+
+        jPlayerKPI.SetIntValue("meleeHits",      PRI.MeleeHits);
+        jPlayerKPI.SetIntValue("projectileHits", PRI.ProjectileHits);
+        jPlayerKPI.SetIntValue("lightShoveHits", PRI.LightShoveHits);
+        jPlayerKPI.SetIntValue("heavyShoveHits", PRI.HeavyShoveHits);
+
+        jPlayerKPI.SetIntValue("parries", PRI.Parries);
+        jPlayerKPI.SetIntValue("blocks",  PRI.Blocks);
+
+        jPlayerKPI.SetIntValue("crouches", PRI.Crouches);
+        jPlayerKPI.SetIntValue("jumps",    PRI.Jumps);
+        jPlayerKPI.SetIntValue("dodges",   PRI.Dodges);
+
+        jPlayerKPI.SetIntValue("objectivePoints", PRI.ObjPoints);
+
+        jPlayerKPI.SetIntValue("decapitations", PRI.NumDecaps);
+        jPlayerKPI.SetIntValue("chatter",       PRI.Chatter);
 
         jTeamTwoPlayers.ObjectArray[i].SetObject("kpi", jPlayerKPI);
     }
@@ -948,52 +1060,6 @@ function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpRe
         RankedAPI.BroadcastMessageToAll("Match result successfully sent to the remote service.");
     else
         RankedAPI.BroadcastMessageToAll("Failed to send match result to the remote service.");
-}
-
-
-function bool FindInactivePRI(PlayerController PC)
-{
-    local bool bIsConsole;
-    local string NewNetworkAddress;
-    local int i;
-    local PlayerReplicationInfo OldPRI, CurrentPRI;
-
-
-    if (PC.PlayerReplicationInfo.bOnlySpectator)
-    {
-        return false;
-    }
-
-    bIsConsole = WorldInfo.IsConsoleBuild();
-    NewNetworkAddress = PC.PlayerReplicationInfo.SavedNetworkAddress;
-
-    for (i = 0; i < InactivePRIArray.Length; i++)
-    {
-        CurrentPRI = InactivePRIArray[i];
-
-        if ((CurrentPRI == None) || CurrentPRI.bDeleteMe)
-        {
-            InactivePRIArray.Remove(i, 1);
-            i--;
-        }
-        else if ((bIsConsole && CurrentPRI.UniqueId == PC.PlayerReplicationInfo.UniqueId) ||
-                 (!bIsConsole && CurrentPRI.SavedNetworkAddress ~= NewNetworkAddress))
-        {
-            // found it!
-            OldPRI = PC.PlayerReplicationInfo;
-            PC.PlayerReplicationInfo = CurrentPRI;
-            PC.PlayerReplicationInfo.SetOwner(PC);
-            PC.PlayerReplicationInfo.RemoteRole = ROLE_SimulatedProxy;
-            PC.PlayerReplicationInfo.Lifespan = 0;
-            OverridePRI(PC, OldPRI);
-            WorldInfo.GRI.AddPRI(PC.PlayerReplicationInfo);
-            InactivePRIArray.Remove(i, 1);
-            OldPRI.bIsInactive = true;
-            OldPRI.Destroy();
-            return true;
-        }
-    }
-    return false;
 }
 
 

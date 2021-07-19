@@ -256,6 +256,8 @@ simulated function bool ShouldActivateFlinch(HitInfo Info, class<AOCWeapon> Used
 }
 
 function RegenHealth() {
+    local int ActualHealthRegenerated;
+
     // No need to run this on the server
     if(Role != ROLE_Authority)
         return;
@@ -279,13 +281,18 @@ function RegenHealth() {
     }
 
     // Don't regen beyond the maximum health
-    if (Health != HealthMax)
+    if (Health < HealthMax)
+    {
+        ActualHealthRegenerated = (Health + HealAmount > HealthMax) ? (Health + HealAmount - HealthMax) : HealAmount;
+
         HealDamage(HealAmount, Controller, none);
+    }
 
     // Replicate this to other players
     if (PlayerReplicationInfo != none) {
         if (AOCPRI(PlayerReplicationInfo).CurrentHealth != Health)  {
             AOCPRI(PlayerReplicationInfo).CurrentHealth = Health;
+            `{GAMEMODE}PRI(PlayerReplicationInfo).HealthRegenerated += ActualHealthRegenerated;
             AOCPRI(PlayerReplicationInfo).bForceNetUpdate = true;
         }
     }
@@ -300,6 +307,22 @@ function StartSprintRecovery() {
     }
     bForceNoSprint = true;
     SetTimer(0.5f, false, 'EndSprintRecovery');*/
+}
+
+reliable server function AttackDeadPawn(HitInfo Info, int ID)
+{
+    HitDeadPawnRep.lID = ID;
+    HitDeadPawnRep.lHitInfo = Info;
+
+    //AOCPRI(PlayerReplicationInfo).NumHits += 1;
+
+    if (AOCMeleeWeapon(Info.Instigator.Weapon) != none)
+    {
+        AOCMeleeWeapon(Info.Instigator.Weapon).bHitPawn = true;
+    }
+
+    if (WorldInfo.NetMode == NM_STANDALONE || Worldinfo.NetMode == NM_ListenServer)
+        HandleDeadPawnGetHit();
 }
 
 reliable server function AttackOtherPawn(HitInfo Info, string DamageString, optional bool bCheckParryOnly = false, optional bool bBoxParrySuccess, optional bool bHitShield = false, optional SwingTypeImpactSound LastHit = ESWINGSOUND_Slash, optional bool bQuickKick = false) {
@@ -536,6 +559,11 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
             AOCPlayerController(Controller).NotifyCupidProgress();
     }
 
+    // Handle overkill damage for more reliable damage stats
+    // ActualActualDamage :^)
+    if (ActualDamage > Info.HitActor.Health)
+        ActualDamage = Info.HitActor.Health;
+
     // Fill out the rest of the values
     Info.HitActor.ReplicatedHitInfo = Info;
     Info.HitDamage = ActualDamage;
@@ -547,6 +575,31 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 
     // Track statistics for each weapon
     if (PRI != none) {
+
+        // Melee hits
+        if (!Info.DamageType.default.bIsProjectile &&
+            (Info.AttackType == Attack_Slash ||
+            Info.AttackType == Attack_Overhead ||
+            Info.AttackType == Attack_Stab ||
+            Info.AttackType == Attack_AltSlash ||
+            Info.AttackType == Attack_AltOverhead)
+        ) {
+            `{GAMEMODE}PRI(PRI).MeleeHits += 1;
+        }
+        // Projectiles
+        else if (Info.DamageType.default.bIsProjectile)
+        {
+            `{GAMEMODE}PRI(PRI).ProjectileHits += 1;
+        }
+        // Kicks
+        else if (Info.AttackType == Attack_Shove)
+        {
+            if (bQuickKick)
+                `{GAMEMODE}PRI(PRI).LightShoveHits += 1;
+            else
+                `{GAMEMODE}PRI(PRI).HeavyShoveHits += 1;
+        }
+
         // Register non-team damage
         if (!bSameTeam)
             AOCPRI(PRI).EnemyDamageDealt += ActualDamage;
@@ -564,7 +617,12 @@ reliable server function AttackOtherPawn(HitInfo Info, string DamageString, opti
 
     // Replicate this information
     if (Info.HitActor.PlayerReplicationInfo != none) {
-        AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
+        // Non-team damage
+        if (!bSameTeam)
+            AOCPRI(Info.HitActor.PlayerReplicationInfo).DamageTaken += ActualDamage;
+        // Team damage
+        else
+            `{GAMEMODE}PRI(Info.HitActor.PlayerReplicationInfo).TeamDamageTaken += ActualDamage;
         AOCPRI(Info.HitActor.PlayerReplicationInfo).bForceNetUpdate = TRUE;
     }
 
@@ -686,9 +744,14 @@ simulated function bool CheckProjectileParry(HitInfo Info) {
     return false;
 }
 
-simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, bool bCheckParryOnly, int ParryLR) {
+simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, bool bCheckParryOnly, int ParryLR)
+{
     local int StaminaDamage;
     local bool bOutOfStamina;
+    local bool bSameTeam;
+
+
+    bSameTeam = IsOnSameTeam(self, Info.HitActor);
 
     // Don't (non-shield) parry oil pots or smoke pots
     if (!Info.HitActor.StateVariables.bIsActiveShielding && (AOCWeapon_OilPot(Info.Instigator.Weapon) != none || ImbaModWeapon_SmokePot(Info.Instigator.Weapon) != none))
@@ -736,11 +799,30 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
             // Replicate and log the parry
             AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
 
-            if(AOCPlayerController(Controller) != none)
+            if (AOCPlayerController(Controller) != none)
+            {
                 AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
 
-            if(AOCPlayerController(Info.HitActor.Controller) != none)
+                // Stamina damage dealt
+                if (!bSameTeam)
+                    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).EnemyStaminaDamageDealt += StaminaDamage;  // to enemy
+                else
+                    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).TeamStaminaDamageDealt += StaminaDamage;   // to team
+            }
+
+            if (AOCPlayerController(Info.HitActor.Controller) != none)
+            {
                 AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+
+                // Blocks
+                `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).Blocks += 1;
+
+                // Stamina damage received
+                if (!bSameTeam)
+                    `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).EnemyStaminaDamageTaken += StaminaDamage;  // from enemy
+                else
+                    `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).TeamStaminaDamageTaken += StaminaDamage;   // from team
+            }
 
             if(bOutOfStamina)
                 return true;
@@ -783,11 +865,31 @@ simulated function bool DetectSuccessfulParry(out HitInfo Info, out int bParry, 
 
         // Replicate and log the parry
         AOCGame(WorldInfo.Game).DisplayDebugDamage(Info.HitActor, self, EDAM_Stamina, StaminaDamage);
-        if(AOCPlayerController(Controller) != none)
+
+        if (AOCPlayerController(Controller) != none)
+        {
             AOCPlayerController(Controller).NotifyPawnWasParried(Info.HitActor, StaminaDamage, Info.BoneName, class<AOCWeapon>(Info.HitActor.Weapon.class), class<AOCWeapon>(Weapon.class));
 
-        if(AOCPlayerController(Info.HitActor.Controller) != none)
+            // Stamina damage dealt
+            if (!bSameTeam)
+                `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).EnemyStaminaDamageDealt += StaminaDamage;  // to enemy
+            else
+                `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).TeamStaminaDamageDealt += StaminaDamage;   // to team
+        }
+
+        if (AOCPlayerController(Info.HitActor.Controller) != none)
+        {
             AOCPlayerController(Info.HitActor.Controller).NotifyPawnPerformedParry(PlayerReplicationInfo, StaminaDamage, Info.BoneName, class<AOCWeapon>(Weapon.class), class<AOCWeapon>(Info.HitActor.Weapon.class));
+
+            // Parries
+            `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).Parries += 1;
+
+            // Stamina damage received
+            if (!bSameTeam)
+                `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).EnemyStaminaDamageTaken += StaminaDamage;  // from enemy
+            else
+                `{GAMEMODE}PRI(Info.HitActor.Controller.PlayerReplicationInfo).TeamStaminaDamageTaken += StaminaDamage;   // from team
+        }
 
         if(bOutOfStamina)
             return true;
@@ -828,6 +930,8 @@ reliable server function ServerStartDodge(byte direction, byte WeaponId) {
 
     // Consume extra stamina
     ConsumeStamina(CalcDodgeCost() - PawnFamily.iDodgeCost);
+
+    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).Dodges += 1;
 }
 
 function bool StartDodge(int direction)
@@ -916,28 +1020,113 @@ simulated function StartStaminaRegenCooldown()
     SetTimer(fStaminaRegenCooldown, false, 'ResumeStaminaRegen');
 }
 
+simulated function ResumeStaminaRegen()
+{
+    bRegenStamina = true;
+    if (Stamina <= 0)
+    {
+        Stamina = 1; // set to 1 to avoid shutting off the regen again in the Tick
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).StaminaRegenerated += 1;
+        AOCPRI(Controller.PlayerReplicationInfo).bForceNetUpdate = true;
+    }
+}
+
+simulated function RegenStamina()
+{
+    local float ActualStaminaRegenerated;
+
+    if (Weapon == none || !bRegenStamina || StateVariables.bIsSprinting)
+        return;
+
+    if (Stamina < MaxStamina && (Weapon.IsInState('Active') || Weapon.IsInState('BattleCry')) && PawnState != ESTATE_DODGE)
+    {
+        Stamina += 1.24f;
+        ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+
+        ActualStaminaRegenerated = (Stamina > MaxStamina) ? 1.24f - (Stamina - MaxStamina) : 1.24f;
+
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).StaminaRegenerated += ActualStaminaRegenerated;
+        AOCPRI(Controller.PlayerReplicationInfo).bForceNetUpdate = true;
+    }
+}
+
 simulated function bool ConsumeStamina( float Amount )
 {
+    local float ActualAmount;
+
+
     if (bInfiniteStamina)
         return true;
-    
+
+    if (Amount > 0.0f)
+    {
+        ActualAmount = Amount > Stamina ? Stamina : Amount;
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).AllStaminaConsumed += ActualAmount;
+    }
+
     Stamina -= Amount;
-        
-    if (Amount > 0.f)
+
+    if (Amount > 0.0f)
         StartStaminaRegenCooldown();
 
-    ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
-
-    if (Stamina < 0.0f) {
+    if (Stamina < 0.0f)
+    {
         Stamina = 0.0f;
         ReplicatedStamina = 0;
         return false;
     }
-    else if (Stamina > MaxStamina) {
+    else if (Stamina > MaxStamina)
+    {
         Stamina = MaxStamina;
     }
 
+    ReplicatedStamina = Clamp(Stamina/MaxStamina * 255, 0, 255);
+
     return true;
+}
+
+event TakeDamage(int Damage, Controller InstigatedBy, vector HitLocation, vector Momentum, class<DamageType> DamageType, optional TraceHitInfo myHitInfo, optional Actor DamageCauser)
+{
+    local int ActualDamage;
+
+    if (Damage > 0)
+    {
+        ActualDamage = Damage > Health ? Health : Damage;
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).AllDamageTaken += ActualDamage;
+    }
+
+    super.TakeDamage(Damage, InstigatedBy, HitLocation, Momentum, DamageType, myHitInfo, DamageCauser);
+}
+
+reliable server function ServerPerformCrouch(bool bCrouch)
+{
+    local bool removeCrouch;
+
+    removeCrouch = true;
+
+    if (StateVariables.bCanCrouch)
+    {
+        bIsCrouching = bCrouch;
+        if(bCrouch) 
+        {
+            removeCrouch = false;
+            OnActionInitiated(EACT_Crouch);
+            OnActionSucceeded(EACT_Crouch);
+            AddDebuff(true, EDEBF_CROUCH, CROUCH_MODIFY, -1.0f, false);
+
+            `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).Crouches += 1;
+        }
+        else
+        {
+            removeCrouch = true;
+        }
+    }
+
+    if( removeCrouch )
+    {
+        bIsCrouching = false;
+        RemoveDebuff(EDEBF_CROUCH);	
+    }
 }
 
 function bool DoJump( bool bUpdating )
@@ -987,6 +1176,8 @@ function bool DoJump( bool bUpdating )
         // Update state
         StateVariables.bIsManualJumpDodge = true;
         StateVariables.bCanCrouch = false;
+
+        `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).Jumps += 1;
 
         return true;
     }
@@ -1048,6 +1239,21 @@ function ToggleSprint(bool bSprint, optional bool bForce)
     }
     
     StateVariables.bIsSprinting = PawnState == ESTATE_SPRINT;
+}
+
+reliable server function s_PlayVO(SoundCue voSound)
+{
+    if (voSound == PawnCharacter.default.MobileBattleCry)
+    {
+        OnActionSucceeded(EACT_Battlecry);
+    }
+
+    VOSoundComp.SoundCue = voSound;
+    replicatedSoundToStop.soundToStop = VOSoundComp.SoundCue.Name;
+    replicatedSoundToStop.soundOwnerNetTag = PlayerReplicationInfo.PlayerID;
+    PlaySound(voSound, false, false, true);
+
+    `{GAMEMODE}PRI(Controller.PlayerReplicationInfo).Chatter += 1;
 }
 
 

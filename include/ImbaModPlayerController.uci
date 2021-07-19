@@ -681,6 +681,16 @@ reliable server function ServerVoteRankedMode(bool bEnable)
     `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedMode(self, bEnable);
 }
 
+exec function VoteRankedTeamSize(int Size)
+{
+    ServerVoteRankedTeamSize(Size);
+}
+
+reliable server function ServerVoteRankedTeamSize(int Size)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedTeamSize(self, Size);
+}
+
 exec function VoteRestartMapAfterEndGame(bool bEnable)
 {
     ServerVoteRestartMapAfterEndGame(bEnable);

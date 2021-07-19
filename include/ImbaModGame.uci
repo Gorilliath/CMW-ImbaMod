@@ -20,6 +20,7 @@ var RankedAPI RankedAPI;
 
 // Custom player votes
 var delegate<CustomVoteOnComplete> dCustomVoteOnComplete;
+var int iVoteRankedTeamSize;
 
 
 delegate CustomVoteOnComplete(bool bSuccess);
@@ -769,12 +770,17 @@ reliable server function ConfigureRankedMode(bool bEnable)
 
 exec function RankedTeamSize(int Size)
 {
-    S_RankedTeamSize(Size);
+    if (Size <= 0 || Size > (MaxPlayers / 2))
+        return;
+
+    RankedAPI.BroadcastMessageToAll("Admin RankedTeamSize" @ Size);
+
+    ConfigureRankedTeamSize(Size);
 }
 
-reliable server function S_RankedTeamSize(int Size)
+reliable server function ConfigureRankedTeamSize(int Size)
 {
-    if (Size <= 0 || Size > (MaxPlayersAllowed / 2))
+    if (Size <= 0 || Size > (MaxPlayers / 2))
         return;
 
     iRankedTeamSize = Size;
@@ -782,8 +788,6 @@ reliable server function S_RankedTeamSize(int Size)
 
     class'`{GAMEMODE}'.default.iRankedTeamSize = Size;
     class'`{GAMEMODE}'.static.StaticSaveConfig();
-
-    RankedAPI.BroadcastMessageToAll("Admin RankedTeamSize" @ Size);
 }
 
 function OnUserConnectOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
@@ -1255,6 +1259,34 @@ function VoteRankedModeOnComplete(bool bSuccess)
 
     ConfigureRankedMode(!bRankedMode);
     WorldInfo.ServerTravel("?restart", false);
+}
+
+function InitiateVoteRankedTeamSize(AOCPlayerController VoteInstigator, int Size)
+{
+    if (Size <= 0 || Size > (MaxPlayers / 2))
+    {
+        VoteInstigator.ReceiveChatMessage("RankedTeamSize cannot be set to" @ Size $ ".", EFAC_ALL, true);
+        return;
+    }
+    if (iRankedTeamSize == Size)
+    {
+        VoteInstigator.ReceiveChatMessage("RankedTeamSize is already" @ Size $ ".", EFAC_ALL, true);
+        return;
+    }
+
+    iVoteRankedTeamSize = Size;
+    InitiateCustomVote(VoteInstigator, VoteRankedTeamSizeOnComplete, 15.0, string(Size), "RankedTeamSize");
+}
+
+function VoteRankedTeamSizeOnComplete(bool bSuccess)
+{
+    if (!bSuccess)
+        return;
+
+    RankedAPI.BroadcastMessageToAll("RankedTeamSize" @ iVoteRankedTeamSize);
+
+    ConfigureRankedTeamSize(iVoteRankedTeamSize);
+    iVoteRankedTeamSize = 0;
 }
 
 function InitiateVoteRestartMapAfterEndGame(AOCPlayerController VoteInstigator, bool bEnable)

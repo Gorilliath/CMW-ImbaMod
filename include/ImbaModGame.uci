@@ -18,6 +18,12 @@ var bool bRankedModeReadyToStartMatch;
 var string sRankedModeMatchResponseData;
 var RankedAPI RankedAPI;
 
+// Custom player votes
+var delegate<CustomVoteOnComplete> dCustomVoteOnComplete;
+
+
+delegate CustomVoteOnComplete(bool bSuccess);
+
 
 static event class<GameInfo> SetGameType(string MapName, string Options, string Portal)
 {
@@ -1060,6 +1066,74 @@ function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpRe
         RankedAPI.BroadcastMessageToAll("Match result successfully sent to the remote service.");
     else
         RankedAPI.BroadcastMessageToAll("Failed to send match result to the remote service.");
+}
+
+// Custom player votes
+function InitiateCustomVote(AOCPlayerController VoteInstigator, delegate<CustomVoteOnComplete> OnComplete, optional float duration, optional string PrimaryText, optional string SecondaryText)
+{
+    local AOCPlayerController PC;
+    local int FailReasonPMCode;
+
+    if (!IsAllowedToInitiateVote(VoteInstigator, FailReasonPMCode))
+    {
+        LocalizedPrivateMessage(VoteInstigator, FailReasonPMCode);
+        return;
+    }
+
+    if (!bEnableVoteResetMap)
+    {
+        LocalizedPrivateMessage(VoteInstigator, iLocMapResetVotesDisabled);
+        return;
+    }
+
+    // Set delegate to execute when complete
+    dCustomVoteOnComplete = OnComplete;
+
+    // Overrride vote duration 
+    if (duration >= 10 && duration <= 60)
+        fVoteDurationSeconds = duration;
+
+    VoteCategory = EVOTECAT_RestartMap;
+
+    fTimeVoteStarted = Worldinfo.TimeSeconds;
+    SetTimer(fVoteDurationSeconds, false, 'EndCustomVote');
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        PC.BeginVote(EVOTECAT_RestartMap, "", fVoteDurationSeconds);
+        `{GAMEMODE}PlayerController(PC).OverrideVoteText(PrimaryText, SecondaryText);
+    }
+
+    AOCGRI(GameReplicationInfo).VotesNo = 0;
+    AOCGRI(GameReplicationInfo).VotesYes = 0;
+
+    InitiateNewVote(VoteInstigator);
+    VoteInstigator.Vote = EVOTE_Yes;
+
+    SetTimer(0.5f, true, 'CountVotes');
+}
+
+function EndCustomVote()
+{
+    local bool bSuccess;
+    local AOCPlayerController PC;
+
+    ClearTimer('CountVotes');
+    bSuccess = DidVoteSucceed();
+
+    EndVoting();
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        PC.FinishVote(bSuccess, fVoteEnactDelaySeconds);
+    }
+
+    // Execute delegate with the result of the vote if it exists
+    if (dCustomVoteOnComplete != none)
+    {
+        dCustomVoteOnComplete(bSuccess);
+        dCustomVoteOnComplete = none;
+    }
 }
 
 

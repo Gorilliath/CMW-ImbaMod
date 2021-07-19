@@ -655,6 +655,12 @@ reliable server function ServerPerformFeint()
     `{GAMEMODE}PRI(PlayerReplicationInfo).Feints += 1;
 }
 
+reliable client function OverrideVoteText(optional string Primary, optional string Secondary)
+{
+    AOCBaseHUD(myHUD).HUD.MainHUD.VotePrimaryTitle.SetText(Primary);
+    AOCBaseHUD(myHUD).HUD.MainHUD.VoteSecondaryTitle.SetText(Secondary);
+}
+
 
 DefaultProperties
 {

@@ -1257,6 +1257,26 @@ function VoteRankedModeOnComplete(bool bSuccess)
     WorldInfo.ServerTravel("?restart", false);
 }
 
+function InitiateVoteRestartMapAfterEndGame(AOCPlayerController VoteInstigator, bool bEnable)
+{
+    if (bRestartMapAfterEndGame == bEnable)
+    {
+        VoteInstigator.ReceiveChatMessage("RestartMapAfterEndGame is already" @ bEnable ? "enabled." : "disabled.", EFAC_ALL, true);
+        return;
+    }
+
+    InitiateCustomVote(VoteInstigator, VoteRestartMapAfterEndGameOnComplete, , bEnable ? "Enable?" : "Disable?", "RestartMapAfterEndGame");
+}
+
+function VoteRestartMapAfterEndGameOnComplete(bool bSuccess)
+{
+    if (!bSuccess)
+        return;
+
+    S_BroadcastServerMessage("RestartMapAfterEndGame" @ !bRestartMapAfterEndGame);
+    ConfigureRestartMapAfterEndGame(!bRestartMapAfterEndGame);
+}
+
 
 DefaultProperties
 {

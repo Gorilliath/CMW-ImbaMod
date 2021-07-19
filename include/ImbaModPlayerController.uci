@@ -681,6 +681,16 @@ reliable server function ServerVoteRankedMode(bool bEnable)
     `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedMode(self, bEnable);
 }
 
+exec function VoteRestartMapAfterEndGame(bool bEnable)
+{
+    ServerVoteRestartMapAfterEndGame(bEnable);
+}
+
+reliable server function ServerVoteRestartMapAfterEndGame(bool bEnable)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteRestartMapAfterEndGame(self, bEnable);
+}
+
 
 DefaultProperties
 {

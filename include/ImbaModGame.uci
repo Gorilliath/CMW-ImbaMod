@@ -414,6 +414,41 @@ function UpdateVoteTally()
         EFAC_ALL);
 }
 
+function bool DidVoteSucceed()
+{
+    local int NumVoters;
+
+    CountVotes();
+    NumVoters = VotesYes + VotesNo;
+
+    if (Float(NumVoters) / (NumVoters + VoteAbstains) < fVoteMinAmountNonAbstainers)
+    {
+        BroadcastSystemMessage(iLocVoteFailedTooManyAbstain,
+            class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(NumVoters),""),
+            class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(NumVoters + VoteAbstains),""),
+            EFAC_ALL);
+
+        return false;
+    }
+
+    if (Float(VotesYes) / (NumVoters) <= fVoteSuccessThreshold)
+    {
+        BroadcastSystemMessage(iLocVoteFailedTooManyNo,
+            class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(Round(100.0f * VotesYes/Float(VotesNo + VotesYes))),""),
+            class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(100.0f * fVoteSuccessThreshold),""),
+            EFAC_ALL);
+
+        return false;
+    }
+
+    BroadcastSystemMessage(iLocVoteVotedYesVotedNo,
+        class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(VotesYes),""),
+        class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(VotesNo),""),
+        EFAC_ALL);
+
+    return true;
+}
+
 function CancelVote()
 {
     ClearTimer('EndCustomVote');

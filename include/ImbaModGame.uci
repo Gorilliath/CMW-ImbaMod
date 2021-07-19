@@ -108,6 +108,51 @@ function GenericPlayerInitialization(Controller C)
     }
 }
 
+function bool FindInactivePRI(PlayerController PC)
+{
+    local bool bIsConsole;
+    local string NewNetworkAddress;
+    local int i;
+    local PlayerReplicationInfo OldPRI, CurrentPRI;
+
+
+    if (PC.PlayerReplicationInfo.bOnlySpectator)
+    {
+        return false;
+    }
+
+    bIsConsole = WorldInfo.IsConsoleBuild();
+    NewNetworkAddress = PC.PlayerReplicationInfo.SavedNetworkAddress;
+
+    for (i = 0; i < InactivePRIArray.Length; i++)
+    {
+        CurrentPRI = InactivePRIArray[i];
+
+        if ((CurrentPRI == None) || CurrentPRI.bDeleteMe)
+        {
+            InactivePRIArray.Remove(i, 1);
+            i--;
+        }
+        else if ((bIsConsole && CurrentPRI.UniqueId == PC.PlayerReplicationInfo.UniqueId) ||
+                 (!bIsConsole && CurrentPRI.SavedNetworkAddress ~= NewNetworkAddress))
+        {
+            // found it!
+            OldPRI = PC.PlayerReplicationInfo;
+            PC.PlayerReplicationInfo = CurrentPRI;
+            PC.PlayerReplicationInfo.SetOwner(PC);
+            PC.PlayerReplicationInfo.RemoteRole = ROLE_SimulatedProxy;
+            PC.PlayerReplicationInfo.Lifespan = 0;
+            OverridePRI(PC, OldPRI);
+            WorldInfo.GRI.AddPRI(PC.PlayerReplicationInfo);
+            InactivePRIArray.Remove(i, 1);
+            OldPRI.bIsInactive = true;
+            OldPRI.Destroy();
+            return true;
+        }
+    }
+    return false;
+}
+
 function Logout(Controller Exiting)
 {
     super.Logout(Exiting);
@@ -204,6 +249,23 @@ function bool ShouldCountDown()
     {
         return (bEachTeamHasAtleastOnePlayer || !bWaitForTeams);
     }
+}
+
+function StartRound()
+{
+    local AOCPlayerController PC;
+
+     // Reset everyone's stats before starting the game for the first time
+    if (bBeforeFirstRound)
+    {
+        foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+        {
+            AOCPRI(PC.PlayerReplicationInfo).PreSeamlessTravelReset();
+            AOCPRI(PC.PlayerReplicationInfo).bNetDirty = true;
+        }
+    }
+
+    super.StartRound();
 }
 
 function EndGame(PlayerReplicationInfo Winner, string Reason)
@@ -312,6 +374,9 @@ function RequestJoinClass(AOCPlayerController inController, EAOCFaction inTeam, 
         inController.Response_JoinClass(inClass, false);
 }
 
+// Deprecated
+function AdminTournamentMode(bool bEnable){}
+
 
 Auto State AOCPreRound
 {
@@ -325,23 +390,6 @@ Auto State AOCPreRound
             SetTimer(fRankedModeMatchMakeInterval, true, 'RankedModeAttemptToMakeMatch');
         }
     }
-}
-
-function StartRound()
-{
-    local AOCPlayerController PC;
-
-     // Reset everyone's stats before starting the game for the first time
-    if (bBeforeFirstRound)
-    {
-        foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
-        {
-            AOCPRI(PC.PlayerReplicationInfo).PreSeamlessTravelReset();
-            AOCPRI(PC.PlayerReplicationInfo).bNetDirty = true;
-        }
-    }
-
-    super.StartRound();
 }
 
 
@@ -592,10 +640,6 @@ reliable server function ConfigureRestartMapAfterEndGame(bool bEnable)
     class'`{GAMEMODE}'.default.bRestartMapAfterEndGame = bEnable;
     class'`{GAMEMODE}'.static.StaticSaveConfig();
 }
-
-
-// Deprecated
-function AdminTournamentMode(bool bEnable){}
 
 exec function TournamentMode(bool bEnable)
 {
@@ -1016,52 +1060,6 @@ function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpRe
         RankedAPI.BroadcastMessageToAll("Match result successfully sent to the remote service.");
     else
         RankedAPI.BroadcastMessageToAll("Failed to send match result to the remote service.");
-}
-
-
-function bool FindInactivePRI(PlayerController PC)
-{
-    local bool bIsConsole;
-    local string NewNetworkAddress;
-    local int i;
-    local PlayerReplicationInfo OldPRI, CurrentPRI;
-
-
-    if (PC.PlayerReplicationInfo.bOnlySpectator)
-    {
-        return false;
-    }
-
-    bIsConsole = WorldInfo.IsConsoleBuild();
-    NewNetworkAddress = PC.PlayerReplicationInfo.SavedNetworkAddress;
-
-    for (i = 0; i < InactivePRIArray.Length; i++)
-    {
-        CurrentPRI = InactivePRIArray[i];
-
-        if ((CurrentPRI == None) || CurrentPRI.bDeleteMe)
-        {
-            InactivePRIArray.Remove(i, 1);
-            i--;
-        }
-        else if ((bIsConsole && CurrentPRI.UniqueId == PC.PlayerReplicationInfo.UniqueId) ||
-                 (!bIsConsole && CurrentPRI.SavedNetworkAddress ~= NewNetworkAddress))
-        {
-            // found it!
-            OldPRI = PC.PlayerReplicationInfo;
-            PC.PlayerReplicationInfo = CurrentPRI;
-            PC.PlayerReplicationInfo.SetOwner(PC);
-            PC.PlayerReplicationInfo.RemoteRole = ROLE_SimulatedProxy;
-            PC.PlayerReplicationInfo.Lifespan = 0;
-            OverridePRI(PC, OldPRI);
-            WorldInfo.GRI.AddPRI(PC.PlayerReplicationInfo);
-            InactivePRIArray.Remove(i, 1);
-            OldPRI.bIsInactive = true;
-            OldPRI.Destroy();
-            return true;
-        }
-    }
-    return false;
 }
 
 

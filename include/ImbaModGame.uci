@@ -383,6 +383,37 @@ function RequestJoinClass(AOCPlayerController inController, EAOCFaction inTeam, 
 // Deprecated
 function AdminTournamentMode(bool bEnable){}
 
+function UpdateVoteTally()
+{
+    local int VoteTimeLeft;
+
+    switch(VoteCategory)
+    {
+    case EVOTECAT_KICK:
+        VoteTimeLeft = Round(GetRemainingTimeForTimer('EndKickVote'));
+        break;
+    case EVOTECAT_ChangeMap:
+        VoteTimeLeft = Round(GetRemainingTimeForTimer('EndChangeMapVote'));
+        break;
+    case EVOTECAT_RestartMap:
+        VoteTimeLeft = Round(GetRemainingTimeForTimer('EndResetMapVote'));
+        break;
+    default:
+        super.UpdateVoteTally();
+        return;
+    }
+
+    if (VoteTimeLeft == -1)
+        VoteTimeLeft = Round(GetRemainingTimeForTimer('EndCustomVote'));
+
+    CountVotes();
+
+    BroadcastSystemMessage(iLocVoteSecondsLeft,
+        class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(VoteTimeLeft),""),
+        class'AOCSystemMessages'.static.CreateLocalizationdata("INVALIDDATA", String(Round(100.0f * VotesYes/Float(VotesNo + VotesYes))),""),
+        EFAC_ALL);
+}
+
 
 Auto State AOCPreRound
 {

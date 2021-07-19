@@ -661,6 +661,26 @@ reliable client function OverrideVoteText(optional string Primary, optional stri
     AOCBaseHUD(myHUD).HUD.MainHUD.VoteSecondaryTitle.SetText(Secondary);
 }
 
+exec function VoteTournamentMode(bool bEnable)
+{
+    ServerVoteTournamentMode(bEnable);
+}
+
+reliable server function ServerVoteTournamentMode(bool bEnable)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteTournamentMode(self, bEnable);
+}
+
+exec function VoteRankedMode(bool bEnable)
+{
+    ServerVoteRankedMode(bEnable);
+}
+
+reliable server function ServerVoteRankedMode(bool bEnable)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedMode(self, bEnable);
+}
+
 
 DefaultProperties
 {

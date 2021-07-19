@@ -1209,6 +1209,54 @@ function EndCustomVote()
     }
 }
 
+function InitiateVoteTournamentMode(AOCPlayerController VoteInstigator, bool bEnable)
+{
+    if (default.bTournamentMode == bEnable)
+    {
+        VoteInstigator.ReceiveChatMessage("TournamentMode is already" @ bEnable ? "enabled." : "disabled.", EFAC_ALL, true);
+        return;
+    }
+
+    InitiateCustomVote(VoteInstigator, VoteTournamentModeOnComplete, , bEnable ? "Enable?" : "Disable?", "TournamentMode");
+}
+
+function VoteTournamentModeOnComplete(bool bSuccess)
+{
+    if (!bSuccess)
+        return;
+
+    // If we're enabling, ensure RankedMode is disabled
+    if (!default.bTournamentMode)
+        ConfigureRankedMode(false);
+
+    ConfigureTournamentMode(!default.bTournamentMode);
+    WorldInfo.ServerTravel("?restart", false);
+}
+
+function InitiateVoteRankedMode(AOCPlayerController VoteInstigator, bool bEnable)
+{
+    if (bRankedMode == bEnable)
+    {
+        VoteInstigator.ReceiveChatMessage("RankedMode is already" @ bEnable ? "enabled." : "disabled.", EFAC_ALL, true);
+        return;
+    }
+
+    InitiateCustomVote(VoteInstigator, VoteRankedModeOnComplete, , bEnable ? "Enable?" : "Disable?", "RankedMode");
+}
+
+function VoteRankedModeOnComplete(bool bSuccess)
+{
+    if (!bSuccess)
+        return;
+
+    // If we're enabling, ensure TournamentMode is disabled
+    if (!bRankedMode)
+        ConfigureTournamentMode(false);
+
+    ConfigureRankedMode(!bRankedMode);
+    WorldInfo.ServerTravel("?restart", false);
+}
+
 
 DefaultProperties
 {

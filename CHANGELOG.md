@@ -1,5 +1,15 @@
 # ImbaMod
 
+## 2.4.0
+
+* Added general means to implement custom votes  
+* Added votes:  
+  - VoteTournamentMode  
+  - VoteRankedMode  
+  - VoteRankedTeamSize  
+  - VoteRestartMapAfterEndGame  
+* Fixed vote success evaluation
+
 ## 2.3.0
 
 * Fixed vanilla stats  

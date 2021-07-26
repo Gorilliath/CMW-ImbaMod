@@ -655,6 +655,52 @@ reliable server function ServerPerformFeint()
     `{GAMEMODE}PRI(PlayerReplicationInfo).Feints += 1;
 }
 
+reliable client function OverrideVoteText(optional string Primary, optional string Secondary)
+{
+    AOCBaseHUD(myHUD).HUD.MainHUD.VotePrimaryTitle.SetText(Primary);
+    AOCBaseHUD(myHUD).HUD.MainHUD.VoteSecondaryTitle.SetText(Secondary);
+}
+
+exec function VoteTournamentMode(bool bEnable)
+{
+    ServerVoteTournamentMode(bEnable);
+}
+
+reliable server function ServerVoteTournamentMode(bool bEnable)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteTournamentMode(self, bEnable);
+}
+
+exec function VoteRankedMode(bool bEnable)
+{
+    ServerVoteRankedMode(bEnable);
+}
+
+reliable server function ServerVoteRankedMode(bool bEnable)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedMode(self, bEnable);
+}
+
+exec function VoteRankedTeamSize(int Size)
+{
+    ServerVoteRankedTeamSize(Size);
+}
+
+reliable server function ServerVoteRankedTeamSize(int Size)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedTeamSize(self, Size);
+}
+
+exec function VoteRestartMapAfterEndGame(bool bEnable)
+{
+    ServerVoteRestartMapAfterEndGame(bEnable);
+}
+
+reliable server function ServerVoteRestartMapAfterEndGame(bool bEnable)
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteRestartMapAfterEndGame(self, bEnable);
+}
+
 
 DefaultProperties
 {

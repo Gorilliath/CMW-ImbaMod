@@ -25,7 +25,9 @@ Forked from CompMod 2.0.2
 | Command              | Argument                | Description        |  
 |----------------------|-------------------------|--------------------|  
 | Admin RankedMode     | 0 (disable) 1 (enable)  | Toggle ranked mode |  
-| Admin RankedTeamSize | 1 - half of max players | Sets the desired team size and therefore match size |
+| Admin RankedTeamSize | 1 - half of max players | Sets the desired team size and therefore match size |  
+| VoteRankedMode       | 0 (disable) 1 (enable)| | Start public vote to toggle ranked mode             |  
+| VoteRankedTeamSize   | 1 - half of max players | Start public vote to set desired team size          |
 
 **Miscellaneous**  
 - Incompatible with tournament mode; enabling one will disable the other!  

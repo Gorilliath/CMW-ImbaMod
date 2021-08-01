@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 2.4.1
+
+* Improved Ranked Mode failure logging
+
 ## 2.4.0
 
 * Added general means to implement custom votes  

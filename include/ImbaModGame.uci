@@ -853,16 +853,17 @@ function RankedModeAttemptToMakeMatch()
     {
         RankedAPI.BroadcastMessageToAll("");
         RankedAPI.BroadcastMessageToAll("Team Objective has been disabled until the usual format of playing two halves is supported.");
-        RankedAPI.BroadcastMessageToAll("Disable ranked mode for now!");
+        RankedAPI.BroadcastMessageToAll("Disable ranked mode for Team Objective for now!");
         RankedAPI.BroadcastMessageToAll("");
         return;
     }
-    // Insufficient players
+    // Insufficient ready players
     if (PlayerCount < iRankedTeamSize * 2)
     {
         RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "players to start a match.");
-        RankedAPI.BroadcastMessageToAll("Wait for more players to join or reduce the target team size.");
+        RankedAPI.BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "ready players to start a match.");
+        RankedAPI.BroadcastMessageToAll("Note: Being in team-select or class-select is not being ready!");
+        RankedAPI.BroadcastMessageToAll("Wait for more ready players to join or reduce the target team size.");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
         RankedAPI.BroadcastMessageToAll("");
         return;
@@ -886,17 +887,27 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
         return;
     }
 
-    // Request succeeded; Get the payload
+    // We have a response; Get the payload
     data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
                                    .GetObject("response");
 
-    // Response payload probably isn't what we're expecting
-    if (data == none || data.GetBoolValue("success") == false)
+    // Response payload isn't what we're expecting
+    if (data == none)
     {
         RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Rejected by remote service.");
-        if (data != none)
-            RankedAPI.BroadcastMessageToAll("'" @ data.GetStringValue("error") @ "'");
+        RankedAPI.BroadcastMessageToAll("Remote service returned an unexpected payload.");
+        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
+        RankedAPI.BroadcastMessageToAll("");
+        return;
+    }
+
+    // Remote service was unable to make a match
+    if (data.GetBoolValue("success") == false)
+    {
+        RankedAPI.BroadcastMessageToAll("");
+        RankedAPI.BroadcastMessageToAll("Remote service was unable to make a match.");
+        if (data.GetStringValue("error") != "")
+            RankedAPI.BroadcastMessageToAll("error: '" @ data.GetStringValue("error") @ "'");
         RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
         RankedAPI.BroadcastMessageToAll("");
         return;

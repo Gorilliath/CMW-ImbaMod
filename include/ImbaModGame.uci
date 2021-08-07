@@ -384,6 +384,34 @@ function RequestJoinClass(AOCPlayerController inController, EAOCFaction inTeam, 
 // Deprecated
 function AdminTournamentMode(bool bEnable){}
 
+function AdminChangeTeam(AOCPlayerController ChangeInstigator, String PlayerName)
+{
+    local AOCPlayerController Target;
+    local int Offset, i;
+
+
+    if (!AccessControl.IsAdmin(ChangeInstigator))
+        return;
+
+    Target = AOCPlayerController(AccessControl.GetControllerFromString(PlayerName));
+
+    if (Target == none)
+        return;
+
+    if (AOCFamilyInfo_Agatha_King(Target.CurrentFamilyInfo) != none || AOCFamilyInfo_Mason_King(Target.CurrentFamilyInfo) != none)
+        return;
+
+    if (Target.CurrentFamilyInfo.FamilyFaction == EFAC_Agatha)
+        Offset = 5;
+    else
+        Offset = -5;
+
+    for (i = 0; i < ArrayCount(AOCGRI(GameReplicationInfo).FamilyInfos) && AOCGRI(GameReplicationInfo).FamilyInfos[i] != Target.CurrentFamilyInfo; ++i);
+        i += Offset;
+
+    Target.SetNewClass(AOCGRI(GameReplicationInfo).FamilyInfos[i]);
+}
+
 function UpdateVoteTally()
 {
     local int VoteTimeLeft;

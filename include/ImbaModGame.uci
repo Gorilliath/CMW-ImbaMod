@@ -104,7 +104,7 @@ function GenericPlayerInitialization(Controller C)
     if (bRankedMode)
     {
         // Connect player to remote service and rename them to display their elo
-        RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(PlayerController(C).OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId),
+        RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId),
                                 PlayerController(C).GetPlayerNetworkAddress(),
                                 OnUserConnectOnComplete);
     }
@@ -165,7 +165,7 @@ function Logout(Controller Exiting)
     super.Logout(Exiting);
 
     // Done regardless of bRankedMode to address some edge-cases where players were not disconnected from remote service
-    RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(PlayerController(Exiting).OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
+    RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
 }
 
 function bool ShouldCountDown()
@@ -302,7 +302,7 @@ function bool RequestJoinTeam(AOCPlayerController inController, EAOCFaction inTe
         return super.RequestJoinTeam(inController, inTeam, bForce);
 
 
-    ControllerSteamID = OnlineSubsystemSteamworks(inController.OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
+    ControllerSteamID = OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
 
     // Resolve which team's locked-in steamIDs to check
     if (inTeam == EFAC_AGATHA)
@@ -347,7 +347,7 @@ function RequestJoinClass(AOCPlayerController inController, EAOCFaction inTeam, 
         super.RequestJoinClass(inController, inTeam, inClass, bForce, bSetClass);
 
 
-    ControllerSteamID = OnlineSubsystemSteamworks(inController.OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
+    ControllerSteamID = OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(inController.PlayerReplicationInfo.UniqueId);
 
     // Resolve which team's locked-in steamIDs to check
     if (inTeam == EFAC_AGATHA)
@@ -504,7 +504,7 @@ function Array<String> GetActualPlayersSteamIDs()
     foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
     {
         if (!PC.IsVoluntarySpectator() && PC.CurrentFamilyInfo != none && PC.bReady)
-            PlayerSteamIDs.AddItem(OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId));
+            PlayerSteamIDs.AddItem(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId));
     }
 
     return PlayerSteamIDs;
@@ -516,7 +516,7 @@ function AOCPlayerController GetControllerViaSteamID64 (string SteamID64)
 
     foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
     {
-        if (OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId) == SteamID64)
+        if (OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId) == SteamID64)
         {
             return PC;
         }
@@ -549,7 +549,7 @@ function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlay
         // Get their current team, class and SteamID64
         CurrentTeam = AOCPRI(PC.PlayerReplicationInfo).GetCurrentTeam();
         CurrentClass = PC.CurrentFamilyInfo;
-        ControllerSteamID64 = OnlineSubsystemSteamworks(PC.OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId);
+        ControllerSteamID64 = OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(PC.PlayerReplicationInfo.UniqueId);
 
         // Check if they should be on Agatha
         foreach AgathaPlayersSteamIDs(RequirementSteamID64)

@@ -523,6 +523,28 @@ function AOCPlayerController GetControllerViaSteamID64 (string SteamID64)
     }
 }
 
+function PlayerReplicationInfo GetPlayerReplicationInfoViaSteamID64 (string SteamID64)
+{
+    local PlayerReplicationInfo PRI;
+
+    foreach WorldInfo.GRI.PRIArray(PRI)
+    {
+        if (OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(PRI.UniqueId) == SteamID64)
+        {
+            return PRI;
+        }
+    }
+
+    foreach WorldInfo.GRI.InactivePRIArray(PRI)
+    {
+        if (OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(PRI.UniqueId) == SteamID64)
+        {
+            return PRI;
+        }
+    }
+
+}
+
 function ForceTeams(Array<String> AgathaPlayersSteamIDs, Array<String> MasonPlayersSteamIDs)
 {
     local AOCPlayerController PC;
@@ -965,7 +987,6 @@ function RankedModeEndGame()
                 teamOneProgress,
                 teamTwoScore,
                 teamTwoProgress;
-    local AOCPlayerController PC;
     local `{GAMEMODE}PRI PRI;
     local int winner,
               i;
@@ -1016,11 +1037,7 @@ function RankedModeEndGame()
     {
         jPlayer = jTeamOnePlayers.ObjectArray[i];
 
-        PC = GetControllerViaSteamID64(jPlayer.GetStringValue("_id"));
-        if (PC == none)
-            continue;
-
-        PRI = `{GAMEMODE}PRI(PC.PlayerReplicationInfo);
+        PRI = `{GAMEMODE}PRI(GetPlayerReplicationInfoViaSteamID64(jPlayer.GetStringValue("_id")));
         if (PRI == none)
             continue;
 
@@ -1075,11 +1092,7 @@ function RankedModeEndGame()
     {
         jPlayer = jTeamTwoPlayers.ObjectArray[i];
 
-        PC = GetControllerViaSteamID64(jPlayer.GetStringValue("_id"));
-        if (PC == none)
-            continue;
-
-        PRI = `{GAMEMODE}PRI(PC.PlayerReplicationInfo);
+        PRI = `{GAMEMODE}PRI(GetPlayerReplicationInfoViaSteamID64(jPlayer.GetStringValue("_id")));
         if (PRI == none)
             continue;
 

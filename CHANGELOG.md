@@ -1,5 +1,11 @@
 # ImbaMod
 
+## 2.4.2
+
+* Optimised Ranked Mode
+ - location of PRIs
+ - usages of OnlineSub
+
 ## 2.4.1
 
 * Improved Ranked Mode failure logging

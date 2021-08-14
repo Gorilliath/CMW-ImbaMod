@@ -593,8 +593,8 @@ reliable server function S_AdminForceSpectate(String PlayerName) {
 
     TargetName = Target.PlayerReplicationInfo.GetHumanReadableName();
 
-    if (Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' ||
-        Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' ||
+    if (AOCFamilyInfo_Agatha_King(Target.CurrentFamilyInfo) != none ||
+        AOCFamilyInfo_Mason_King(Target.CurrentFamilyInfo) != none ||
         Target.PlayerReplicationInfo.bAdmin
     ) {
         ClientDisplayConsoleMessage("'" $ TargetName $ "' cannot be forced to spectate.");
@@ -620,8 +620,8 @@ reliable server function S_AdminForceSpectateAll() {
 
     foreach WorldInfo.AllControllers(class'AOCPlayerController', Target)
     {
-        if (Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Agatha_King' ||
-            Target.CurrentFamilyInfo.class == class'AOCFamilyInfo_Mason_King' ||
+        if (AOCFamilyInfo_Agatha_King(Target.CurrentFamilyInfo) != none ||
+            AOCFamilyInfo_Mason_King(Target.CurrentFamilyInfo) != none ||
             Target.PlayerReplicationInfo.bAdmin
         ) {
             ClientDisplayConsoleMessage("'" $ Target.PlayerReplicationInfo.GetHumanReadableName() $ "' cannot be forced to spectate.");

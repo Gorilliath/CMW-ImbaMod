@@ -1,10 +1,20 @@
 # ImbaMod
 
+## 2.5.0
+
+* Added means to extend kings
+  - no longer use vanilla weapons
+  - can use 1h versions of their swords
+  - now have kite shields instead of sidearms
+  - feydrid has grand mace instead of double axe
+  - increased max health to 500 from 300
+  - reduced ground speed and accel
+
 ## 2.4.2
 
 * Optimised Ranked Mode
- - location of PRIs
- - usages of OnlineSub
+  - location of PRIs
+  - usages of OnlineSub
 
 ## 2.4.1
 

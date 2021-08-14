@@ -12,10 +12,10 @@ simulated function MyPawnIsKing(class<AOCFamilyInfo> NewClass)
     if (NewClass == class'AOCFamilyInfo_Agatha_King')
     {
         NewClass = class'ImbaModFamilyInfo_Agatha_King';
-        SetWeapons(class'ImbaModWeapon_Longsword', class'ImbaModWeapon_Longsword1H', class'ImbaModWeapon_GrandMace', class'ImbaModWeapon_TowerShield_Agatha');
+        SetWeapons(class'ImbaModWeapon_Longsword', class'ImbaModWeapon_Longsword1H', class'ImbaModWeapon_GrandMace', class'ImbaModWeapon_Kite_Agatha');
     } else {
         NewClass = class'ImbaModFamilyInfo_Mason_King';
-        SetWeapons(class'ImbaModWeapon_Messer', class'ImbaModWeapon_Messer1H', class'ImbaModWeapon_Maul', class'ImbaModWeapon_TowerShield_Mason');
+        SetWeapons(class'ImbaModWeapon_Messer', class'ImbaModWeapon_Messer1H', class'ImbaModWeapon_Maul', class'ImbaModWeapon_Kite_Mason');
     }
 
     CurrFamily = AOCGRI(Worldinfo.GRI).GetOrSpawnFamilyInfoFromClass(NewClass);

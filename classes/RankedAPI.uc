@@ -1,4 +1,4 @@
-class RankedAPI extends Object;
+class RankedAPI extends Actor;
 
 
 var string baseURL;

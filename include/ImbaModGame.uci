@@ -138,6 +138,47 @@ function GenericPlayerInitialization(Controller C)
     }
 }
 
+function AddInactivePRI(PlayerReplicationInfo PRI, PlayerController PC)
+{
+    local int i;
+    local PlayerReplicationInfo NewInactivePRI, InactivePRI;
+
+    // Only save if it's NOT an old PRI from before seamless travel
+    if (!PRI.bFromPreviousLevel)
+    {
+        NewInactivePRI = PRI.Duplicate();
+        WorldInfo.GRI.RemovePRI(NewInactivePRI);
+
+        // Make PRI inactive
+        NewInactivePRI.RemoteRole = ROLE_None;
+
+        // Delete after 1 hour (or after seamless travel)
+        NewInactivePRI.LifeSpan = 3600;
+
+        // Remove any null references or duplicates if found
+        for (i = 0; i < InactivePRIArray.Length; i++)
+        {
+            InactivePRI = InactivePRIArray[i];
+
+            if (InactivePRI == None || InactivePRI.UniqueId == NewInactivePRI.UniqueId)
+            {
+                InactivePRIArray.Remove(i, 1);
+                i--;
+            }
+        }
+
+        // Add PRI to saved inactive PRIs
+        InactivePRIArray[InactivePRIArray.Length] = NewInactivePRI;
+
+        // Cap at 100 saved inactive PRIs
+        if (InactivePRIArray.Length > 100)
+            InactivePRIArray.Remove(0, InactivePRIArray.Length - 100);
+    }
+
+    PRI.Destroy();
+    RecalculateSkillRating();
+}
+
 function bool FindInactivePRI(PlayerController PC)
 {
     local int i;

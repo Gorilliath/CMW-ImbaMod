@@ -610,7 +610,7 @@ function PlayerReplicationInfo GetPlayerReplicationInfoViaSteamID64 (string Stea
     local PlayerReplicationInfo PRI;
 
     // Look in InactivePRIArray first to prevent getting the wrong PRI when the player is reconnecting
-    foreach WorldInfo.GRI.InactivePRIArray(PRI)
+    foreach InactivePRIArray(PRI)
     {
         if (OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(PRI.UniqueId) == SteamID64)
         {

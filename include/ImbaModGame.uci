@@ -75,8 +75,6 @@ event InitGame(string Options, out string ErrorMessage)
     if (RankedAPI == none)
         RankedAPI = Spawn(class'RankedAPI');
 
-    UnlockTeams();
-
     if ((bTournamentMode && bRankedMode) || (default.bTournamentMode && default.bRankedMode))
     {
         ConfigureTournamentMode(false);

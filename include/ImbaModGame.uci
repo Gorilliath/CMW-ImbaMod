@@ -12,6 +12,7 @@ var globalconfig bool bRestartMapAfterEndGame;
 // Ranked Mode
 var globalconfig bool bRankedMode;
 var globalconfig int iRankedTeamSize;
+var globalconfig int iRankedGameSize;
 var float fRankedModeMatchMakeInterval;
 var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;

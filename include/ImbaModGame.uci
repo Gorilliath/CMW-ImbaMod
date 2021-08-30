@@ -18,7 +18,6 @@ var string sRankedModeChatColour;
 var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;
 var string sRankedModeMatchResponseData;
-var RankedAPI RankedAPI;
 var RankedGame RankedGame;
 
 // Custom player votes
@@ -60,7 +59,6 @@ static event class<GameInfo> SetGameType(string MapName, string Options, string 
 
 event InitGame(string Options, out string ErrorMessage)
 {
-    local RankedAPI PreviousRankedAPI;
     local RankedGame PreviousRankedGame;
 
     super.InitGame(Options, ErrorMessage);
@@ -68,12 +66,6 @@ event InitGame(string Options, out string ErrorMessage)
     // Preserve actors which should persist through seamless travel
     if (WorldInfo.IsInSeamlessTravel())
     {
-        // Look for the previous RankedAPI instance
-        foreach DynamicActors(Class'RankedAPI', PreviousRankedAPI)
-        {
-            RankedAPI = PreviousRankedAPI;
-            break;
-        }
 
         // Look for the RankedGame instance
         foreach DynamicActors(Class'RankedGame', PreviousRankedGame)
@@ -90,10 +82,6 @@ event InitGame(string Options, out string ErrorMessage)
             }
         }
     }
-
-    // Spawn a new RankedAPI instance if one wasn't found
-    if (RankedAPI == none)
-        RankedAPI = Spawn(class'RankedAPI');
 
     if (bRankedMode)
     {
@@ -125,9 +113,6 @@ event GetSeamlessTravelActorList(bool bToEntry, out array<Actor> ActorList)
 {
     super.GetSeamlessTravelActorList(bToEntry, ActorList);
 
-    if (RankedAPI != none)
-        ActorList[ActorList.Length] = RankedAPI;
-
     if (RankedGame != none)
         ActorList[ActorList.Length] = RankedGame;
 }
@@ -151,9 +136,9 @@ function GenericPlayerInitialization(Controller C)
     if (bRankedMode)
     {
         // Connect player to remote service and rename them to display their elo
-        RankedAPI.OnUserConnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId),
-                                PlayerController(C).GetPlayerNetworkAddress(),
-                                OnUserConnectOnComplete);
+        class'RankedAPI'.static.OnUserConnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId),
+                                              PlayerController(C).GetPlayerNetworkAddress(),
+                                              OnUserConnectOnComplete);
     }
     else
     {
@@ -243,7 +228,7 @@ function Logout(Controller Exiting)
     super.Logout(Exiting);
 
     // Done regardless of bRankedMode to address some edge-cases where players were not disconnected from remote service
-    RankedAPI.OnUserDisconnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
+    class'RankedAPI'.static.OnUserDisconnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(Exiting.PlayerReplicationInfo.UniqueId));
 }
 
 function bool ShouldCountDown()
@@ -999,7 +984,7 @@ function RankedModeAttemptToMakeMatch()
         return;
     }
 
-    RankedAPI.CalculateMatchMaking(GetActualPlayersSteamIDs(), iRankedTeamSize, CalculateMatchMakingOnComplete);
+    class'RankedAPI'.static.CalculateMatchMaking(GetActualPlayersSteamIDs(), iRankedTeamSize, CalculateMatchMakingOnComplete);
 }
 
 function RankedModeBroadcastMatchInfo()
@@ -1088,7 +1073,7 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     sRankedModeMatchResponseData = Response.GetContentAsString();
 
     // Extract teams from response
-    RankedAPI.GetTeamPlayerIDs(sRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
+    class'RankedAPI'.static.GetTeamPlayerIDs(sRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
 
     // Lock and force teams
     LockTeams(AgathaPlayerIDs, MasonPlayerIDs);
@@ -1300,7 +1285,7 @@ function RankedModeEndGame()
     jCompletedMatchRequestData.SetObject("response", jResponse);
 
 
-    RankedAPI.CalculateNewElos(class'JsonObject'.static.EncodeJson(jCompletedMatchRequestData), CalculateNewElosOnComplete);
+    class'RankedAPI'.static.CalculateNewElos(class'JsonObject'.static.EncodeJson(jCompletedMatchRequestData), CalculateNewElosOnComplete);
 }
 
 function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)

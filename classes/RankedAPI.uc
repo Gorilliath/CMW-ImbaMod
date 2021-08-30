@@ -1,4 +1,4 @@
-class RankedAPI extends Actor;
+class RankedAPI extends Object;
 
 
 var string baseURL;
@@ -8,9 +8,11 @@ var string key;
 delegate OnProcessComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed);
 
 
-function DoNothing(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed){}
+static function DoNothing(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed){}
 
-function OnUserConnect(string steamID64, optional string playerIP, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+
+// Endpoints
+static function OnUserConnect(string steamID64, optional string playerIP, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local GUID GUID;
 
@@ -20,33 +22,33 @@ function OnUserConnect(string steamID64, optional string playerIP, optional dele
         playerIP = "?";
 
     class'HttpFactory'.static.CreateRequest()
-        .SetURL(baseURL $ "OnUserConnect"
-                        $ "?key=" $ key
-                        $ "&steamid64=" $ steamID64
-                        $ "&GUID=" $ GetStringFromGuid(GUID))
+        .SetURL(default.baseURL $ "OnUserConnect"
+                                $ "?key=" $ default.key
+                                $ "&steamid64=" $ steamID64
+                                $ "&GUID=" $ GetStringFromGuid(GUID))
         .SetVerb("GET")
         .SetHeader("playerIP", playerIP)
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();
 }
 
-function OnUserDisconnect(string steamID64, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+static function OnUserDisconnect(string steamID64, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local GUID GUID;
 
     GUID = CreateGuid();
 
     class'HttpFactory'.static.CreateRequest()
-        .SetURL(baseURL $ "OnUserDisconnect"
-                        $ "?key=" $ key
-                        $ "&steamid64=" $ steamID64
-                        $ "&GUID=" $ GetStringFromGuid(GUID))
+        .SetURL(default.baseURL $ "OnUserDisconnect"
+                                $ "?key=" $ default.key
+                                $ "&steamid64=" $ steamID64
+                                $ "&GUID=" $ GetStringFromGuid(GUID))
         .SetVerb("GET")
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();
 }
 
-function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+static function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local string stringSteamIDs;
     local JsonObject payload;
@@ -56,9 +58,9 @@ function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional d
     payload.SetStringValue("steamids64", stringSteamIDs);
 
     class'HttpFactory'.static.CreateRequest()
-        .SetURL(baseURL $ "CalculateMatchMaking"
-                        $ "?key=" $ key
-                        $ "&size=" $ teamSize)
+        .SetURL(default.baseURL $ "CalculateMatchMaking"
+                                $ "?key=" $ default.key
+                                $ "&size=" $ teamSize)
         .SetVerb("POST")
         .SetHeader("Content-Type", "application/json")
         .SetContentAsString(class'JsonObject'.static.EncodeJson(payload))
@@ -66,11 +68,11 @@ function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional d
         .ProcessRequest();
 }
 
-function CalculateNewElos(string sCompletedMatchRequestData, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+static function CalculateNewElos(string sCompletedMatchRequestData, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     class'HttpFactory'.static.CreateRequest()
-        .SetURL(baseURL $ "CalculateNewElos"
-                        $ "?key=" $ key)
+        .SetURL(default.baseURL $ "CalculateNewElos"
+                                $ "?key=" $ default.key)
         .SetVerb("POST")
         .SetHeader("Content-Type", "application/json")
         .SetContentAsString(sCompletedMatchRequestData)
@@ -79,8 +81,8 @@ function CalculateNewElos(string sCompletedMatchRequestData, optional delegate<O
 }
 
 
-
-function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
+// Payload handling
+static function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
 {
     local JsonObject jMatchResponseData,
                      TeamOnePlayers,

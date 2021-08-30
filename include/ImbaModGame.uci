@@ -900,7 +900,7 @@ reliable server function ConfigureRankedMode(bool bEnable)
 
 exec function RankedTeamSize(int Size)
 {
-    if (Size <= 0 || Size > (MaxPlayers / 2))
+    if (Size <= 0 || Size > (MaxPlayers / 2) || Size == iRankedTeamSize)
         return;
 
     BroadcastMessageToAll("Admin RankedTeamSize" @ Size);

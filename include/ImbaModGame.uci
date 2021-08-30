@@ -95,6 +95,8 @@ event InitGame(string Options, out string ErrorMessage)
 
         bUseMaxPingLimit = false;
         bDisableTeamDamagePenalty = true;
+        fServerTeamDamagePercent = 1.0f;
+        fTeamDamagePercent = 1.0f;
         bAdminCanPause = true;
         bAnyUserCanGetSteamID = true;
     }
@@ -472,6 +474,15 @@ function AdminChangeTeam(AOCPlayerController ChangeInstigator, String PlayerName
         i += Offset;
 
     Target.SetNewClass(AOCGRI(GameReplicationInfo).FamilyInfos[i]);
+}
+
+function AdminChangeTeamDamageAmount(AOCPlayerController ChangeInstigator, float Amount)
+{
+    if (!AccessControl.IsAdmin(ChangeInstigator) || bRankedMode)
+        return;
+
+    fTeamDamagePercent = Amount;
+    UpdateGameSettings();
 }
 
 function UpdateVoteTally()

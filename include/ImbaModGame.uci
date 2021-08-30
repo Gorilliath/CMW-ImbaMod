@@ -18,6 +18,7 @@ var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;
 var string sRankedModeMatchResponseData;
 var RankedAPI RankedAPI;
+var RankedGame RankedGame;
 
 // Custom player votes
 var delegate<CustomVoteOnComplete> dCustomVoteOnComplete;
@@ -59,16 +60,33 @@ static event class<GameInfo> SetGameType(string MapName, string Options, string 
 event InitGame(string Options, out string ErrorMessage)
 {
     local RankedAPI PreviousRankedAPI;
+    local RankedGame PreviousRankedGame;
 
     super.InitGame(Options, ErrorMessage);
 
-    // If in seamless travel, look for the previous RankedAPI instance
+    // Preserve actors which should persist through seamless travel
     if (WorldInfo.IsInSeamlessTravel())
     {
+        // Look for the previous RankedAPI instance
         foreach DynamicActors(Class'RankedAPI', PreviousRankedAPI)
         {
             RankedAPI = PreviousRankedAPI;
             break;
+        }
+
+        // Look for the RankedGame instance
+        foreach DynamicActors(Class'RankedGame', PreviousRankedGame)
+        {
+            // Conditions to keep the previous RankedGame
+            if (bRankedMode                                                                 &&  // Ranked mode is still enabled
+                PreviousRankedGame.MatchmakingResponse != ""                                &&  // A game was successfully made
+                PreviousRankedGame.CompletedMatches.Length < PreviousRankedGame.GameSize    &&  // There's still matches to play
+                PreviousRankedGame.Map == string(WorldInfo.GetPackageName())                &&  // The next map is as expected
+                !PreviousRankedGame.Cancelled)                                                  // The game wasn't cancelled
+            {
+                RankedGame = PreviousRankedGame;
+                break;
+            }
         }
     }
 
@@ -76,16 +94,12 @@ event InitGame(string Options, out string ErrorMessage)
     if (RankedAPI == none)
         RankedAPI = Spawn(class'RankedAPI');
 
-    if ((bTournamentMode && bRankedMode) || (default.bTournamentMode && default.bRankedMode))
-    {
-        ConfigureTournamentMode(false);
-        ConfigureRankedMode(false);
-        WorldInfo.ServerTravel("?restart", false);
-        return;
-    }
-
     if (bRankedMode)
     {
+        // Spawn a new RankedGame instance if one wasn't found
+        if (RankedGame == none)
+            RankedGame = Spawn(class'RankedGame');
+
         // Autobalance
         bAutoBalance = false;
         bDeathBasedAutoBalance = false;
@@ -96,6 +110,14 @@ event InitGame(string Options, out string ErrorMessage)
         bAdminCanPause = true;
         bAnyUserCanGetSteamID = true;
     }
+
+    // Ensure Tournament Mode and Ranked Mode are not both enabled at the same time
+    if ((bTournamentMode || default.bTournamentMode) && (bRankedMode || default.bRankedMode))
+    {
+        ConfigureTournamentMode(false);
+        ConfigureRankedMode(false);
+        WorldInfo.ServerTravel("?restart", false);
+    }
 }
 
 event GetSeamlessTravelActorList(bool bToEntry, out array<Actor> ActorList)
@@ -105,6 +127,8 @@ event GetSeamlessTravelActorList(bool bToEntry, out array<Actor> ActorList)
     if (RankedAPI != none)
         ActorList[ActorList.Length] = RankedAPI;
 
+    if (RankedGame != none)
+        ActorList[ActorList.Length] = RankedGame;
 }
 
 event PostLogin(PlayerController NewPlayer)

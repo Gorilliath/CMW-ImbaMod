@@ -3,7 +3,6 @@ class RankedAPI extends Actor;
 
 var string baseURL;
 var string key;
-var string chatColourHex;
 
 
 delegate OnProcessComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed);
@@ -80,14 +79,6 @@ function CalculateNewElos(string sCompletedMatchRequestData, optional delegate<O
 }
 
 
-function BroadcastMessageToAll(string Message)
-{
-    local AOCPlayerController PC;
-    foreach class'Worldinfo'.static.GetWorldInfo().AllControllers(class'AOCPlayerController', PC)
-    {
-        PC.ReceiveChatMessage(Message, EFAC_ALL, false, true, chatColourHex, false);
-    }
-}
 
 function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
 {
@@ -124,44 +115,9 @@ function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlay
     }
 }
 
-function BroadcastMatchInfo(string MatchResponseData)
-{
-    local JsonObject jMatchResponseData,
-                     TeamOnePlayers,
-                     TeamTwoPlayers,
-                     PlayerInfo;
-
-    jMatchResponseData = class'JsonObject'.static.DecodeJson(MatchResponseData);
-
-    TeamOnePlayers = jMatchResponseData
-        .GetObject("response")
-        .GetObject("items")
-        .GetObject("Team1")
-        .GetObject("players");
-
-    TeamTwoPlayers = jMatchResponseData
-        .GetObject("response")
-        .GetObject("items")
-        .GetObject("Team2")
-        .GetObject("players");
-
-    BroadcastMessageToAll("Agatha:");
-    foreach TeamOnePlayers.ObjectArray(PlayerInfo)
-    {
-        BroadcastMessageToAll("    [" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
-    }
-
-    BroadcastMessageToAll("Mason:");
-    foreach TeamTwoPlayers.ObjectArray(PlayerInfo)
-    {
-        BroadcastMessageToAll("    [" $ PlayerInfo.GetIntValue("elo") $ "]" @ PlayerInfo.GetStringValue("name"));
-    }
-}
-
 
 DefaultProperties
 {
     baseURL = "https://rufuspitt.com/api/";
     key = "";
-    chatColourHex = "#00BFFF";
 }

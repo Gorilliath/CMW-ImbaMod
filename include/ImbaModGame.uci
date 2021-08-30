@@ -14,6 +14,7 @@ var globalconfig bool bRankedMode;
 var globalconfig int iRankedTeamSize;
 var globalconfig int iRankedGameSize;
 var float fRankedModeMatchMakeInterval;
+var string sRankedModeChatColour;
 var bool bRankedModeMatchMade;
 var bool bRankedModeReadyToStartMatch;
 var string sRankedModeMatchResponseData;
@@ -578,12 +579,13 @@ Auto State AOCPreRound
 }
 
 
-reliable server function S_BroadcastServerMessage(string Message)
+reliable server function BroadcastMessageToAll(string Message, optional string Colour)
 {
     local AOCPlayerController PC;
+
     foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
     {
-        PC.ReceiveChatMessage(Message, EFAC_ALL, false, false, , false);
+        PC.ReceiveChatMessage(Message, EFAC_ALL, false, (Colour != ""), Colour, false);
     }
 }
 
@@ -835,7 +837,7 @@ exec function RestartMapAfterEndGame(bool bEnable)
     if (default.bRestartMapAfterEndGame == bEnable)
         return;
 
-    S_BroadcastServerMessage("Admin RestartMapAfterEndGame" @ bEnable);
+    BroadcastMessageToAll("Admin RestartMapAfterEndGame" @ bEnable);
 
     ConfigureRestartMapAfterEndGame(bEnable);
 }
@@ -854,7 +856,7 @@ exec function TournamentMode(bool bEnable)
     if (default.bTournamentMode == bEnable)
         return;
 
-    S_BroadcastServerMessage("Admin TournamentMode");
+    BroadcastMessageToAll("Admin TournamentMode" @ bEnable);
 
     if (bEnable)
         ConfigureRankedMode(false);
@@ -878,7 +880,7 @@ exec function RankedMode(bool bEnable)
     if (default.bRankedMode == bEnable)
         return;
 
-    S_BroadcastServerMessage("Admin RankedMode");
+    BroadcastMessageToAll("Admin RankedMode" @ bEnable);
 
     if (bEnable)
         ConfigureTournamentMode(false);
@@ -901,7 +903,7 @@ exec function RankedTeamSize(int Size)
     if (Size <= 0 || Size > (MaxPlayers / 2))
         return;
 
-    RankedAPI.BroadcastMessageToAll("Admin RankedTeamSize" @ Size);
+    BroadcastMessageToAll("Admin RankedTeamSize" @ Size);
 
     ConfigureRankedTeamSize(Size);
 }
@@ -970,34 +972,68 @@ function RankedModeAttemptToMakeMatch()
         CDWDuelGRI(GameReplicationInfo) != none
     )
     {
-        RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Unsupported gamemode.");
-        RankedAPI.BroadcastMessageToAll("Disable ranked mode for this gamemode!");
-        RankedAPI.BroadcastMessageToAll("");
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Unsupported gamemode.", sRankedModeChatColour);
+        BroadcastMessageToAll("Disable ranked mode for this gamemode!", sRankedModeChatColour);
+        BroadcastMessageToAll("");
         return;
     }
     // Team Objective
     if (AOCTOGRI(GameReplicationInfo) != none)
     {
-        RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Team Objective has been disabled until the usual format of playing two halves is supported.");
-        RankedAPI.BroadcastMessageToAll("Disable ranked mode for Team Objective for now!");
-        RankedAPI.BroadcastMessageToAll("");
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Team Objective has been disabled until the usual format of playing two halves is supported.", sRankedModeChatColour);
+        BroadcastMessageToAll("Disable ranked mode for Team Objective for now!", sRankedModeChatColour);
+        BroadcastMessageToAll("");
         return;
     }
     // Insufficient ready players
     if (PlayerCount < iRankedTeamSize * 2)
     {
-        RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "ready players to start a match.");
-        RankedAPI.BroadcastMessageToAll("Note: Being in team-select or class-select is not being ready!");
-        RankedAPI.BroadcastMessageToAll("Wait for more ready players to join or reduce the target team size.");
-        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
-        RankedAPI.BroadcastMessageToAll("");
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "ready players to start a match.", sRankedModeChatColour);
+        BroadcastMessageToAll("Note: Being in team-select or class-select is not being ready!", sRankedModeChatColour);
+        BroadcastMessageToAll("Wait for more ready players to join or reduce the target team size.", sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...", sRankedModeChatColour);
+        BroadcastMessageToAll("");
         return;
     }
 
     RankedAPI.CalculateMatchMaking(GetActualPlayersSteamIDs(), iRankedTeamSize, CalculateMatchMakingOnComplete);
+}
+
+function RankedModeBroadcastMatchInfo()
+{
+    local JsonObject jMatchResponseData,
+                     TeamOnePlayers,
+                     TeamTwoPlayers,
+                     Player;
+
+    jMatchResponseData = class'JsonObject'.static.DecodeJson(sRankedModeMatchResponseData);
+
+    TeamOnePlayers = jMatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team1")
+        .GetObject("players");
+
+    TeamTwoPlayers = jMatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team2")
+        .GetObject("players");
+
+    BroadcastMessageToAll("Agatha:", sRankedModeChatColour);
+    foreach TeamOnePlayers.ObjectArray(Player)
+    {
+        BroadcastMessageToAll("    [" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
+    }
+
+    BroadcastMessageToAll("Mason:", sRankedModeChatColour);
+    foreach TeamTwoPlayers.ObjectArray(Player)
+    {
+        BroadcastMessageToAll("    [" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
+    }
 }
 
 function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
@@ -1008,10 +1044,10 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     // Request failed spectacularly
     if (Response == none || !bDidSucceed)
     {
-        RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Remote service failed to respond.");
-        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
-        RankedAPI.BroadcastMessageToAll("");
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Remote service failed to respond.", sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...", sRankedModeChatColour);
+        BroadcastMessageToAll("");
         return;
     }
 
@@ -1022,27 +1058,27 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     // Response payload isn't what we're expecting
     if (data == none)
     {
-        RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Remote service returned an unexpected payload.");
-        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
-        RankedAPI.BroadcastMessageToAll("");
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Remote service returned an unexpected payload.", sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...", sRankedModeChatColour);
+        BroadcastMessageToAll("");
         return;
     }
 
     // Remote service was unable to make a match
     if (data.GetBoolValue("success") == false)
     {
-        RankedAPI.BroadcastMessageToAll("");
-        RankedAPI.BroadcastMessageToAll("Remote service was unable to make a match.");
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Remote service was unable to make a match.", sRankedModeChatColour);
         if (data.GetStringValue("error") != "")
-            RankedAPI.BroadcastMessageToAll("error: '" @ data.GetStringValue("error") @ "'");
-        RankedAPI.BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...");
-        RankedAPI.BroadcastMessageToAll("");
+            BroadcastMessageToAll("error: '" @ data.GetStringValue("error") @ "'", sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again in" @ fRankedModeMatchMakeInterval @ "seconds...", sRankedModeChatColour);
+        BroadcastMessageToAll("");
         return;
     }
 
     // Complete success :)
-    RankedAPI.BroadcastMessageToAll("Match successfully made!");
+    BroadcastMessageToAll("Match successfully made!", sRankedModeChatColour);
 
     // Ensure we stop polling for a match
     bRankedModeMatchMade = true;
@@ -1058,9 +1094,9 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     LockTeams(AgathaPlayerIDs, MasonPlayerIDs);
 
     // Broadcast the match info to everyone in the server
-    RankedAPI.BroadcastMessageToAll("");
-    RankedAPI.BroadcastMatchInfo(sRankedModeMatchResponseData);
-    RankedAPI.BroadcastMessageToAll("");
+    BroadcastMessageToAll("");
+    RankedModeBroadcastMatchInfo();
+    BroadcastMessageToAll("");
 
     // Change team names to average elo of each team
     team = data.GetObject("items").GetObject("Team1");
@@ -1270,9 +1306,9 @@ function RankedModeEndGame()
 function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
     if (bDidSucceed)
-        RankedAPI.BroadcastMessageToAll("Match result successfully sent to the remote service.");
+        BroadcastMessageToAll("Match result successfully sent to the remote service.", sRankedModeChatColour);
     else
-        RankedAPI.BroadcastMessageToAll("Failed to send match result to the remote service.");
+        BroadcastMessageToAll("Failed to send match result to the remote service.", sRankedModeChatColour);
 }
 
 // Custom player votes
@@ -1413,7 +1449,7 @@ function VoteRankedTeamSizeOnComplete(bool bSuccess)
     if (!bSuccess)
         return;
 
-    RankedAPI.BroadcastMessageToAll("RankedTeamSize" @ iVoteRankedTeamSize);
+    BroadcastMessageToAll("RankedTeamSize" @ iVoteRankedTeamSize);
 
     ConfigureRankedTeamSize(iVoteRankedTeamSize);
     iVoteRankedTeamSize = 0;
@@ -1435,7 +1471,7 @@ function VoteRestartMapAfterEndGameOnComplete(bool bSuccess)
     if (!bSuccess)
         return;
 
-    S_BroadcastServerMessage("RestartMapAfterEndGame" @ !bRestartMapAfterEndGame);
+    BroadcastMessageToAll("RestartMapAfterEndGame" @ !bRestartMapAfterEndGame);
     ConfigureRestartMapAfterEndGame(!bRestartMapAfterEndGame);
 }
 
@@ -1469,4 +1505,5 @@ DefaultProperties
     bDisableTeamDamagePenalty = true
 
     fRankedModeMatchMakeInterval = 30.0
+    sRankedModeChatColour = "#00BFFF"
 }

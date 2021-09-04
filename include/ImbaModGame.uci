@@ -23,6 +23,7 @@ var RankedGame RankedGame;
 // Custom player votes
 var delegate<CustomVoteOnComplete> dCustomVoteOnComplete;
 var int iVoteRankedTeamSize;
+var string sVoteChatColour;
 
 
 delegate CustomVoteOnComplete(bool bSuccess);
@@ -1307,10 +1308,11 @@ function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpRe
 }
 
 // Custom player votes
-function InitiateCustomVote(AOCPlayerController VoteInstigator, delegate<CustomVoteOnComplete> OnComplete, optional float duration, optional string PrimaryText, optional string SecondaryText)
+function InitiateCustomVote(AOCPlayerController VoteInstigator, delegate<CustomVoteOnComplete> OnComplete, optional float duration, optional string PrimaryText, optional string SecondaryText, optional string MessagePartial)
 {
     local AOCPlayerController PC;
     local int FailReasonPMCode;
+    local float fPreviousVoteDurationSeconds;
 
     if (!IsAllowedToInitiateVote(VoteInstigator, FailReasonPMCode))
     {
@@ -1327,7 +1329,10 @@ function InitiateCustomVote(AOCPlayerController VoteInstigator, delegate<CustomV
     // Set delegate to execute when complete
     dCustomVoteOnComplete = OnComplete;
 
-    // Overrride vote duration 
+    // Preserve previous vote duration
+    fPreviousVoteDurationSeconds = fVoteDurationSeconds;
+
+    // Apply vote duration override if it's suitable
     if (duration >= 10 && duration <= 60)
         fVoteDurationSeconds = duration;
 
@@ -1345,10 +1350,20 @@ function InitiateCustomVote(AOCPlayerController VoteInstigator, delegate<CustomV
     AOCGRI(GameReplicationInfo).VotesNo = 0;
     AOCGRI(GameReplicationInfo).VotesYes = 0;
 
-    InitiateNewVote(VoteInstigator);
+    InitiateNewVote(VoteInstigator); // Uses fVoteDurationSeconds -.-
     VoteInstigator.Vote = EVOTE_Yes;
 
     SetTimer(0.5f, true, 'CountVotes');
+
+    // Restore previous vote duration
+    fVoteDurationSeconds = fPreviousVoteDurationSeconds;
+
+    // Default the partial message which appends the name of the vote instigator if applicable
+    if (MessagePartial == "")
+        MessagePartial = "has started a custom vote.";
+
+    // Notify players who started the vote
+    BroadcastMessageToAll(VoteInstigator.PlayerReplicationInfo.PlayerName @ MessagePartial, sVoteChatColour);
 }
 
 function EndCustomVote()
@@ -1378,11 +1393,11 @@ function InitiateVoteTournamentMode(AOCPlayerController VoteInstigator, bool bEn
 {
     if (default.bTournamentMode == bEnable)
     {
-        VoteInstigator.ReceiveChatMessage("TournamentMode is already" @ bEnable ? "enabled." : "disabled.", EFAC_ALL, true);
+        VoteInstigator.ClientDisplayConsoleMessage("TournamentMode is already" @ bEnable ? "enabled." : "disabled.");
         return;
     }
 
-    InitiateCustomVote(VoteInstigator, VoteTournamentModeOnComplete, , bEnable ? "Enable?" : "Disable?", "TournamentMode");
+    InitiateCustomVote(VoteInstigator, VoteTournamentModeOnComplete, , bEnable ? "Enable?" : "Disable?", "TournamentMode", "has started a vote to toggle TournamentMode.");
 }
 
 function VoteTournamentModeOnComplete(bool bSuccess)
@@ -1402,11 +1417,11 @@ function InitiateVoteRankedMode(AOCPlayerController VoteInstigator, bool bEnable
 {
     if (bRankedMode == bEnable)
     {
-        VoteInstigator.ReceiveChatMessage("RankedMode is already" @ bEnable ? "enabled." : "disabled.", EFAC_ALL, true);
+        VoteInstigator.ClientDisplayConsoleMessage("RankedMode is already" @ bEnable ? "enabled." : "disabled.");
         return;
     }
 
-    InitiateCustomVote(VoteInstigator, VoteRankedModeOnComplete, , bEnable ? "Enable?" : "Disable?", "RankedMode");
+    InitiateCustomVote(VoteInstigator, VoteRankedModeOnComplete, , bEnable ? "Enable?" : "Disable?", "RankedMode", "has started a vote to toggle RankedMode.");
 }
 
 function VoteRankedModeOnComplete(bool bSuccess)
@@ -1426,17 +1441,17 @@ function InitiateVoteRankedTeamSize(AOCPlayerController VoteInstigator, int Size
 {
     if (Size <= 0 || Size > (MaxPlayers / 2))
     {
-        VoteInstigator.ReceiveChatMessage("RankedTeamSize cannot be set to" @ Size $ ".", EFAC_ALL, true);
+        VoteInstigator.ClientDisplayConsoleMessage("RankedTeamSize cannot be set to" @ Size $ ".");
         return;
     }
     if (iRankedTeamSize == Size)
     {
-        VoteInstigator.ReceiveChatMessage("RankedTeamSize is already" @ Size $ ".", EFAC_ALL, true);
+        VoteInstigator.ClientDisplayConsoleMessage("RankedTeamSize is already" @ Size $ ".");
         return;
     }
 
     iVoteRankedTeamSize = Size;
-    InitiateCustomVote(VoteInstigator, VoteRankedTeamSizeOnComplete, 15.0, string(Size), "RankedTeamSize");
+    InitiateCustomVote(VoteInstigator, VoteRankedTeamSizeOnComplete, 15.0, string(Size), "RankedTeamSize", "has started a vote to set RankedTeamSize to" @ Size $ ".");
 }
 
 function VoteRankedTeamSizeOnComplete(bool bSuccess)
@@ -1444,7 +1459,7 @@ function VoteRankedTeamSizeOnComplete(bool bSuccess)
     if (!bSuccess)
         return;
 
-    BroadcastMessageToAll("RankedTeamSize" @ iVoteRankedTeamSize);
+    BroadcastMessageToAll("RankedTeamSize" @ iVoteRankedTeamSize, sVoteChatColour);
 
     ConfigureRankedTeamSize(iVoteRankedTeamSize);
     iVoteRankedTeamSize = 0;
@@ -1454,11 +1469,11 @@ function InitiateVoteRestartMapAfterEndGame(AOCPlayerController VoteInstigator, 
 {
     if (bRestartMapAfterEndGame == bEnable)
     {
-        VoteInstigator.ReceiveChatMessage("RestartMapAfterEndGame is already" @ bEnable ? "enabled." : "disabled.", EFAC_ALL, true);
+        VoteInstigator.ClientDisplayConsoleMessage("RestartMapAfterEndGame is already" @ bEnable ? "enabled." : "disabled.");
         return;
     }
 
-    InitiateCustomVote(VoteInstigator, VoteRestartMapAfterEndGameOnComplete, , bEnable ? "Enable?" : "Disable?", "RestartMapAfterEndGame");
+    InitiateCustomVote(VoteInstigator, VoteRestartMapAfterEndGameOnComplete, , bEnable ? "Enable?" : "Disable?", "RestartMapAfterEndGame", "has started a vote to toggle RestartMapAfterEndGame.");
 }
 
 function VoteRestartMapAfterEndGameOnComplete(bool bSuccess)
@@ -1466,7 +1481,7 @@ function VoteRestartMapAfterEndGameOnComplete(bool bSuccess)
     if (!bSuccess)
         return;
 
-    BroadcastMessageToAll("RestartMapAfterEndGame" @ !bRestartMapAfterEndGame);
+    BroadcastMessageToAll("RestartMapAfterEndGame" @ !bRestartMapAfterEndGame, sVoteChatColour);
     ConfigureRestartMapAfterEndGame(!bRestartMapAfterEndGame);
 }
 
@@ -1500,4 +1515,6 @@ DefaultProperties
 
     fRankedModeMatchMakeInterval = 30.0
     sRankedModeChatColour = "#00BFFF"
+
+    sVoteChatColour = "#fc4ed9"
 }

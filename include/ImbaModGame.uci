@@ -15,9 +15,6 @@ var globalconfig int iRankedTeamSize;
 var globalconfig int iRankedGameSize;
 var float fRankedModeMatchMakeInterval;
 var string sRankedModeChatColour;
-var bool bRankedModeMatchMade;
-var bool bRankedModeReadyToStartMatch;
-var string sRankedModeMatchResponseData;
 var RankedGame RankedGame;
 
 // Custom player votes
@@ -315,7 +312,7 @@ function bool ShouldCountDown()
     }
     else if (bRankedMode)
     {
-        return (bEachTeamHasAtleastOnePlayer && bRankedModeReadyToStartMatch);
+        return (bEachTeamHasAtleastOnePlayer && RankedGame != none && RankedGame.ReadyToPlay);
     }
     else
     {
@@ -344,7 +341,7 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
 {
     super.EndGame(Winner, Reason);
 
-    if (bRankedMode && bRankedModeMatchMade && sRankedModeMatchResponseData != "")
+    if (bRankedMode && RankedGame != none && RankedGame.MatchmakingResponse != "")
         SetTimer(3.0f, false, 'RankedModeEndGame');
 }
 
@@ -566,7 +563,7 @@ Auto State AOCPreRound
     {
         super.BeginState(PreviousStateName);
 
-        if (bRankedMode && !bRankedModeMatchMade && !bRankedModeReadyToStartMatch)
+        if (bRankedMode && RankedGame != none && RankedGame.MatchmakingResponse == "")
         {
             ClearTimer('RankedModeAttemptToMakeMatch');
             SetTimer(fRankedModeMatchMakeInterval, true, 'RankedModeAttemptToMakeMatch');
@@ -956,8 +953,8 @@ function RankedModeAttemptToMakeMatch()
     // Cases to not bother POSTing remote service and to not bother sending notifications
     if (!bRankedMode ||
         PlayerCount == 0 ||
-        bRankedModeMatchMade ||
-        bRankedModeReadyToStartMatch
+        RankedGame == none ||
+        RankedGame.MatchmakingResponse != ""
     )
         return;
 
@@ -996,40 +993,6 @@ function RankedModeAttemptToMakeMatch()
     }
 
     class'RankedAPI'.static.CalculateMatchMaking(GetActualPlayersSteamIDs(), iRankedTeamSize, CalculateMatchMakingOnComplete);
-}
-
-function RankedModeBroadcastMatchInfo()
-{
-    local JsonObject jMatchResponseData,
-                     TeamOnePlayers,
-                     TeamTwoPlayers,
-                     Player;
-
-    jMatchResponseData = class'JsonObject'.static.DecodeJson(sRankedModeMatchResponseData);
-
-    TeamOnePlayers = jMatchResponseData
-        .GetObject("response")
-        .GetObject("items")
-        .GetObject("Team1")
-        .GetObject("players");
-
-    TeamTwoPlayers = jMatchResponseData
-        .GetObject("response")
-        .GetObject("items")
-        .GetObject("Team2")
-        .GetObject("players");
-
-    BroadcastMessageToAll("Agatha:", sRankedModeChatColour);
-    foreach TeamOnePlayers.ObjectArray(Player)
-    {
-        BroadcastMessageToAll("    [" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
-    }
-
-    BroadcastMessageToAll("Mason:", sRankedModeChatColour);
-    foreach TeamTwoPlayers.ObjectArray(Player)
-    {
-        BroadcastMessageToAll("    [" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
-    }
 }
 
 function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
@@ -1077,14 +1040,13 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     BroadcastMessageToAll("Match successfully made!", sRankedModeChatColour);
 
     // Ensure we stop polling for a match
-    bRankedModeMatchMade = true;
     ClearTimer('RankedModeAttemptToMakeMatch');
 
     // Save response payload
-    sRankedModeMatchResponseData = Response.GetContentAsString();
+    RankedGame.MatchmakingResponse = Response.GetContentAsString();
 
     // Extract teams from response
-    class'RankedAPI'.static.GetTeamPlayerIDs(sRankedModeMatchResponseData, AgathaPlayerIDs, MasonPlayerIDs);
+    RankedGame.GetTeamsSteamID64s(AgathaPlayerIDs, MasonPlayerIDs);
 
     // Lock and force teams
     LockTeams(AgathaPlayerIDs, MasonPlayerIDs);
@@ -1101,7 +1063,44 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     AOCGRI(GameReplicationInfo).MasonNameOverride =  "[" $ team.GetIntValue("eloSum") / team.GetObject("players").ObjectArray.Length $ "]";
 
     // Start the match
-    bRankedModeReadyToStartMatch = true;
+    RankedGame.ReadyToPlay = true;
+}
+
+function RankedModeBroadcastMatchInfo()
+{
+    local JsonObject jMatchResponseData,
+                     TeamOnePlayers,
+                     TeamTwoPlayers,
+                     Player;
+
+    if (!bRankedMode || RankedGame == none || RankedGame.MatchmakingResponse == "")
+        return;
+
+    jMatchResponseData = RankedGame.GetMatchmakingResponseObject();
+
+    TeamOnePlayers = jMatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team1")
+        .GetObject("players");
+
+    TeamTwoPlayers = jMatchResponseData
+        .GetObject("response")
+        .GetObject("items")
+        .GetObject("Team2")
+        .GetObject("players");
+
+    BroadcastMessageToAll("Agatha:", sRankedModeChatColour);
+    foreach TeamOnePlayers.ObjectArray(Player)
+    {
+        BroadcastMessageToAll("    [" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
+    }
+
+    BroadcastMessageToAll("Mason:", sRankedModeChatColour);
+    foreach TeamTwoPlayers.ObjectArray(Player)
+    {
+        BroadcastMessageToAll("    [" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
+    }
 }
 
 function RankedModeEndGame()
@@ -1130,8 +1129,8 @@ function RankedModeEndGame()
               i;
 
 
-    jMatchResponseData = class'JsonObject'.static.DecodeJson(sRankedModeMatchResponseData);
-    jCompletedMatchRequestData = class'JsonObject'.static.DecodeJson(sRankedModeMatchResponseData);
+    jMatchResponseData = RankedGame.GetMatchmakingResponseObject();
+    jCompletedMatchRequestData = RankedGame.GetMatchmakingResponseObject();
 
     // Get each nested object
     jResponse = jMatchResponseData.GetObject("response");

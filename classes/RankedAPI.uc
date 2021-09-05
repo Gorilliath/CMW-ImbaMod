@@ -82,38 +82,37 @@ static function CalculateNewElos(string sCompletedMatchRequestData, optional del
 
 
 // Payload handling
-static function GetTeamPlayerIDs(string MatchResponseData, out array<string> AgathaPlayerIDs, out array<string> MasonPlayerIDs)
+static function GetTeamsSteamID64s(string sMatchmakingResponse, out array<string> TeamOneSteamID64s, out array<string> TeamTwoSteamID64s)
 {
-    local JsonObject jMatchResponseData,
-                     TeamOnePlayers,
-                     TeamTwoPlayers,
-                     PlayerInfo;
+    local JsonObject jMatchmakingResponse,
+                     jTeamOnePlayers,
+                     jTeamTwoPlayers,
+                     jPlayer;
 
-    jMatchResponseData = class'JsonObject'.static.DecodeJson(MatchResponseData);
+    jMatchmakingResponse = class'JsonObject'.static.DecodeJson(sMatchmakingResponse);
 
-    AgathaPlayerIDs.Remove(0, 100);
-    MasonPlayerIDs.Remove(0, 100);
+    jTeamOnePlayers = jMatchmakingResponse.GetObject("response")
+                                          .GetObject("items")
+                                          .GetObject("Team1")
+                                          .GetObject("players");
 
-    TeamOnePlayers = jMatchResponseData
-        .GetObject("response")
-        .GetObject("items")
-        .GetObject("Team1")
-        .GetObject("players");
+    jTeamTwoPlayers = jMatchmakingResponse.GetObject("response")
+                                          .GetObject("items")
+                                          .GetObject("Team2")
+                                          .GetObject("players");
 
-    TeamTwoPlayers = jMatchResponseData
-        .GetObject("response")
-        .GetObject("items")
-        .GetObject("Team2")
-        .GetObject("players");
+    // Clear any previous data from referenced arrays
+    TeamOneSteamID64s.Remove(0, TeamOneSteamID64s.Length);
+    TeamTwoSteamID64s.Remove(0, TeamTwoSteamID64s.Length);
 
-    foreach TeamOnePlayers.ObjectArray(PlayerInfo)
+    foreach jTeamOnePlayers.ObjectArray(jPlayer)
     {
-        AgathaPlayerIDs.AddItem(PlayerInfo.GetStringValue("_id"));
+        TeamOneSteamID64s.AddItem(jPlayer.GetStringValue("_id"));
     }
 
-    foreach TeamTwoPlayers.ObjectArray(PlayerInfo)
+    foreach jTeamTwoPlayers.ObjectArray(jPlayer)
     {
-        MasonPlayerIDs.AddItem(PlayerInfo.GetStringValue("_id"));
+        TeamTwoSteamID64s.AddItem(jPlayer.GetStringValue("_id"));
     }
 }
 

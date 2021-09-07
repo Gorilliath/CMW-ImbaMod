@@ -116,6 +116,26 @@ static function GetTeamsSteamID64s(string sMatchmakingResponse, out array<string
     }
 }
 
+static function GetTeamsAverageElos(string sMatchmakingResponse, out float TeamOneAverageElo, out float TeamTwoAverageElo)
+{
+    local JsonObject jMatchmakingResponse,
+                     jTeamOne,
+                     jTeamTwo;
+
+    jMatchmakingResponse = class'JsonObject'.static.DecodeJson(sMatchmakingResponse);
+
+    jTeamOne = jMatchmakingResponse.GetObject("response")
+                                   .GetObject("items")
+                                   .GetObject("Team1");
+
+    jTeamTwo = jMatchmakingResponse.GetObject("response")
+                                   .GetObject("items")
+                                   .GetObject("Team2");
+
+    TeamOneAverageElo = jTeamOne.GetIntValue("eloSum") / jTeamOne.GetObject("players").ObjectArray.Length;
+    TeamTwoAverageElo = jTeamTwo.GetIntValue("eloSum") / jTeamTwo.GetObject("players").ObjectArray.Length;
+}
+
 
 DefaultProperties
 {

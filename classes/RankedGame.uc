@@ -19,13 +19,14 @@ function GetTeamsSteamID64s(out array<string> TeamOneSteamID64s, out array<strin
     class'RankedAPI'.static.GetTeamsSteamID64s(MatchmakingResponse, TeamOneSteamID64s, TeamTwoSteamID64s);
 }
 
-function int GetTeamsAverageElo()
+function GetTeamsAverageElos(out float TeamOneAverageElo, out float TeamTwoAverageElo)
 {
-
+    class'RankedAPI'.static.GetTeamsAverageElos(MatchmakingResponse, TeamOneAverageElo, TeamTwoAverageElo);
 }
 
 
 
 DefaultProperties
 {
+
 }

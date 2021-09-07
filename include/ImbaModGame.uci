@@ -997,8 +997,9 @@ function RankedModeAttemptToMakeMatch()
 
 function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
-    local JsonObject data, team;
+    local JsonObject data;
     local array<string> AgathaPlayerIDs, MasonPlayerIDs;
+    local float TeamOneAverageElo, TeamTwoAverageElo;
 
     // Request failed spectacularly
     if (Response == none || !bDidSucceed)
@@ -1045,10 +1046,8 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     // Save response payload
     RankedGame.MatchmakingResponse = Response.GetContentAsString();
 
-    // Extract teams from response
-    RankedGame.GetTeamsSteamID64s(AgathaPlayerIDs, MasonPlayerIDs);
-
     // Lock and force teams
+    RankedGame.GetTeamsSteamID64s(AgathaPlayerIDs, MasonPlayerIDs);
     LockTeams(AgathaPlayerIDs, MasonPlayerIDs);
 
     // Broadcast the match info to everyone in the server
@@ -1057,10 +1056,9 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     BroadcastMessageToAll("");
 
     // Change team names to average elo of each team
-    team = data.GetObject("items").GetObject("Team1");
-    AOCGRI(GameReplicationInfo).AgathaNameOverride = "[" $ team.GetIntValue("eloSum") / team.GetObject("players").ObjectArray.Length $ "]";
-    team = data.GetObject("items").GetObject("Team2");
-    AOCGRI(GameReplicationInfo).MasonNameOverride =  "[" $ team.GetIntValue("eloSum") / team.GetObject("players").ObjectArray.Length $ "]";
+    RankedGame.GetTeamsAverageElos(TeamOneAverageElo, TeamTwoAverageElo);
+    AOCGRI(GameReplicationInfo).AgathaNameOverride = "[" $ int(TeamOneAverageElo) $ "]";
+    AOCGRI(GameReplicationInfo).MasonNameOverride =  "[" $ int(TeamTwoAverageElo) $ "]";
 
     // Start the match
     RankedGame.ReadyToPlay = true;

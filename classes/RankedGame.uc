@@ -3,6 +3,7 @@ class RankedGame extends Actor;
 
 var string MatchmakingResponse;         // JSON string response from remote service /CalculateMatchMaking
 var string Map;                         // What map the game should be played on
+var int TeamSize;                       // How many players should be on each team
 var int GameSize;                       // How many matches should be played
 var array<string> CompletedMatches;     // JSON string results of each completed match
 var bool ReadyToPlay;                   // Whether the match (or round) can be started

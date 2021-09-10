@@ -691,6 +691,16 @@ reliable server function ServerVoteRankedTeamSize(int Size)
     `{GAMEMODE} (WorldInfo.Game).InitiateVoteRankedTeamSize(self, Size);
 }
 
+exec function VoteCancelRankedGame()
+{
+    ServerVoteCancelRankedGame();
+}
+
+reliable server function ServerVoteCancelRankedGame()
+{
+    `{GAMEMODE} (WorldInfo.Game).InitiateVoteCancelRankedGame(self);
+}
+
 exec function VoteRestartMapAfterEndGame(bool bEnable)
 {
     ServerVoteRestartMapAfterEndGame(bEnable);

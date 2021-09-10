@@ -913,6 +913,25 @@ reliable server function ConfigureRankedTeamSize(int Size)
     class'`{GAMEMODE}'.static.StaticSaveConfig();
 }
 
+exec function CancelRankedGame()
+{
+    if (!bRankedMode || RankedGame == none || RankedGame.MatchmakingResponse == "" || RankedGame.Cancelled)
+        return;
+
+    BroadcastMessageToAll("Admin CancelRankedGame");
+
+    RankedModeCancelGame();
+}
+
+reliable server function RankedModeCancelGame()
+{
+    if (!bRankedMode || RankedGame == none || RankedGame.MatchmakingResponse == "" || RankedGame.Cancelled)
+        return;
+
+    RankedGame.Cancelled = true;
+    WorldInfo.ServerTravel("?restart", false);
+}
+
 function OnUserConnectOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
     local JsonObject data;
@@ -1473,6 +1492,25 @@ function VoteRankedTeamSizeOnComplete(bool bSuccess)
 
     ConfigureRankedTeamSize(iVoteRankedTeamSize);
     iVoteRankedTeamSize = 0;
+}
+
+function InitiateVoteCancelRankedGame(AOCPlayerController VoteInstigator)
+{
+    if (!bRankedMode || RankedGame == none || RankedGame.MatchmakingResponse == "" || RankedGame.Cancelled)
+    {
+        VoteInstigator.ClientDisplayConsoleMessage("The Ranked Game either doesn't exist or is already cancelled.");
+        return;
+    }
+
+    InitiateCustomVote(VoteInstigator, VoteCancelRankedGameOnComplete, , "Cancel?", "Ranked Game", "has started a vote to cancel the current Ranked Game.");
+}
+
+function VoteCancelRankedGameOnComplete(bool bSuccess)
+{
+    if (!bSuccess)
+        return;
+
+    RankedModeCancelGame();
 }
 
 function InitiateVoteRestartMapAfterEndGame(AOCPlayerController VoteInstigator, bool bEnable)

@@ -341,7 +341,7 @@ function EndGame(PlayerReplicationInfo Winner, string Reason)
 {
     super.EndGame(Winner, Reason);
 
-    if (bRankedMode && RankedGame != none && RankedGame.MatchmakingResponse != "")
+    if (bRankedMode)
         SetTimer(3.0f, false, 'RankedModeEndGame');
 }
 
@@ -1016,7 +1016,7 @@ function RankedModeAttemptToStartMatch()
         RankedGame.GetTeamsAverageElos(TeamOneAverageElo, TeamTwoAverageElo);
 
         // Handle rotating teams
-        if ((RankedGame.CompletedMatches.Length + 1) % 2 == 0)
+        if ((RankedGame.CompletedMatches.Length + 1) % 2 == 1)
         {
             LockTeams(TeamOneSteamID64s, TeamTwoSteamID64s);
             AOCGRI(GameReplicationInfo).AgathaNameOverride = "[" $ int(TeamOneAverageElo) $ "]";
@@ -1090,23 +1090,23 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
 
 function RankedModeBroadcastMatchInfo()
 {
-    local JsonObject jMatchResponseData,
-                     TeamOnePlayers,
-                     TeamTwoPlayers,
-                     Player;
+    local JsonObject jMatchmakingResponse,
+                     jTeamOnePlayers,
+                     jTeamTwoPlayers,
+                     jPlayer;
 
     if (!bRankedMode || RankedGame == none || RankedGame.MatchmakingResponse == "")
         return;
 
-    jMatchResponseData = RankedGame.GetMatchmakingResponseObject();
+    jMatchmakingResponse = RankedGame.GetMatchmakingResponseObject();
 
-    TeamOnePlayers = jMatchResponseData
+    jTeamOnePlayers = jMatchmakingResponse
         .GetObject("response")
         .GetObject("items")
         .GetObject("Team1")
         .GetObject("players");
 
-    TeamTwoPlayers = jMatchResponseData
+    jTeamTwoPlayers = jMatchmakingResponse
         .GetObject("response")
         .GetObject("items")
         .GetObject("Team2")
@@ -1116,18 +1116,18 @@ function RankedModeBroadcastMatchInfo()
     BroadcastMessageToAll("Match" @ RankedGame.CompletedMatches.Length + 1 @ "of" @ RankedGame.GameSize, sRankedModeChatColour);
     BroadcastMessageToAll("");
 
-    foreach TeamOnePlayers.ObjectArray(Player)
+    foreach jTeamOnePlayers.ObjectArray(jPlayer)
     {
-        BroadcastMessageToAll("[" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
+        BroadcastMessageToAll("[" $ jPlayer.GetIntValue("elo") $ "]" @ jPlayer.GetStringValue("name"), sRankedModeChatColour);
     }
 
     BroadcastMessageToAll("");
     BroadcastMessageToAll("versus", sRankedModeChatColour);
     BroadcastMessageToAll("");
 
-    foreach TeamTwoPlayers.ObjectArray(Player)
+    foreach jTeamTwoPlayers.ObjectArray(jPlayer)
     {
-        BroadcastMessageToAll("[" $ Player.GetIntValue("elo") $ "]" @ Player.GetStringValue("name"), sRankedModeChatColour);
+        BroadcastMessageToAll("[" $ jPlayer.GetIntValue("elo") $ "]" @ jPlayer.GetStringValue("name"), sRankedModeChatColour);
     }
 
     BroadcastMessageToAll("");
@@ -1135,8 +1135,7 @@ function RankedModeBroadcastMatchInfo()
 
 function RankedModeEndGame()
 {
-    local JsonObject jMatchResponseData,
-                     jResponse,
+    local JsonObject jMatchmakingResponse,
                      jItems,
                      jTeamOne,
                      jTeamTwo,
@@ -1147,111 +1146,76 @@ function RankedModeEndGame()
                      jTeamTwoKPI,
                      jPlayer,
                      jPlayerKPI,
-                     jCompletedMatchRequestData;
+                     jCompletedMatch,
+
+                     jCompletedMatches,
+                     jRequestPayload;
+    local string uuid,
+                 sCompletedMatch;
+    local int i;
     local EAOCFaction WinningTeam;
     local AOCGRI GRI;
-    local float teamOneScore,
-                teamOneProgress,
-                teamTwoScore,
-                teamTwoProgress;
     local `{GAMEMODE}PRI PRI;
-    local int winner,
-              i;
 
 
-    jMatchResponseData = RankedGame.GetMatchmakingResponseObject();
-    jCompletedMatchRequestData = RankedGame.GetMatchmakingResponseObject();
+    if (!bRankedMode ||
+        RankedGame == none ||
+        RankedGame.MatchmakingResponse == "" ||
+        RankedGame.CompletedMatches.Length >= RankedGame.GameSize)
+    {
+        return;
+    }
 
-    // Get each nested object
-    jResponse = jMatchResponseData.GetObject("response");
-    jItems = jResponse.GetObject("items");
+    // Ensure any subsequent matches are able to start after seamless-travel
+    RankedGame.ReadyToPlay = false;
+
+    // Extract relevant data from the matchmaking response
+    jMatchmakingResponse = RankedGame.GetMatchmakingResponseObject();
+    jItems = jMatchmakingResponse.GetObject("response").GetObject("items");
     jTeamOne = jItems.GetObject("Team1");
     jTeamTwo = jItems.GetObject("Team2");
     jTeamOnePlayers = jTeamOne.GetObject("players");
     jTeamTwoPlayers = jTeamTwo.GetObject("players");
+    uuid = jItems.GetStringValue("uuid");
 
+    // Prepare remaining objects
+    jCompletedMatch = new class'JsonObject';
+    jTeamOneKPI = new class'JsonObject';
+    jTeamTwoKPI = new class'JsonObject';
 
-    // Get winning team
+    GRI = AOCGRI(GameReplicationInfo);
+
+    // Map
+    jCompletedMatch.SetStringValue("mapName", RankedGame.Map);
+
+    // Winning team
     WinningTeam = GetWinningTeam();
     if (WinningTeam == EFAC_AGATHA)
-        winner = 1;
+        jCompletedMatch.SetIntValue("winner", 1);
     else if (WinningTeam == EFAC_MASON)
-        winner = 2;
+        jCompletedMatch.SetIntValue("winner", 2);
     else
-        winner = 0;
+        jCompletedMatch.SetIntValue("winner", 0);
 
+    // Time remaining TODO:
+    //jCompletedMatch.SetIntValue("timeRemaining", );
 
-    // Get each team's KPIs
-    GRI = AOCGRI(GameReplicationInfo);
-    teamOneScore = GRI.GetTeamScore(EFAC_AGATHA);
-    teamOneProgress = GRI.GetTeamProgress(EFAC_AGATHA);
-
-    teamTwoScore = GRI.GetTeamScore(EFAC_MASON);
-    teamTwoProgress = GRI.GetTeamProgress(EFAC_MASON);
-
-    // Create team KPI objects
-    jTeamOneKPI = new class'JsonObject';
-    jTeamOneKPI.SetFloatValue("score", teamOneScore);
-    jTeamOneKPI.SetFloatValue("progress", teamOneProgress);
-    
-    jTeamTwoKPI = new class'JsonObject';
-    jTeamTwoKPI.SetFloatValue("score", teamTwoScore);
-    jTeamTwoKPI.SetFloatValue("progress", teamTwoProgress);
-
-
+    // Player stats
     // Extend the player objects with their respective KPIs
     for (i = 0; i < jTeamOnePlayers.ObjectArray.Length; i++)
     {
+        // Get player object
         jPlayer = jTeamOnePlayers.ObjectArray[i];
 
+        // Get their PRI
         PRI = `{GAMEMODE}PRI(GetPlayerReplicationInfoViaSteamID64(jPlayer.GetStringValue("_id")));
         if (PRI == none)
             continue;
 
-        // Create KPI object
-        jPlayerKPI = new class'JsonObject';
-        jPlayerKPI.SetIntValue("score",   PRI.Score);
-        jPlayerKPI.SetIntValue("kills",   PRI.NumKills);
-        jPlayerKPI.SetIntValue("deaths",  PRI.Deaths);
-        jPlayerKPI.SetIntValue("assists", PRI.NumAssists);
+        // Get stats
+        jPlayerKPI = PRI.GetStatsObject();
 
-        jPlayerKPI.SetIntValue("healthRegenerated",             PRI.HealthRegenerated);
-        jPlayerKPI.SetIntValue("healthDamageReceivedFromAll",   PRI.AllDamageTaken);
-        jPlayerKPI.SetIntValue("healthDamageReceivedFromEnemy", PRI.DamageTaken);
-        jPlayerKPI.SetIntValue("healthDamageReceivedFromTeam",  PRI.TeamDamageTaken);
-        jPlayerKPI.SetIntValue("healthDamageDealtToEnemy",      PRI.EnemyDamageDealt);
-        jPlayerKPI.SetIntValue("healthDamageDealtToTeam",       PRI.TeamDamageDealt);
-
-        jPlayerKPI.SetFloatValue("staminaRegenerated",           PRI.StaminaRegenerated);
-        jPlayerKPI.SetFloatValue("staminaDamageReceivedFromAll", PRI.AllStaminaConsumed);
-        jPlayerKPI.SetIntValue("staminaDamageReceivedFromEnemy", PRI.EnemyStaminaDamageTaken);
-        jPlayerKPI.SetIntValue("staminaDamageReceivedFromTeam",  PRI.TeamStaminaDamageTaken);
-        jPlayerKPI.SetIntValue("staminaDamageDealtToEnemy",      PRI.EnemyStaminaDamageDealt);
-        jPlayerKPI.SetIntValue("staminaDamageDealtToTeam",       PRI.TeamStaminaDamageDealt);
-
-        jPlayerKPI.SetIntValue("feints", PRI.Feints);
-
-        jPlayerKPI.SetIntValue("attacks",           PRI.NumAttacks);
-        jPlayerKPI.SetIntValue("successfulAttacks", PRI.NumHits);
-
-        jPlayerKPI.SetIntValue("meleeHits",      PRI.MeleeHits);
-        jPlayerKPI.SetIntValue("projectileHits", PRI.ProjectileHits);
-        jPlayerKPI.SetIntValue("lightShoveHits", PRI.LightShoveHits);
-        jPlayerKPI.SetIntValue("heavyShoveHits", PRI.HeavyShoveHits);
-
-        jPlayerKPI.SetIntValue("parries", PRI.Parries);
-        jPlayerKPI.SetIntValue("blocks",  PRI.Blocks);
-
-        jPlayerKPI.SetIntValue("crouches", PRI.Crouches);
-        jPlayerKPI.SetIntValue("jumps",    PRI.Jumps);
-        jPlayerKPI.SetIntValue("dodges",   PRI.Dodges);
-
-        jPlayerKPI.SetIntValue("objectivePoints", PRI.ObjPoints);
-
-        jPlayerKPI.SetIntValue("decapitations", PRI.NumDecaps);
-        jPlayerKPI.SetIntValue("chatter",       PRI.Chatter);
-
-        // Extend original object
+        // Extend player object
         jTeamOnePlayers.ObjectArray[i].SetObject("kpi", jPlayerKPI);
     }
 
@@ -1263,77 +1227,90 @@ function RankedModeEndGame()
         if (PRI == none)
             continue;
 
-        jPlayerKPI = new class'JsonObject';
-        jPlayerKPI.SetIntValue("score",   PRI.Score);
-        jPlayerKPI.SetIntValue("kills",   PRI.NumKills);
-        jPlayerKPI.SetIntValue("deaths",  PRI.Deaths);
-        jPlayerKPI.SetIntValue("assists", PRI.NumAssists);
-
-        jPlayerKPI.SetIntValue("healthRegenerated",             PRI.HealthRegenerated);
-        jPlayerKPI.SetIntValue("healthDamageReceivedFromAll",   PRI.AllDamageTaken);
-        jPlayerKPI.SetIntValue("healthDamageReceivedFromEnemy", PRI.DamageTaken);
-        jPlayerKPI.SetIntValue("healthDamageReceivedFromTeam",  PRI.TeamDamageTaken);
-        jPlayerKPI.SetIntValue("healthDamageDealtToEnemy",      PRI.EnemyDamageDealt);
-        jPlayerKPI.SetIntValue("healthDamageDealtToTeam",       PRI.TeamDamageDealt);
-
-        jPlayerKPI.SetFloatValue("staminaRegenerated",           PRI.StaminaRegenerated);
-        jPlayerKPI.SetFloatValue("staminaDamageReceivedFromAll", PRI.AllStaminaConsumed);
-        jPlayerKPI.SetIntValue("staminaDamageReceivedFromEnemy", PRI.EnemyStaminaDamageTaken);
-        jPlayerKPI.SetIntValue("staminaDamageReceivedFromTeam",  PRI.TeamStaminaDamageTaken);
-        jPlayerKPI.SetIntValue("staminaDamageDealtToEnemy",      PRI.EnemyStaminaDamageDealt);
-        jPlayerKPI.SetIntValue("staminaDamageDealtToTeam",       PRI.TeamStaminaDamageDealt);
-
-        jPlayerKPI.SetIntValue("feints", PRI.Feints);
-
-        jPlayerKPI.SetIntValue("attacks",           PRI.NumAttacks);
-        jPlayerKPI.SetIntValue("successfulAttacks", PRI.NumHits);
-
-        jPlayerKPI.SetIntValue("meleeHits",      PRI.MeleeHits);
-        jPlayerKPI.SetIntValue("projectileHits", PRI.ProjectileHits);
-        jPlayerKPI.SetIntValue("lightShoveHits", PRI.LightShoveHits);
-        jPlayerKPI.SetIntValue("heavyShoveHits", PRI.HeavyShoveHits);
-
-        jPlayerKPI.SetIntValue("parries", PRI.Parries);
-        jPlayerKPI.SetIntValue("blocks",  PRI.Blocks);
-
-        jPlayerKPI.SetIntValue("crouches", PRI.Crouches);
-        jPlayerKPI.SetIntValue("jumps",    PRI.Jumps);
-        jPlayerKPI.SetIntValue("dodges",   PRI.Dodges);
-
-        jPlayerKPI.SetIntValue("objectivePoints", PRI.ObjPoints);
-
-        jPlayerKPI.SetIntValue("decapitations", PRI.NumDecaps);
-        jPlayerKPI.SetIntValue("chatter",       PRI.Chatter);
+        jPlayerKPI = PRI.GetStatsObject();
 
         jTeamTwoPlayers.ObjectArray[i].SetObject("kpi", jPlayerKPI);
     }
 
-
-    // Build request payload
+    // Teams
+    // Update the team objects' with the new players objects
     jTeamOne.SetObject("players", jTeamOnePlayers);
-    jTeamOne.SetObject("kpi", jTeamOneKPI);
-
     jTeamTwo.SetObject("players", jTeamTwoPlayers);
+
+    // Handle rotating teams and get the rest of the data
+    if ((RankedGame.CompletedMatches.Length + 1) % 2 == 1)
+    {
+        jTeamOneKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_AGATHA));
+        jTeamTwoKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_MASON));
+
+        jTeamOneKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_AGATHA));
+        jTeamTwoKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_MASON));
+
+        jTeamOne.SetStringValue("teamName", "Agatha Knights");
+        jTeamTwo.SetStringValue("teamName", "Mason Order");
+    }
+    else
+    {
+        jTeamOneKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_MASON));
+        jTeamTwoKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_AGATHA));
+
+        jTeamOneKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_MASON));
+        jTeamTwoKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_AGATHA));
+
+        jTeamOne.SetStringValue("teamName", "Mason Order");
+        jTeamTwo.SetStringValue("teamName", "Agatha Knights");
+    }
+
+    // Update the team objects with the team KPIs
+    jTeamOne.SetObject("kpi", jTeamOneKPI);
     jTeamTwo.SetObject("kpi", jTeamTwoKPI);
 
-    jItems.SetObject("Team1", jTeamOne);
-    jItems.SetObject("Team2", jTeamTwo);
+    // Add the team objects to the completed match object
+    jCompletedMatch.SetObject("Team1", jTeamOne);
+    jCompletedMatch.SetObject("Team2", jTeamTwo);
 
-    jResponse.SetObject("items", jItems);
-    jResponse.SetIntValue("winner", winner);
+    // Save the completed match as a JSON string
+    RankedGame.CompletedMatches.AddItem(class'JsonObject'.static.EncodeJson(jCompletedMatch));
 
-    jCompletedMatchRequestData.SetObject("response", jResponse);
+    // Notify that the match result was saved
+    BroadcastMessageToAll("Match" @ RankedGame.CompletedMatches.Length @ "of" @ RankedGame.GameSize @ "saved.", sRankedModeChatColour);
 
+    // There's still matches to be played
+    if (RankedGame.CompletedMatches.Length < RankedGame.GameSize)
+    {
+        BroadcastMessageToAll("It's safe to manually restart the map.", sRankedModeChatColour);
+    }
 
-    class'RankedAPI'.static.CalculateNewElos(class'JsonObject'.static.EncodeJson(jCompletedMatchRequestData), CalculateNewElosOnComplete);
+    // The game is complete
+    else
+    {
+        BroadcastMessageToAll("Sending game results to the remote service...", sRankedModeChatColour);
+
+        jCompletedMatches = new class'JsonObject';
+        jRequestPayload = new class'JsonObject';
+
+        // Convert each completed match from JSON string back to an object
+        foreach RankedGame.CompletedMatches(sCompletedMatch)
+        {
+            jCompletedMatches.ObjectArray.AddItem(class'JsonObject'.static.DecodeJson(sCompletedMatch));
+        }
+
+        // Build the request payload
+        jRequestPayload.SetStringValue("uuid", uuid);
+        jRequestPayload.SetStringValue("modName", ModDisplayString);
+        jRequestPayload.SetObject("matches", jCompletedMatches);
+
+        // Send the request
+        class'RankedAPI'.static.CalculateNewElos(class'JsonObject'.static.EncodeJson(jRequestPayload), CalculateNewElosOnComplete);
+    }
 }
 
 function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
     if (bDidSucceed)
-        BroadcastMessageToAll("Match result successfully sent to the remote service.", sRankedModeChatColour);
+        BroadcastMessageToAll("Game results successfully sent to the remote service.", sRankedModeChatColour);
     else
-        BroadcastMessageToAll("Failed to send match result to the remote service.", sRankedModeChatColour);
+        BroadcastMessageToAll("Failed to send game results to the remote service.", sRankedModeChatColour);
 }
 
 // Custom player votes

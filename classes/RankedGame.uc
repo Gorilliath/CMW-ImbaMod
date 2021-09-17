@@ -26,7 +26,6 @@ function GetTeamsAverageElos(out float TeamOneAverageElo, out float TeamTwoAvera
 }
 
 
-
 DefaultProperties
 {
 

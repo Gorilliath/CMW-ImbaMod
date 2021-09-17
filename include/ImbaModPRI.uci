@@ -122,3 +122,53 @@ function RestoreOriginalName()
     if (OriginalName != "" && OriginalName != PlayerName)
         SetPlayerName(OriginalName);
 }
+
+function JsonObject GetStatsObject()
+{
+    local JsonObject jStats;
+
+    jStats = new class'JsonObject';
+
+    jStats.SetIntValue("score",   Score);
+    jStats.SetIntValue("kills",   NumKills);
+    jStats.SetIntValue("deaths",  Deaths);
+    jStats.SetIntValue("assists", NumAssists);
+
+    jStats.SetIntValue("healthRegenerated",             HealthRegenerated);
+    jStats.SetIntValue("healthDamageReceivedFromAll",   AllDamageTaken);
+    jStats.SetIntValue("healthDamageReceivedFromEnemy", DamageTaken);
+    jStats.SetIntValue("healthDamageReceivedFromTeam",  TeamDamageTaken);
+    jStats.SetIntValue("healthDamageDealtToEnemy",      EnemyDamageDealt);
+    jStats.SetIntValue("healthDamageDealtToTeam",       TeamDamageDealt);
+
+    jStats.SetFloatValue("staminaRegenerated",           StaminaRegenerated);
+    jStats.SetFloatValue("staminaDamageReceivedFromAll", AllStaminaConsumed);
+    jStats.SetIntValue("staminaDamageReceivedFromEnemy", EnemyStaminaDamageTaken);
+    jStats.SetIntValue("staminaDamageReceivedFromTeam",  TeamStaminaDamageTaken);
+    jStats.SetIntValue("staminaDamageDealtToEnemy",      EnemyStaminaDamageDealt);
+    jStats.SetIntValue("staminaDamageDealtToTeam",       TeamStaminaDamageDealt);
+
+    jStats.SetIntValue("feints", Feints);
+
+    jStats.SetIntValue("attacks",           NumAttacks);
+    jStats.SetIntValue("successfulAttacks", NumHits);
+
+    jStats.SetIntValue("meleeHits",      MeleeHits);
+    jStats.SetIntValue("projectileHits", ProjectileHits);
+    jStats.SetIntValue("lightShoveHits", LightShoveHits);
+    jStats.SetIntValue("heavyShoveHits", HeavyShoveHits);
+
+    jStats.SetIntValue("parries", Parries);
+    jStats.SetIntValue("blocks",  Blocks);
+
+    jStats.SetIntValue("crouches", Crouches);
+    jStats.SetIntValue("jumps",    Jumps);
+    jStats.SetIntValue("dodges",   Dodges);
+
+    jStats.SetIntValue("objectivePoints", ObjPoints);
+
+    jStats.SetIntValue("decapitations", NumDecaps);
+    jStats.SetIntValue("chatter",       Chatter);
+
+    return jStats;
+}

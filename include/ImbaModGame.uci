@@ -1035,6 +1035,10 @@ function RankedModeAttemptToStartMatch()
         // Start the match
         ClearTimer('RankedModeAttemptToStartMatch');
         RankedGame.ReadyToPlay = true;
+
+        // Reset match durations
+        WorldInfo.TimeSeconds = 0;
+        WorldInfo.RealTimeSeconds = 0;
     }
 }
 
@@ -1197,8 +1201,9 @@ function RankedModeEndGame()
     else
         jCompletedMatch.SetIntValue("winner", 0);
 
-    // Time remaining TODO:
-    //jCompletedMatch.SetIntValue("timeRemaining", );
+    // Duration
+    jCompletedMatch.SetFloatValue("duration", WorldInfo.TimeSeconds);
+    jCompletedMatch.SetFloatValue("realTimeDuration", WorldInfo.RealTimeSeconds);
 
     // Player stats
     // Extend the player objects with their respective KPIs

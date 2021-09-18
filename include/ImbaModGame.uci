@@ -4,6 +4,9 @@
 //to add even more variety. See the ParseOption function in Src\Engine\Classes\GameInfo.uc
 var config array<GameTypePrefix> SDKPrefixes;
 
+var float fMatchStartGameTime;  // WorldInfo.TimeSeconds when the match was started (GameStartTime reassigns every round in LTS)
+var float fMatchStartRealTime;  // WorldInfo.RealTimeSeconds when the match was started
+
 var bool bLockedTeams;
 var array<string> LockedAgathaPlayerSteamIDs, LockedMasonPlayerSteamIDs;
 
@@ -324,14 +327,19 @@ function StartRound()
 {
     local AOCPlayerController PC;
 
-     // Reset everyone's stats before starting the game for the first time
+     // When starting the match for the first time
     if (bBeforeFirstRound)
     {
+        // Reset all players' stats
         foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
         {
             AOCPRI(PC.PlayerReplicationInfo).PreSeamlessTravelReset();
             AOCPRI(PC.PlayerReplicationInfo).bNetDirty = true;
         }
+
+        // Record actual match start times
+        fMatchStartGameTime = WorldInfo.TimeSeconds;
+        fMatchStartRealTime = WorldInfo.RealTimeSeconds;
     }
 
     super.StartRound();
@@ -1035,10 +1043,6 @@ function RankedModeAttemptToStartMatch()
         // Start the match
         ClearTimer('RankedModeAttemptToStartMatch');
         RankedGame.ReadyToPlay = true;
-
-        // Reset match durations
-        WorldInfo.TimeSeconds = 0;
-        WorldInfo.RealTimeSeconds = 0;
     }
 }
 
@@ -1202,8 +1206,8 @@ function RankedModeEndGame()
         jCompletedMatch.SetIntValue("winner", 0);
 
     // Duration
-    jCompletedMatch.SetFloatValue("duration", WorldInfo.TimeSeconds);
-    jCompletedMatch.SetFloatValue("realTimeDuration", WorldInfo.RealTimeSeconds);
+    jCompletedMatch.SetFloatValue("duration",         WorldInfo.TimeSeconds     - fMatchStartGameTime);
+    jCompletedMatch.SetFloatValue("realTimeDuration", WorldInfo.RealTimeSeconds - fMatchStartRealTime);
 
     // Player stats
     // Extend the player objects with their respective KPIs

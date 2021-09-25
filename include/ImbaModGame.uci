@@ -1198,12 +1198,6 @@ function RankedModeEndGame()
 
     // Winning team
     WinningTeam = GetWinningTeam();
-    if (WinningTeam == EFAC_AGATHA)
-        jCompletedMatch.SetIntValue("winner", 1);
-    else if (WinningTeam == EFAC_MASON)
-        jCompletedMatch.SetIntValue("winner", 2);
-    else
-        jCompletedMatch.SetIntValue("winner", 0);
 
     // Duration
     jCompletedMatch.SetFloatValue("duration",         WorldInfo.TimeSeconds     - fMatchStartGameTime);
@@ -1249,25 +1243,65 @@ function RankedModeEndGame()
     // Handle rotating teams and get the rest of the data
     if ((RankedGame.CompletedMatches.Length + 1) % 2 == 1)
     {
-        jTeamOneKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_AGATHA));
-        jTeamTwoKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_MASON));
+        // Team1: Agatha
+        // Team2: Mason
 
-        jTeamOneKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_AGATHA));
-        jTeamTwoKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_MASON));
+        // Attacking team
+        if (AttackingTeam == EFAC_AGATHA)
+            jCompletedMatch.SetIntValue("attacker", 1);
+        else if (AttackingTeam == EFAC_MASON)
+            jCompletedMatch.SetIntValue("attacker", 2);
+        else
+            jCompletedMatch.SetIntValue("attacker", -1);
 
+        // Winning team
+        if (WinningTeam == EFAC_AGATHA)
+            jCompletedMatch.SetIntValue("winner", 1);
+        else if (WinningTeam == EFAC_MASON)
+            jCompletedMatch.SetIntValue("winner", 2);
+        else
+            jCompletedMatch.SetIntValue("winner", -1);
+
+        // Name
         jTeamOne.SetStringValue("teamName", "Agatha Knights");
         jTeamTwo.SetStringValue("teamName", "Mason Order");
+
+        // KPI
+        jTeamOneKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_AGATHA));
+        jTeamTwoKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_MASON));
+        jTeamOneKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_AGATHA));
+        jTeamTwoKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_MASON));
     }
     else
     {
-        jTeamOneKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_MASON));
-        jTeamTwoKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_AGATHA));
+        // Team1: Mason
+        // Team2: Agatha
 
-        jTeamOneKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_MASON));
-        jTeamTwoKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_AGATHA));
+        // Attacking team
+        if (AttackingTeam == EFAC_MASON)
+            jCompletedMatch.SetIntValue("attacker", 1);
+        else if (AttackingTeam == EFAC_AGATHA)
+            jCompletedMatch.SetIntValue("attacker", 2);
+        else
+            jCompletedMatch.SetIntValue("attacker", -1);
 
+        // Winning team
+        if (WinningTeam == EFAC_MASON)
+            jCompletedMatch.SetIntValue("winner", 1);
+        else if (WinningTeam == EFAC_AGATHA)
+            jCompletedMatch.SetIntValue("winner", 2);
+        else
+            jCompletedMatch.SetIntValue("winner", -1);
+
+        // Name
         jTeamOne.SetStringValue("teamName", "Mason Order");
         jTeamTwo.SetStringValue("teamName", "Agatha Knights");
+
+        // KPI
+        jTeamOneKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_MASON));
+        jTeamTwoKPI.SetFloatValue("score", GRI.GetTeamScore(EFAC_AGATHA));
+        jTeamOneKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_MASON));
+        jTeamTwoKPI.SetFloatValue("progress", GRI.GetTeamProgress(EFAC_AGATHA));
     }
 
     // Update the team objects with the team KPIs

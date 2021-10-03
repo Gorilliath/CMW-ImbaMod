@@ -1154,6 +1154,8 @@ function RankedModeEndGame()
                      jTeamTwoKPI,
                      jPlayer,
                      jPlayerKPI,
+                     jObjectives,
+                     jObjective,
                      jCompletedMatch,
 
                      jCompletedMatches,
@@ -1164,6 +1166,7 @@ function RankedModeEndGame()
     local EAOCFaction WinningTeam;
     local AOCGRI GRI;
     local `{GAMEMODE}PRI PRI;
+    local ObjInfo Objective;
 
 
     if (!bRankedMode ||
@@ -1311,6 +1314,29 @@ function RankedModeEndGame()
     // Add the team objects to the completed match object
     jCompletedMatch.SetObject("Team1", jTeamOne);
     jCompletedMatch.SetObject("Team2", jTeamTwo);
+
+    // Add objective data if necessary
+    if (AOCTeamObjective(WorldInfo.Game) != none)
+    {
+        jObjectives = new class'JsonObject';
+
+        // Get objective data
+        foreach AOCTeamObjective(WorldInfo.Game).AllObjectives(Objective)
+        {
+            jObjective = new class'JsonObject';
+
+            jObjective.SetStringValue("name", Objective.StageName);
+            jObjective.SetFloatValue("completionTime", Objective.CompletionTime);
+            jObjective.SetFloatValue("actualProgress", Objective.CurVar);
+            jObjective.SetFloatValue("maxProgress", Objective.MaxVar);
+            jObjective.SetFloatValue("extraProgress", Objective.ExtraVar);
+
+            jObjectives.ObjectArray.AddItem(jObjective);
+        }
+
+        // Add to match object
+        jCompletedMatch.SetObject("objectives", jObjectives);
+    }
 
     // Save the completed match as a JSON string
     RankedGame.CompletedMatches.AddItem(class'JsonObject'.static.EncodeJson(jCompletedMatch));

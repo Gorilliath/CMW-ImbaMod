@@ -14,6 +14,8 @@ var bool bFeintCostWasRefunded;
 var int iMaximumConsecutiveMisses;      // Maximum number of consecutive misses which are permitted before the combo is forcibly ended
 var int iConsecutiveMissCount;
 
+var int iMaxIdenticalCombo;
+
 
 simulated state ParryRelease
 {
@@ -214,7 +216,7 @@ simulated state Release
         AOCOwner.FinishSprintAttack();
         AOCWepAttachment.GotoState('');
         bParryHitCounter = false;
-        
+
         // Deal with super.super
         //super.EndState(NextStateName);
         AOCOwner.FinishLunge();
@@ -232,7 +234,7 @@ simulated state Release
         }
 
         /* Check consecutive misses before allowing combo
-         * 
+         *
          * This logic cannot be done in HandleCombo, where one might expect it to exist, because HandleCombo is called before EndState finishes
          * (essentially evaluating consecutive misses before it is known whether the previous attack missed or not, and therefore the true miss count)
          */
@@ -245,7 +247,7 @@ simulated state Release
     simulated function HandleCombo(EAttack ComboAttack)
     {
         local bool bHasEnoughStamina;
-        
+
         if (CurrentFireMode == Attack_Shove || CurrentFireMode == Attack_Parry || CurrentFireMode == Attack_Sprint || (CurrentFireMode == Attack_Stab && ComboAttack == Attack_Stab))
             return;
 
@@ -260,7 +262,7 @@ simulated state Release
         else if (ComboAttack == Attack_AltSlash)
             ComboAttack = Attack_Slash;
 
-        if(ComboAttack == CurrentFireMode && iIdenticalCombo >= 3)
+        if (ComboAttack == CurrentFireMode && iMaxIdenticalCombo >= 0 && iIdenticalCombo >= iMaxIdenticalCombo)
         {
             return;
         }
@@ -279,7 +281,7 @@ simulated state Release
                 eNextAttack = ComboAttack;
 
                 AOCOwner.PlayerHUDStartCombo();
-                
+
                 if(iComboCount == 1)
                 {
                     AOCOwner.OnComboStarted();
@@ -331,7 +333,7 @@ simulated state AlternateRecovery
 
         if (ComboAttack == Attack_Parry)
             return;
-            
+
         // notify that we're in a combo now if we're not aborting the attack -- double check we're allowed to combo
         if (iComboCount < MaxComboCount)
         {
@@ -357,7 +359,7 @@ simulated state Active
     simulated event BeginState(Name PreviousStateName)
     {
         super.BeginState(PreviousStateName);
-        
+
         // Reset riposte-parry variables
         bParryWasDuringRiposte = false;
         bFeintCostWasRefunded = false;
@@ -386,6 +388,8 @@ DefaultProperties
     bFeintCostWasRefunded = false;
 
     iMaximumConsecutiveMisses = 2;
+
+    iMaxIdenticalCombo = -1;
 
     bCanParry = true;
     bCanCombo = true;

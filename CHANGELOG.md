@@ -1,5 +1,9 @@
 # ImbaMod
 
+## 2.5.2
+
+* Removed identical combo limit (still configurable per weapon)
+
 ## 2.5.1
 
 * Fixed king objective not ending when king died

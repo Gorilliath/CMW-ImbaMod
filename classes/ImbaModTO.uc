@@ -24,14 +24,6 @@ function ActivateNextObjectiveStage()
         AllObjectives[CurrentObjectiveStage-1].MaxVar = AOCTOGRI(GameReplicationInfo).CurObjective.MaxVar;
         AllObjectives[CurrentObjectiveStage-1].ExtraVar = AOCTOGRI(GameReplicationInfo).CurObjective.ExtraVar;
 
-        AttackerProgress = AOCGRI(GameReplicationInfo).GetTeamProgress(AttackingTeam);
-
-        if (AttackerProgress > 0.0f)
-        {
-            AllObjectives[CurrentObjectiveStage-1].CurVar = AttackerProgress;
-            AllObjectives[CurrentObjectiveStage-1].MaxVar = 1.0f;
-        }
-
         PrevTimeLeft = TimeLeft;
         // Add bonus time we get from completing objective
         TimeLeft += AllObjectives[CurrentObjectiveStage-1].BonusTime;
@@ -92,14 +84,6 @@ function ObjectiveEndGame(EAOCFaction Winner)
         AllObjectives[CurrentObjectiveStage].CurVar = AOCTOGRI(GameReplicationInfo).CurObjective.CurVar;
         AllObjectives[CurrentObjectiveStage].MaxVar = AOCTOGRI(GameReplicationInfo).CurObjective.MaxVar;
         AllObjectives[CurrentObjectiveStage].ExtraVar = AOCTOGRI(GameReplicationInfo).CurObjective.ExtraVar;
-
-        AttackerProgress = AOCGRI(GameReplicationInfo).GetTeamProgress(AttackingTeam);
-
-        if (AttackerProgress > 0.0f)
-        {
-            AllObjectives[CurrentObjectiveStage].CurVar = AttackerProgress;
-            AllObjectives[CurrentObjectiveStage].MaxVar = 1.0f;
-        }
     }
 
     EndGame(GetHighestScoreFromTeam(Winner), "TimeLimit");

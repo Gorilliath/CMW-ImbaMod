@@ -951,6 +951,10 @@ function OnUserConnectOnComplete(HttpRequestInterface OriginalRequest, HttpRespo
     if (Response == none || !bDidSucceed)
         return;
 
+    // Request failed unimpressively
+    if (Response.GetResponseCode() >= 400)
+        return;
+
     // Request succeeded; Get the payload
     data = class'JsonObject'.static.DecodeJson(Response.GetContentAsString())
                                    .GetObject("response");
@@ -1055,6 +1059,17 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     {
         BroadcastMessageToAll("");
         BroadcastMessageToAll("Remote service failed to respond.", sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
+        BroadcastMessageToAll("");
+        return;
+    }
+
+    // Request failed unimpressively
+    if (Response.GetResponseCode() >= 400)
+    {
+        BroadcastMessageToAll("");
+        BroadcastMessageToAll("Remote service returned an unexpected response code.", sRankedModeChatColour);
+        BroadcastMessageToAll("Response code:" @ Response.GetResponseCode(), sRankedModeChatColour);
         BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
         BroadcastMessageToAll("");
         return;
@@ -1376,10 +1391,19 @@ function RankedModeEndGame()
 
 function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
-    if (bDidSucceed)
-        BroadcastMessageToAll("Game results successfully sent to the remote service.", sRankedModeChatColour);
-    else
+    if (!bDidSucceed || Response == none)
+    {
+        BroadcastMessageToAll("Failed to communicate with remote service.", sRankedModeChatColour);
+    }
+    else if (Response.GetResponseCode() >= 400)
+    {
         BroadcastMessageToAll("Failed to send game results to the remote service.", sRankedModeChatColour);
+        BroadcastMessageToAll("Response code:" @ Response.GetResponseCode(), sRankedModeChatColour);
+    }
+    else
+    {
+        BroadcastMessageToAll("Game results successfully sent to the remote service.", sRankedModeChatColour);
+    }
 }
 
 // Custom player votes

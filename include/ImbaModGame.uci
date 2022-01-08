@@ -1021,7 +1021,6 @@ function RankedModeAttemptToStartMatch()
         {
             BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "ready players to start a match.", sRankedModeChatColour);
             BroadcastMessageToAll("Note: Being in team-select or class-select is not being ready!", sRankedModeChatColour);
-            BroadcastMessageToAll("Wait for more ready players or reduce the target team size.", sRankedModeChatColour);
             BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
             return;
         }
@@ -1096,7 +1095,7 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     {
         BroadcastMessageToAll("Remote service was unable to make a match.", sRankedModeChatColour);
         if (data.GetStringValue("error") != "")
-            BroadcastMessageToAll("error: '" @ data.GetStringValue("error") @ "'", sRankedModeChatColour);
+            BroadcastMessageToAll("Error: '" $ data.GetStringValue("error") $ "'", sRankedModeChatColour);
         BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
         return;
     }

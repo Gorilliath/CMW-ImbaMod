@@ -17,6 +17,8 @@ var globalconfig bool bRankedMode;
 var globalconfig int iRankedTeamSize;
 var globalconfig int iRankedGameSize;
 var float fRankedModeAttemptToStartMatchInterval;
+var float fRankedModeAttemptToSendResultsInterval;
+var float fRankedModeResumeEndGameInterval;
 var string sRankedModeChatColour;
 var RankedGame RankedGame;
 
@@ -590,6 +592,16 @@ reliable server function BroadcastMessageToAll(string Message, optional string C
     }
 }
 
+reliable server function SetScoreboardTimer(float Seconds)
+{
+    local AOCPlayerController PC;
+
+    foreach WorldInfo.AllControllers(class'AOCPlayerController', PC)
+    {
+        PC.InitializeTimer(Seconds, true);
+    }
+}
+
 function int GetActualPlayersCount()
 {
     local AOCPlayerController PC;
@@ -996,10 +1008,8 @@ function RankedModeAttemptToStartMatch()
         CDWDuelGRI(GameReplicationInfo) != none
     )
     {
-        BroadcastMessageToAll("");
         BroadcastMessageToAll("Unsupported gamemode.", sRankedModeChatColour);
         BroadcastMessageToAll("Disable ranked mode for this gamemode!", sRankedModeChatColour);
-        BroadcastMessageToAll("");
         return;
     }
 
@@ -1009,12 +1019,10 @@ function RankedModeAttemptToStartMatch()
         // Don't bother proceeding if there's insufficient ready players
         if (PlayerCount < iRankedTeamSize * 2)
         {
-            BroadcastMessageToAll("");
             BroadcastMessageToAll("Need at least" @ iRankedTeamSize * 2 @ "ready players to start a match.", sRankedModeChatColour);
             BroadcastMessageToAll("Note: Being in team-select or class-select is not being ready!", sRankedModeChatColour);
-            BroadcastMessageToAll("Wait for more ready players to join or reduce the target team size.", sRankedModeChatColour);
+            BroadcastMessageToAll("Wait for more ready players or reduce the target team size.", sRankedModeChatColour);
             BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
-            BroadcastMessageToAll("");
             return;
         }
 
@@ -1057,21 +1065,17 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     // Request failed spectacularly
     if (Response == none || !bDidSucceed)
     {
-        BroadcastMessageToAll("");
         BroadcastMessageToAll("Remote service failed to respond.", sRankedModeChatColour);
         BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
-        BroadcastMessageToAll("");
         return;
     }
 
     // Request failed unimpressively
     if (Response.GetResponseCode() >= 400)
     {
-        BroadcastMessageToAll("");
         BroadcastMessageToAll("Remote service returned an unexpected response code.", sRankedModeChatColour);
         BroadcastMessageToAll("Response code:" @ Response.GetResponseCode(), sRankedModeChatColour);
         BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
-        BroadcastMessageToAll("");
         return;
     }
 
@@ -1082,22 +1086,18 @@ function CalculateMatchMakingOnComplete(HttpRequestInterface OriginalRequest, Ht
     // Response payload isn't what we're expecting
     if (data == none)
     {
-        BroadcastMessageToAll("");
         BroadcastMessageToAll("Remote service returned an unexpected payload.", sRankedModeChatColour);
         BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
-        BroadcastMessageToAll("");
         return;
     }
 
     // Remote service was unable to make a match
     if (data.GetBoolValue("success") == false)
     {
-        BroadcastMessageToAll("");
         BroadcastMessageToAll("Remote service was unable to make a match.", sRankedModeChatColour);
         if (data.GetStringValue("error") != "")
             BroadcastMessageToAll("error: '" @ data.GetStringValue("error") @ "'", sRankedModeChatColour);
         BroadcastMessageToAll("Trying again in" @ int(fRankedModeAttemptToStartMatchInterval) @ "seconds...", sRankedModeChatColour);
-        BroadcastMessageToAll("");
         return;
     }
 
@@ -1135,9 +1135,11 @@ function RankedModeBroadcastMatchInfo()
         .GetObject("Team2")
         .GetObject("players");
 
-    BroadcastMessageToAll("");
-    BroadcastMessageToAll("Match" @ RankedGame.CompletedMatches.Length + 1 @ "of" @ RankedGame.GameSize, sRankedModeChatColour);
-    BroadcastMessageToAll("");
+    if (RankedGame.GameSize > 1)
+    {
+        BroadcastMessageToAll("Match" @ RankedGame.CompletedMatches.Length + 1 @ "of" @ RankedGame.GameSize, sRankedModeChatColour);
+        BroadcastMessageToAll("");
+    }
 
     foreach jTeamOnePlayers.ObjectArray(jPlayer)
     {
@@ -1152,11 +1154,33 @@ function RankedModeBroadcastMatchInfo()
     {
         BroadcastMessageToAll("[" $ jPlayer.GetIntValue("elo") $ "]" @ jPlayer.GetStringValue("name"), sRankedModeChatColour);
     }
-
-    BroadcastMessageToAll("");
 }
 
 function RankedModeEndGame()
+{
+    RankedModeSaveMatchData();
+
+    if (RankedGame.IsComplete())
+    {
+        // Stop actual endgame just in case the request fails
+        if (IsTimerActive('ActualEndGame'))
+            ClearTimer('ActualEndGame');
+
+        // Round time still ticks down in LTS which makes winning team go to 8 rounds won
+        TimeLeft = 3600;
+
+        // Keep on trying to send game results
+        SetTimer(fRankedModeAttemptToSendResultsInterval, true, 'RankedModeAttemptToSendResults');
+
+        BroadcastMessageToAll("Sending game results to the remote service...", sRankedModeChatColour);
+    }
+    else
+    {
+        BroadcastMessageToAll("It is now safe to manually restart the map.", sRankedModeChatColour);
+    }
+}
+
+function RankedModeSaveMatchData()
 {
     local JsonObject jMatchmakingResponse,
                      jItems,
@@ -1171,12 +1195,7 @@ function RankedModeEndGame()
                      jPlayerKPI,
                      jObjectives,
                      jObjective,
-                     jCompletedMatch,
-
-                     jCompletedMatches,
-                     jRequestPayload;
-    local string uuid,
-                 sCompletedMatch;
+                     jCompletedMatch;
     local int i;
     local EAOCFaction WinningTeam;
     local AOCGRI GRI;
@@ -1187,13 +1206,10 @@ function RankedModeEndGame()
     if (!bRankedMode ||
         RankedGame == none ||
         RankedGame.MatchmakingResponse == "" ||
-        RankedGame.CompletedMatches.Length >= RankedGame.GameSize)
+        RankedGame.IsComplete())
     {
         return;
     }
-
-    // Ensure any subsequent matches are able to start after seamless-travel
-    RankedGame.ReadyToPlay = false;
 
     // Extract relevant data from the matchmaking response
     jMatchmakingResponse = RankedGame.GetMatchmakingResponseObject();
@@ -1202,7 +1218,6 @@ function RankedModeEndGame()
     jTeamTwo = jItems.GetObject("Team2");
     jTeamOnePlayers = jTeamOne.GetObject("players");
     jTeamTwoPlayers = jTeamTwo.GetObject("players");
-    uuid = jItems.GetStringValue("uuid");
 
     // Prepare remaining objects
     jCompletedMatch = new class'JsonObject';
@@ -1356,53 +1371,73 @@ function RankedModeEndGame()
     // Save the completed match as a JSON string
     RankedGame.CompletedMatches.AddItem(class'JsonObject'.static.EncodeJson(jCompletedMatch));
 
+    // Ensure any subsequent matches are able to start after seamless-travel
+    RankedGame.ReadyToPlay = false;
+
     // Notify that the match result was saved
-    BroadcastMessageToAll("Match" @ RankedGame.CompletedMatches.Length @ "of" @ RankedGame.GameSize @ "saved.", sRankedModeChatColour);
-
-    // There's still matches to be played
-    if (RankedGame.CompletedMatches.Length < RankedGame.GameSize)
-    {
-        BroadcastMessageToAll("It's safe to manually restart the map.", sRankedModeChatColour);
-    }
-
-    // The game is complete
+    if (RankedGame.GameSize > 1)
+        BroadcastMessageToAll("Match results" @ RankedGame.CompletedMatches.Length @ "of" @ RankedGame.GameSize @ "saved.", sRankedModeChatColour);
     else
+        BroadcastMessageToAll("Match results saved.", sRankedModeChatColour);
+}
+
+function RankedModeAttemptToSendResults()
+{
+    local JsonObject jCompletedMatches,
+                     jRequestPayload;
+    local string sCompletedMatch,
+                 uuid;
+
+
+    // Set the scoreboard timer to indicate when the next attempt will be if this one fails
+    SetScoreboardTimer(fRankedModeAttemptToSendResultsInterval);
+
+    jCompletedMatches = new class'JsonObject';
+    jRequestPayload = new class'JsonObject';
+
+    // Convert each completed match from JSON string back to an object
+    foreach RankedGame.CompletedMatches(sCompletedMatch)
     {
-        BroadcastMessageToAll("Sending game results to the remote service...", sRankedModeChatColour);
-
-        jCompletedMatches = new class'JsonObject';
-        jRequestPayload = new class'JsonObject';
-
-        // Convert each completed match from JSON string back to an object
-        foreach RankedGame.CompletedMatches(sCompletedMatch)
-        {
-            jCompletedMatches.ObjectArray.AddItem(class'JsonObject'.static.DecodeJson(sCompletedMatch));
-        }
-
-        // Build the request payload
-        jRequestPayload.SetStringValue("uuid", uuid);
-        jRequestPayload.SetStringValue("modName", ModDisplayString);
-        jRequestPayload.SetObject("matches", jCompletedMatches);
-
-        // Send the request
-        class'RankedAPI'.static.CalculateNewElos(class'JsonObject'.static.EncodeJson(jRequestPayload), CalculateNewElosOnComplete);
+        jCompletedMatches.ObjectArray.AddItem(class'JsonObject'.static.DecodeJson(sCompletedMatch));
     }
+
+    uuid = RankedGame.GetMatchmakingResponseObject()
+                     .GetObject("response")
+                     .GetObject("items")
+                     .GetStringValue("uuid");
+
+    // Build the request payload
+    jRequestPayload.SetStringValue("uuid", uuid);
+    jRequestPayload.SetStringValue("modName", ModDisplayString);
+    jRequestPayload.SetObject("matches", jCompletedMatches);
+
+    // Send the request
+    class'RankedAPI'.static.CalculateNewElos(class'JsonObject'.static.EncodeJson(jRequestPayload), CalculateNewElosOnComplete);
 }
 
 function CalculateNewElosOnComplete(HttpRequestInterface OriginalRequest, HttpResponseInterface Response, bool bDidSucceed)
 {
     if (!bDidSucceed || Response == none)
     {
-        BroadcastMessageToAll("Failed to communicate with remote service.", sRankedModeChatColour);
+        BroadcastMessageToAll("...Failed to communicate with the remote service.", sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again within" @ int(fRankedModeAttemptToSendResultsInterval) @ "seconds...", sRankedModeChatColour);
     }
     else if (Response.GetResponseCode() >= 400)
     {
-        BroadcastMessageToAll("Failed to send game results to the remote service.", sRankedModeChatColour);
+        BroadcastMessageToAll("...Failed to send game results to the remote service.", sRankedModeChatColour);
         BroadcastMessageToAll("Response code:" @ Response.GetResponseCode(), sRankedModeChatColour);
+        BroadcastMessageToAll("Trying again within" @ int(fRankedModeAttemptToSendResultsInterval) @ "seconds...", sRankedModeChatColour);
     }
-    else
+    else // Success!
     {
-        BroadcastMessageToAll("Game results successfully sent to the remote service.", sRankedModeChatColour);
+        // Stop trying to send game results
+        ClearTimer('RankedModeAttemptToSendResults');
+
+        // Allow the game to end naturally
+        SetTimer(fRankedModeResumeEndGameInterval, false, 'ActualEndGame');
+        SetScoreboardTimer(fRankedModeResumeEndGameInterval);
+
+        BroadcastMessageToAll("...Game results successfully sent to the remote service.", sRankedModeChatColour);
     }
 }
 
@@ -1632,6 +1667,8 @@ DefaultProperties
     bDisableTeamDamagePenalty = true
 
     fRankedModeAttemptToStartMatchInterval = 30.0
+    fRankedModeAttemptToSendResultsInterval = 20.0
+    fRankedModeResumeEndGameInterval = 10.0
     sRankedModeChatColour = "#00BFFF"
 
     sVoteChatColour = "#fc4ed9"

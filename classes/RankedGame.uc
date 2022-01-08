@@ -10,6 +10,11 @@ var bool ReadyToPlay;                   // Whether the match (or round) can be s
 var bool Cancelled;                     // Whether an admin has cancelled the entire game
 
 
+function bool IsComplete()
+{
+    return CompletedMatches.Length == GameSize;
+}
+
 function JsonObject GetMatchmakingResponseObject()
 {
     return class'JsonObject'.static.DecodeJson(MatchmakingResponse);

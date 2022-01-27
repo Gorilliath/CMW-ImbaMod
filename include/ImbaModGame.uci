@@ -142,6 +142,7 @@ function GenericPlayerInitialization(Controller C)
         // Connect player to remote service and rename them to display their elo
         class'RankedAPI'.static.OnUserConnect(OnlineSubsystemSteamworks(OnlineSub).UniqueNetIdToInt64(C.PlayerReplicationInfo.UniqueId),
                                               PlayerController(C).GetPlayerNetworkAddress(),
+                                              string(WorldInfo.GetPackageName()),
                                               OnUserConnectOnComplete);
     }
     else

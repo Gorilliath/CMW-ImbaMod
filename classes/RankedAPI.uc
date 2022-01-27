@@ -12,7 +12,10 @@ static function DoNothing(HttpRequestInterface OriginalRequest, HttpResponseInte
 
 
 // Endpoints
-static function OnUserConnect(string steamID64, optional string playerIP, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+static function OnUserConnect(string steamID64,
+                              optional string playerIP,
+                              optional string mapName,
+                              optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local GUID GUID;
 
@@ -20,6 +23,8 @@ static function OnUserConnect(string steamID64, optional string playerIP, option
 
     if (playerIP == "")
         playerIP = "?";
+    if (mapName == "")
+        mapName = "?";
 
     class'HttpFactory'.static.CreateRequest()
         .SetURL(default.baseURL $ "OnUserConnect"
@@ -28,6 +33,7 @@ static function OnUserConnect(string steamID64, optional string playerIP, option
                                 $ "&GUID=" $ GetStringFromGuid(GUID))
         .SetVerb("GET")
         .SetHeader("playerIP", playerIP)
+        .SetHeader("mapName", mapName)
         .SetProcessRequestCompleteDelegate(OnProcessComplete)
         .ProcessRequest();
 }

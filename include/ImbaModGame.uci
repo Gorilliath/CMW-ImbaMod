@@ -1169,10 +1169,13 @@ function RankedModeEndGame()
         // Round time still ticks down in LTS which makes winning team go to 8 rounds won
         TimeLeft = 3600;
 
-        // Keep on trying to send game results
+        // Register a timer to keep on trying to send game results
         SetTimer(fRankedModeAttemptToSendResultsInterval, true, 'RankedModeAttemptToSendResults');
 
         BroadcastMessageToAll("Sending game results to the remote service...", sRankedModeChatColour);
+
+        // Try to send game results instantly
+        RankedModeAttemptToSendResults();
     }
     else
     {

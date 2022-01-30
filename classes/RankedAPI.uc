@@ -13,18 +13,13 @@ static function DoNothing(HttpRequestInterface OriginalRequest, HttpResponseInte
 
 // Endpoints
 static function OnUserConnect(string steamID64,
-                              optional string playerIP,
-                              optional string mapName,
+                              optional string playerIP = "?",
+                              optional string mapName = "?",
                               optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local GUID GUID;
 
     GUID = CreateGuid();
-
-    if (playerIP == "")
-        playerIP = "?";
-    if (mapName == "")
-        mapName = "?";
 
     class'HttpFactory'.static.CreateRequest()
         .SetURL(default.baseURL $ "OnUserConnect"
@@ -54,7 +49,10 @@ static function OnUserDisconnect(string steamID64, optional delegate<OnProcessCo
         .ProcessRequest();
 }
 
-static function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
+static function CalculateMatchMaking(Array<String> steamIDs64,
+                                     int teamSize,
+                                     optional string mapName = "?",
+                                     optional delegate<OnProcessComplete> OnProcessComplete = DoNothing)
 {
     local string stringSteamIDs;
     local JsonObject payload;
@@ -62,6 +60,7 @@ static function CalculateMatchMaking(Array<String> steamIDs64, int teamSize, opt
     JoinArray(steamIDs64, stringSteamIDs);
     payload = new class'JsonObject';
     payload.SetStringValue("steamids64", stringSteamIDs);
+    payload.SetStringValue("mapName", mapName);
 
     class'HttpFactory'.static.CreateRequest()
         .SetURL(default.baseURL $ "CalculateMatchMaking"

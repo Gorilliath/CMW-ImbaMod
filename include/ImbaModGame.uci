@@ -1026,7 +1026,10 @@ function RankedModeAttemptToStartMatch()
             return;
         }
 
-        class'RankedAPI'.static.CalculateMatchMaking(GetActualPlayersSteamIDs(), iRankedTeamSize, CalculateMatchMakingOnComplete);
+        class'RankedAPI'.static.CalculateMatchMaking(GetActualPlayersSteamIDs(),
+                                                     iRankedTeamSize,
+                                                     string(WorldInfo.GetPackageName()),
+                                                     CalculateMatchMakingOnComplete);
     }
     // If there's a game in progress
     else if (RankedGame.MatchmakingResponse != "" && RankedGame.CompletedMatches.Length < RankedGame.GameSize)
